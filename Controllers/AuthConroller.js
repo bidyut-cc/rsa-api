@@ -248,35 +248,67 @@ class AuthController {
      * @return {json} 
      */
     async changePassword(req, res) {
-        if (req.body.new_password !== req.body.confirm_new_password) {
-            res.status(200).json({
+       // Create validator instance
+    const v = new Validator(req.body, {
+        old_password: 'required',
+        new_password: 'required|minLength:6',
+        confirm_new_password: 'required|same:new_password',
+    });
+
+    const matched = await v.check();
+
+    if (!matched) {
+        // If validation fails, return error messages
+        return res.status(400).json({
+            status: false,
+            errors: v.errors
+        });
+    }
+
+    try {
+        // Fetch the user by ID
+        let user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({
                 status: false,
-                message: "New password and confirm password does not match.",
+                message: "User not found.",
             });
-        } else {
-            let user = await User.findById(req.user._id);
-            const isMatch = await bcrypt.compare(
-                req.body.old_password,
-                user.password
-            );
-            if (!isMatch) {
-                res.status(200).json({
-                    status: false,
-                    message: "Wrong Old Password.",
-                });
-            }else{
-                const salt = await bcrypt.genSalt(10);
-                user.password = await bcrypt.hash(req.body.new_password, salt);
-                var accountLog = new AccountLog();
-                await accountLog.saveLog("updated", user, req.user);
-                await user.save();
-                res.status(200).json({
-                    status: true,
-                    message: "Password Changed Successfully",
-                });
-            }
-          
         }
+
+        // Check if old password matches the one in the database
+        const isMatch = await bcrypt.compare(req.body.old_password, user.password);
+        if (!isMatch) {
+            return res.status(422).json({
+                status: false,
+                errors:{
+                    'old_password':{
+                        message: "Wrong Old Password."
+                    }
+                }
+            });
+        }
+
+        // Hash the new password and save it
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(req.body.new_password, salt);
+
+        // Save the password change and log the action (if needed)
+        await user.save();
+        var accountLog = new AccountLog();
+        await accountLog.saveLog("updated", user, req.user);
+
+        // Send success response
+        return res.status(200).json({
+            status: true,
+            message: "Password Changed Successfully",
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: "An error occurred while updating the password.",
+        });
+    }
     }
 
     /**
@@ -302,7 +334,7 @@ class AuthController {
           }else{
             try {
                 let user = await User.findById(req.user._id);
-                user.name = req.body.first_name+' '+req.body.last_name;
+                user.username = req.body.first_name+' '+req.body.last_name;
                 user.first_name = req.body.first_name;
                 user.last_name = req.body.last_name;
                 user.email = req.body.email.toLowerCase();
@@ -329,7 +361,7 @@ class AuthController {
                 await user.save();
                 res.status(200).json({
                     status: true,
-                    message: "Profile updated",
+                    message: "Profile updated.",
                 });
             } catch(error) {
                 res.status(500).json({

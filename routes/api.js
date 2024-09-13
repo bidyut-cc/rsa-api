@@ -36,16 +36,6 @@ router.post(
 router.post(
     "/auth/change-password",
     [
-        check("new_password", "Please enter a valid new_password").isLength({
-            min: 8,
-        }),
-        check("old_password", "Please enter a valid old_password").isLength({
-            min: 8,
-        }),
-        check(
-            "confirm_new_password",
-            "Please enter a valid confirm_new_password"
-        ).isLength({ min: 8 }),
         AuthMiddleware,
     ],
     AuthController.changePassword
