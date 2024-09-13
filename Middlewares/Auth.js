@@ -47,6 +47,6 @@ module.exports = async function (req, res, next) {
         next();
     } catch (e) {
         console.error(e);
-        res.status(401).send({ message: "Invalid Token" });
+        res.status(401).send({token_expired: true, message: "Invalid Token" });
     }
 };
