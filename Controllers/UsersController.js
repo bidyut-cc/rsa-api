@@ -12,8 +12,81 @@ class UsersController extends Controller {
         super("User");
     }
 
-   
-  
+    /**
+     * To get user list
+     *
+     * @param {object} req
+     * @return {json} 
+     */
+    
+    // async getListQuery(req) {
+    //     var trash = req.query.trash || false;
+    //     var limit = req.query.show || 500000;
+    //     var page = req.query.page || 1;
+    //     var offset = (parseInt(page) - 1) * parseInt(limit);
+    //     var search = req.query.search || "";
+    //     var sort_field = req.query.sort || "_id";
+    //     var sort_order = req.query.sort_order || "desc";
+    //     var where_clause = req.query.where_clause
+    //         ? JSON.parse(req.query.where_clause)
+    //         : {
+    //               where_fields: [],
+    //               where_values: [],
+    //           };
+    //     sort_order = sort_order == "asc" ? 1 : -1;
+    //     var fields = this.getModelObj().schema.customFields;
+    //     let select_fields = Object.keys(fields);
+    //     let search_fields = select_fields.filter((item) => {
+    //         if (fields[item]["searchable"]) return item;
+    //     });
+    //     var sort_order_obj = { [sort_field]: sort_order };
+    //     let search_query = {};
+    //     if (search.length > 0) {
+    //         var search_arr = [];
+    //         for (var field of search_fields) {
+    //             search_arr.push({
+    //                 [field]: {
+    //                     $regex: search,
+    //                     $options: "i",
+    //                 },
+    //             });
+    //         }
+    //         search_query = { $or: search_arr };
+    //     }
+
+    //     let find_query = {};
+    //     for (
+    //         var field_key = 0;
+    //         field_key < where_clause.where_fields.length;
+    //         field_key++
+    //     ) {
+    //         find_query[where_clause.where_fields[field_key]] =
+    //             where_clause.where_values[field_key];
+    //     }
+    //     if (!_.isEmpty(find_query)) {
+    //         if (!_.isEmpty(search_query)) {
+    //             var new_search_query = {
+    //                 $and: [find_query, search_query],
+    //             };
+    //         } else {
+    //             var new_search_query = {
+    //                 $and: [find_query],
+    //             };
+    //         }
+
+    //         search_query = new_search_query;
+    //     }
+    //     return {
+    //         search: search_query,
+    //         select: select_fields.join(" "),
+    //         limit: parseInt(limit),
+    //         skip: parseInt(offset),
+    //         sort: sort_order_obj,
+    //         current_page: page,
+    //         per_page: limit,
+    //         trash: trash,
+    //     };
+    // }
 
     /**
      * To add a user 
