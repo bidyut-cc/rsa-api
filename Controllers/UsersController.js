@@ -6,6 +6,8 @@ const bcrypt = require("bcryptjs");
 const _ = require("lodash");
 require("dotenv").config();
 const email_helper = require("../Helpers/Sendmail");
+const { Validator } = require('node-input-validator');
+require('../Helpers/extend-node-input-validator');
 
 class UsersController extends Controller {
     constructor() {
@@ -94,49 +96,88 @@ class UsersController extends Controller {
      * @param {object} req
      * @return {json} 
      */
-    async save(req) {
-        let user_count_with_same_mail = await User.countDocuments({
-            email: req.body.email,
-        }).exec();
-        if (user_count_with_same_mail > 0) {
-            return {
+    async save(req,res) {
+        const v = new Validator(req.body, {
+            first_name: 'required|string|minLength:2|maxLength:50',
+            last_name: 'required|string|minLength:2|maxLength:50',
+            email: 'required|unique:user,email',
+            phone: 'required|phoneNumber',
+            roles: 'required|in:user,super_admin,admin,developer',
+            status: 'required|in:Active,Inactive',
+        },{
+            'roles.required': 'The role field is mandatory.',
+        });
+    
+        const matched = await v.check();
+    
+        if (!matched) {
+            // If validation fails, return error messages
+             res.status(400).json({
                 status: false,
-                message: "This Email is already registered with us",
-            };
-        }
-        let user = new User;
-        user.username = req.body.username;
-        user.email = req.body.email;
-        user.active = !!req.body.active;
-        user.roles = ['developer'];
-        var email_verification_template = await Emailtemplate.findOne({
-            code: "EMAIL_VERIFICATION",
-        }).exec();
-        if (!_.isEmpty(email_verification_template)) {
-            let salt = await bcrypt.genSalt(10);
-            let set_password_token = await bcrypt.hash(
-                req.body.email,
-                salt
-            );
-            var url =
-                process.env.URI + "set-password?hash=" + set_password_token;
-            var body = email_verification_template.template.replace(
-                "{{url}}",
-                url
-            );
-            await email_helper.sendEmail({
-                receivers: [req.body.email],
-                subject: email_verification_template.subject,
-                context: { body_content: body },
+                errors: v.errors
             });
-            user.set_password_token = set_password_token;
+            return ;
         }
-        await user.save();
-        return  {
-            status: true,
-            message: "Insertion successful",
-            object: user,
-        };
+        try{
+            let user_count_with_same_mail = await User.countDocuments({
+                email: req.body.email,
+            }).exec();
+            if (user_count_with_same_mail > 0) {
+                return {
+                    status: false,
+                    errors:{
+                        'email':{
+                            message: "This Email is already registered with us",
+                        }
+                    }
+                };
+                
+            }
+            let user = new User;
+            user.first_name = req.body.first_name;
+            user.last_name = req.body.last_name;
+            user.username = req.body.first_name +' '+ req.body.last_name;
+            user.email = req.body.email;
+            user.phone = req.body.phone;
+            user.roles = [req.body.roles];
+            user.status = req.body.status;
+            // var email_verification_template = await Emailtemplate.findOne({
+            //     code: "EMAIL_VERIFICATION",
+            // }).exec();
+            // if (!_.isEmpty(email_verification_template)) {
+            //     let salt = await bcrypt.genSalt(10);
+            //     let set_password_token = await bcrypt.hash(
+            //         req.body.email,
+            //         salt
+            //     );
+            //     var url =
+            //         process.env.URI + "set-password?hash=" + set_password_token;
+            //     var body = email_verification_template.template.replace(
+            //         "{{url}}",
+            //         url
+            //     );
+            //     await email_helper.sendEmail({
+            //         receivers: [req.body.email],
+            //         subject: email_verification_template.subject,
+            //         context: { body_content: body },
+            //     });
+            //     user.set_password_token = set_password_token;
+            // }
+            await user.save();
+            
+            res.status(200).json({
+                status: true,
+                data: user,
+                message: "User added successfully."
+            });
+            return ;
+        }catch (error) {
+            res.status(200).json({
+                status: false,
+                message: error.message,
+            });
+        }
+     
     }
 
     /**
@@ -145,15 +186,73 @@ class UsersController extends Controller {
      * @param {object} req
      * @return {json} 
      */
-    async update(req) {
-        if(req.body.active){
-            let obj = await User.findById(
-                req.params.id
-            ).exec();
-            obj.active = !!req.body.active;
-            await obj.save();
+    async update(req, res) {
+        // Validate the input data
+        const v = new Validator(req.body, {
+            first_name: 'required|string|minLength:2|maxLength:50',
+            last_name: 'required|string|minLength:2|maxLength:50',
+            email: 'required|unique:user,email,' + req.params.id,
+            phone: 'required|phoneNumber',
+            roles: 'required|in:user,super_admin,admin,developer',
+            status: 'required|in:Active,Inactive',
+        },{
+            'roles.required': 'The role field is mandatory.',
+        });
+
+        // Check if validation passes
+        const matched = await v.check();
+        if (!matched) {
+            // If validation fails, respond with a 422 status and the validation errors
+            res.status(422).json({
+                status: false,
+                errors: v.errors
+            });
+        } else {
+            try {
+                // Attempt to update the label using the inherited update method
+                const result = await super.update(req);
+
+                // Respond with a 200 status and the result
+                res.status(200).json(result);
+            } catch (error) {
+                // If an error occurs, respond with a 500 status and an error message
+                res.status(500).json({
+                    status: false,
+                    message: error.message,
+                });
+            }
         }
-        return await super.update(req);
+    }
+
+
+    async delete(req, res) {
+        // Validate the input data
+        const v = new Validator(req.body, {
+            ids: 'required|array', // ids is required and should be an array
+        });
+
+        // Check if validation passes
+        const matched = await v.check();
+        if (!matched) {
+            // If validation fails, respond with a 422 status and the validation errors
+            res.status(422).json({
+                status: false,
+                errors: v.errors
+            });
+        } else {
+            try {
+                // Attempt to delete the item(s) using the inherited delete method
+                const result = await super.delete(req);
+                // Respond with a 200 status and the result
+                res.status(200).json(result);
+            } catch (error) {
+                // If an error occurs, respond with a 500 status and a server error message
+                res.status(500).json({
+                    status: false,
+                    message: "Server error."
+                });
+            }
+        }
     }
 }
 
