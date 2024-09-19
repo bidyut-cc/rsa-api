@@ -144,39 +144,27 @@ class AuthController {
                 user.attempt += 1;
                 await user.save();
     
-                return res.status(422).json({
+                return res.status(500).json({
                     status: false,
-                    errors:{
-                        'email':{
-                            message: "Sorry, the credentials you entered are incorrect. Please try again."
-                        }
-                    }
+                    message: "Sorry, the credentials you entered are incorrect. Please try again."
                     
                 });
             }
     
             // Check user account status
             if (user.status !== 'Active') {
-                return res.status(422).json({
+                return res.status(500).json({
                     status: false,
-                    errors:{
-                        'email':{
-                            message: "Please contact your account admin, as your account is locked."
-                        }
-                    }
+                    message: "Please contact your account admin, as your account is locked."
                    
                 });
             }
     
             // Check if the user has exceeded login attempts
             if (user.attempt >= 10) {
-                return res.status(422).json({
+                return res.status(500).json({
                     status: false,
-                    errors:{
-                        'email':{
-                            message: "Maximum attempt limit reached. Please contact your system admin."
-                        }
-                    }
+                    message: "Maximum attempt limit reached. Please contact your system admin."
                     
                 });
             }
@@ -253,13 +241,16 @@ class AuthController {
         old_password: 'required',
         new_password: 'required|minLength:6',
         confirm_new_password: 'required|same:new_password',
+    },{
+        'confirm_new_password.required': 'The confirm password field is mandatory.',
+        'confirm_new_password.same': 'The new password and confirm password must match.',
     });
 
     const matched = await v.check();
 
     if (!matched) {
         // If validation fails, return error messages
-        return res.status(400).json({
+        return res.status(422).json({
             status: false,
             errors: v.errors
         });
@@ -269,7 +260,7 @@ class AuthController {
         // Fetch the user by ID
         let user = await User.findById(req.user._id);
         if (!user) {
-            return res.status(404).json({
+            return res.status(500).json({
                 status: false,
                 message: "User not found.",
             });
@@ -300,7 +291,7 @@ class AuthController {
         // Send success response
         return res.status(200).json({
             status: true,
-            message: "Password Changed Successfully",
+            message: "Password Changed Successfully.",
         });
 
     } catch (error) {
@@ -320,9 +311,9 @@ class AuthController {
      */
     async updateProfile(req, res) {
         const v = new Validator(req.body, {
-            first_name: 'required',
-            last_name: 'required',
-            email: 'required|email|unique:user,email,'+req.user._id,
+            first_name: 'required|string|minLength:2|maxLength:50',
+            last_name: 'required|string|minLength:2|maxLength:50',
+            email: 'required|email|unique:user,email,' + req.user._id,
             phone: 'required|phoneNumber|digits:10'
           });
         const matched= await v.check();
@@ -342,9 +333,7 @@ class AuthController {
                 if (!_.isEmpty(req.body.enable_invoice_email)) {
                     user.enable_invoice_email = req.body.enable_invoice_email;
                     }
-                if (!_.isEmpty(req.body.client_type)) {
-                user.client_type = req.body.client_type;
-                }
+                
                 if (!_.isEmpty(req.files)) {
                     var uploaded_file = await file_uploader.upload(req.files, "user");
                     if (!uploaded_file.status) {
@@ -361,7 +350,7 @@ class AuthController {
                 await user.save();
                 res.status(200).json({
                     status: true,
-                    message: "Profile updated.",
+                    message: "Profile updated successfully.",
                 });
             } catch(error) {
                 res.status(500).json({
