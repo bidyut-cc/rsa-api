@@ -101,7 +101,7 @@ class UsersController extends Controller {
             first_name: 'required|string|minLength:2|maxLength:50',
             last_name: 'required|string|minLength:2|maxLength:50',
             email: 'required|unique:user,email',
-            phone: 'required|phoneNumber',
+            phone: 'required|phoneNumber|digits:10',
             roles: 'required|in:user,super_admin,admin,developer',
             status: 'required|in:Active,Inactive',
         },{
@@ -112,7 +112,7 @@ class UsersController extends Controller {
     
         if (!matched) {
             // If validation fails, return error messages
-             res.status(400).json({
+             res.status(422).json({
                 status: false,
                 errors: v.errors
             });
@@ -123,14 +123,15 @@ class UsersController extends Controller {
                 email: req.body.email,
             }).exec();
             if (user_count_with_same_mail > 0) {
-                return {
+                res.status(422).json({
                     status: false,
                     errors:{
                         'email':{
                             message: "This Email is already registered with us",
                         }
                     }
-                };
+                });
+                return ;
                 
             }
             let user = new User;
@@ -172,7 +173,7 @@ class UsersController extends Controller {
             });
             return ;
         }catch (error) {
-            res.status(200).json({
+            res.status(500).json({
                 status: false,
                 message: error.message,
             });
@@ -191,8 +192,8 @@ class UsersController extends Controller {
         const v = new Validator(req.body, {
             first_name: 'required|string|minLength:2|maxLength:50',
             last_name: 'required|string|minLength:2|maxLength:50',
-            email: 'required|unique:user,email,' + req.params.id,
-            phone: 'required|phoneNumber',
+            email: 'required|email|unique:user,email,' + req.params.id,
+            phone: 'required|phoneNumber|digits:10',
             roles: 'required|in:user,super_admin,admin,developer',
             status: 'required|in:Active,Inactive',
         },{

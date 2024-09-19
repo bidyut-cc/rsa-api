@@ -187,7 +187,7 @@ class Controller {
             }
             return {
                 status: true,
-                message: "Insertion successful",
+                message: "Insertion successful.",
                 object: obj,
             };
         } catch (error) {
@@ -217,7 +217,7 @@ class Controller {
             await obj.save();
             return {
                 status: true,
-                message: "Updated Successfully",
+                message: "Updated Successfully.",
                 object: obj,
             };
         } catch (error) {
@@ -357,7 +357,7 @@ class Controller {
             .exec();
         return {
             status: true,
-            message: "Item(s) deleted parmanently",
+            message: "Item(s) deleted parmanently.",
         };
     }
 }

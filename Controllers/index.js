@@ -6,3 +6,4 @@
 
 exports.UsersController = require("./UsersController");
 exports.CheckoutsController = require("./CheckoutsController");
+exports.SettingsController = require("./SettingsController");
