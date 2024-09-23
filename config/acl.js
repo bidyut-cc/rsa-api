@@ -50,9 +50,9 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateStep1", "updateStep2", "updateStep3"],
-            group: ["view", "updateStep1", "updateStep2", "updateStep3"],
-            owner: ["view", "updateStep1", "updateStep2", "updateStep3"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement"],
         },
     },
 };

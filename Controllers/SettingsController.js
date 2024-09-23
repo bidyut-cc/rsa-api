@@ -19,7 +19,7 @@ class SettingsController extends Controller {
             });
           }
     }
-    async updateStep1(req,res) {
+    async updateProject(req,res) {
         // Validate the input data
         const v = new Validator(req.body, {
             show_number_of_stall: 'required|integer|min:1|max:10',
@@ -61,7 +61,7 @@ class SettingsController extends Controller {
         }
     }
 
-    async updateStep2(req,res) {
+    async updateLayout(req,res) {
         // Validate the input data
         const v = new Validator(req.body, {
             layouts: 'required|array',
@@ -101,7 +101,7 @@ class SettingsController extends Controller {
         }
     }
 
-    async updateStep3(req,res) {
+    async updateMeasurement(req,res) {
         // Validate the input data
         const v = new Validator(req.body, {
             swings: 'required|array',
