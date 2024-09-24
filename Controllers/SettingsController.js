@@ -106,7 +106,11 @@ class SettingsController extends Controller {
         const v = new Validator(req.body, {
             swings: 'required|array',
             'swings.*': 'required|object',
-            show_maximum_room_no: 'required|integer|min:1|max:5',
+            ada_stall_min_width: 'required|numeric',
+            ada_stall_max_width: 'required|numeric',
+            standard_stall_min_width: 'required|numeric',
+            standard_stall_max_width: 'required|numeric',
+            show_maximum_room_no: 'required|integer|min:1|max:4',
         },{
             'swings.required': 'The door swings field is mandatory.',
         });
@@ -123,10 +127,18 @@ class SettingsController extends Controller {
             try {
                 const config = {
                     swings:req.body.swings,
+                    ada_stall_min_width: req.body.ada_stall_min_width,
+                    ada_stall_max_width: req.body.ada_stall_max_width,
+                    standard_stall_min_width: req.body.standard_stall_min_width,
+                    standard_stall_max_width: req.body.standard_stall_max_width,
                     show_maximum_room_no:req.body.show_maximum_room_no
                 }
                 delete(req.body.swings)
                 delete(req.body.show_maximum_room_no)
+                delete(req.body.ada_stall_min_width)
+                delete(req.body.ada_stall_max_width)
+                delete(req.body.standard_stall_min_width)
+                delete(req.body.standard_stall_max_width)
                 req.body.config=config;
                 // Attempt to update the label using the inherited update method
                 const result = await super.update(req);

@@ -189,7 +189,7 @@ class AuthController {
             jwt.sign(
                 payload,
                 process.env.JWT_SECRET_KEY,
-                { expiresIn: '1h' }, // Token expires in 1 hour
+                { expiresIn: 100000 },
                 (err, token) => {
                     if (err) throw err;
                     res.status(200).json({
