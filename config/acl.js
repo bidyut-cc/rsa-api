@@ -54,5 +54,10 @@ module.exports = {
             group: ["view", "updateProject", "updateLayout", "updateMeasurement"],
             owner: ["view", "updateProject", "updateLayout", "updateMeasurement"],
         },
+        masterSettings: {
+            all: [ "view"],
+            group: ["view"],
+            owner: ["view"],
+        },
     },
 };
