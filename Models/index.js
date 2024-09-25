@@ -7,3 +7,4 @@
 exports.User = require("./User");
 exports.Changelog = require("./Changelog");
 exports.Setting = require("./Setting");
+exports.MasterSetting = require("./MasterSetting");
