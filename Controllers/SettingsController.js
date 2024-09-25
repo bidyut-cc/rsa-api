@@ -22,8 +22,8 @@ class SettingsController extends Controller {
     async updateProject(req,res) {
         // Validate the input data
         const v = new Validator(req.body, {
-            show_number_of_stall: 'required|integer|min:1|max:10',
-            show_number_of_urinal: 'required|integer|min:1|max:10',
+            maximum_number_of_stalls: 'required|integer|min:1|max:10',
+            maximum_number_of_urinal_screens: 'required|integer|min:1|max:10',
             interested_for_material_installation_quote: 'required|in:Yes,No',
         });
 
@@ -38,12 +38,12 @@ class SettingsController extends Controller {
         } else {
             try {
                 const config = {
-                    show_number_of_stall:req.body.show_number_of_stall,
-                    show_number_of_urinal:req.body.show_number_of_urinal,
+                    maximum_number_of_stalls:req.body.maximum_number_of_stalls,
+                    maximum_number_of_urinal_screens:req.body.maximum_number_of_urinal_screens,
                     interested_for_material_installation_quote:req.body.interested_for_material_installation_quote
                 }
-                delete(req.body.show_number_of_stall)
-                delete(req.body.show_number_of_urinal)
+                delete(req.body.maximum_number_of_stalls)
+                delete(req.body.maximum_number_of_urinal_screens)
                 delete(req.body.interested_for_material_installation_quote)
                 req.body.config=config;
                 // Attempt to update the label using the inherited update method
@@ -66,7 +66,7 @@ class SettingsController extends Controller {
         const v = new Validator(req.body, {
             layouts: 'required|array',
             'layouts.*': 'required|object',
-            is_include_handicap_accessible_stall: 'required|in:Yes,No',
+            show_handicap_accessible_stall: 'required|in:Yes,No',
         });
 
         // Check if validation passes
@@ -81,10 +81,10 @@ class SettingsController extends Controller {
             try {
                 const config = {
                     layouts:req.body.layouts,
-                    is_include_handicap_accessible_stall:req.body.is_include_handicap_accessible_stall
+                    show_handicap_accessible_stall:req.body.show_handicap_accessible_stall
                 }
                 delete(req.body.layouts)
-                delete(req.body.is_include_handicap_accessible_stall)
+                delete(req.body.show_handicap_accessible_stall)
                 req.body.config=config;
                 // Attempt to update the label using the inherited update method
                 const result = await super.update(req);
@@ -110,7 +110,7 @@ class SettingsController extends Controller {
             ada_stall_max_width: 'required|numeric',
             standard_stall_min_width: 'required|numeric',
             standard_stall_max_width: 'required|numeric',
-            show_maximum_room_no: 'required|integer|min:1|max:4',
+            maximum_room_no: 'required|integer|min:1|max:4',
         },{
             'swings.required': 'The door swings field is mandatory.',
         });
@@ -131,10 +131,10 @@ class SettingsController extends Controller {
                     ada_stall_max_width: req.body.ada_stall_max_width,
                     standard_stall_min_width: req.body.standard_stall_min_width,
                     standard_stall_max_width: req.body.standard_stall_max_width,
-                    show_maximum_room_no:req.body.show_maximum_room_no
+                    maximum_room_no:req.body.maximum_room_no
                 }
                 delete(req.body.swings)
-                delete(req.body.show_maximum_room_no)
+                delete(req.body.maximum_room_no)
                 delete(req.body.ada_stall_min_width)
                 delete(req.body.ada_stall_max_width)
                 delete(req.body.standard_stall_min_width)
