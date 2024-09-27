@@ -50,14 +50,14 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateProject", "updateLayout", "updateMeasurement"],
-            group: ["view", "updateProject", "updateLayout", "updateMeasurement"],
-            owner: ["view", "updateProject", "updateLayout", "updateMeasurement"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder"],
         },
         masterSettings: {
-            all: [ "view"],
-            group: ["view"],
-            owner: ["view"],
+            all: [ "materialView"],
+            group: ["materialView"],
+            owner: ["materialView"],
         },
     },
 };
