@@ -7,11 +7,29 @@ class MasterSettingsController extends Controller {
     constructor() {
         super("MasterSetting");
     }
-    async view(req,res) {
+    async materialView(req,res) {
         const {key} = req.query;
         try {
-            const data = await MasterSetting.findOne({ key: key }, { key: 1, value: 1, _id: 1 });
-            return data;
+            const data = await MasterSetting.aggregate([
+                { $match: { key: key } }, // Match the document by the key
+                { 
+                    $project: { 
+                        key: 1, 
+                        value: {
+                            $filter: {
+                                input: "$value",
+                                as: "item",
+                                cond: { $eq: ["$$item.status", "Active"] }
+                            }
+                        }
+                    }
+                }
+            ]);
+            if (data && data.length > 0 && data[0].value.length > 0) {
+            return data[0].value;
+            }else{
+                return {}
+            }
           } catch (error) {
             res.status(500).json({
                 status: false,

@@ -2,6 +2,7 @@ const Setting = require("../Models/Setting.js");
 const Controller = require("./Controller.js");
 
 const { Validator } = require('node-input-validator');
+const _ = require("lodash");
 
 class SettingsController extends Controller {
     constructor() {
@@ -154,6 +155,124 @@ class SettingsController extends Controller {
             }
         }
     }
+
+ async updateQuotationBuilder(req, res) {
+    // Extract type from request body
+    const { type, result } = req.body;
+
+    // Define validation rules based on the type
+    let validationRules = {
+        result: 'required|object', // Check for result object
+    };
+
+    // Add specific rules based on the type
+    switch (type) {
+        case 'IC':
+            validationRules['result.IC'] = 'required|object'; // Check for IC object
+          //  validationRules['result.IC.*'] = 'required|array'; // Ensure each item in IC is an array
+            break;
+        case 'BW':
+            validationRules['result.BW'] = 'required|object'; // Check for BW object
+           // validationRules['result.BW.*'] = 'required|array'; // Ensure each item in BW is an array
+            break;
+        case 'ALIC':
+            validationRules['result.ALIC'] = 'required|object'; // Check for ALIC object
+           // validationRules['result.ALIC.*'] = 'required|array'; // Ensure each item in ALIC is an array
+            break;
+        case 'ALBW':
+            validationRules['result.ALBW'] = 'required|object'; // Check for ALBW object
+         //   validationRules['result.ALBW.*'] = 'required|array'; // Ensure each item in ALBW is an array
+            break;
+        default:
+            return res.status(422).json({
+                status: false,
+                message: 'Invalid type provided.',
+            });
+    }
+
+    // Define custom messages for each validation rule
+    const customMessages = {
+        'result.IC.*': 'The IC field is required.',
+        'result.BW.*': 'The BW field is required.',
+        'result.ALIC.*': 'The ALIC field is required.',
+        'result.ALBW.*': 'The ALBW field is required.',
+    };
+
+    // Initialize validator with dynamic rules and custom messages
+    const v = new Validator(req.body, validationRules, customMessages);
+
+    // Check if validation passes
+    const matched = await v.check();
+    if (!matched) {
+        // If validation fails, respond with a 422 status and the validation errors
+      
+        res.status(422).json({
+            status: false,
+            errors: v.errors,
+        });
+        return;
+    }
+
+    try {
+        console.log(type);
+         // Prepare the update object dynamically
+  const update = {
+    $set: {}
+  };
+
+
+  let basePath = '';
+  
+  if (type === 'IC') {
+    basePath = 'config.IC';
+  } else if (type === 'BW') {
+    basePath = 'config.BW';
+  } else if (type === 'ALIC') {
+    basePath = 'config.ALIC';
+  } else if (type === 'ALBW') {
+    basePath = 'config.ALBW';
+  }
+  
+    // Check if basePath was set
+    if (basePath) {
+        // Loop through the result based on the type and update dynamically
+        for (const key in result[type]) {
+          if (result[type].hasOwnProperty(key)) {
+            const path = `${basePath}.${key}`; // Construct the full path
+            update.$set[path] = result[type][key]; // Set the update value
+          }
+        }
+      }
+        if (basePath!='') {
+            const updateResult = await Setting.updateOne(
+            { "step": "quotation_builder" }, // Add additional criteria as needed
+            update
+          );
+
+        res.status(200).json({
+            status: true,
+            message: 'Quotation updated successfully',
+            result: update 
+        });
+        }else{
+            res.status(422).json({
+                status: false,
+                message: 'No valid type provided for update.',
+            });
+            return;
+        }
+       
+    } catch (error) {
+        // If an error occurs, respond with a 500 status and an error message
+         res.status(500).json({
+            status: false,
+            message: error.message,
+        });
+        return
+    }
+}
+
+    
 }
 
 module.exports = SettingsController;
