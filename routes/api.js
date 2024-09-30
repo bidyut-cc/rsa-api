@@ -9,22 +9,17 @@ const { check, validationResult } = require("express-validator");
 const AuthMiddleware = require("../Middlewares/Auth");
 const CheckPermissionMiddleware = require("../Middlewares/CheckPermission");
 var AuthControllerClass = require("../Controllers/AuthConroller");
+var FrontendControllerClass = require("../Controllers/FrontendController");
 var DynamicRouteControllerClass = require("../Controllers/DynamicRouteController");
 const DynamicRouteController = new DynamicRouteControllerClass();
 const AuthController = new AuthControllerClass();
+const FrontendController = new FrontendControllerClass();
 router.get("/", (req, res) => {
     res.json({ message: "API Works" });
 });
 
 router.post(
     "/auth/signup",
-    [
-        check("username", "Please Enter a Valid Name").not().isEmpty(),
-        check("email", "Please enter a valid email").isEmail(),
-        check("phone", "Please Enter a Valid Phone No").not().isEmpty(),
-        check("password", "Please enter a valid password").isLength({ min: 6 }),
-        check("roles", "Please select a valid role").isArray({ min: 1 }),
-    ],
     AuthController.signup
 );
 
@@ -58,6 +53,7 @@ router.get("/auth/profile", [AuthMiddleware], AuthController.profile);
 router.get("/auth/logout", [AuthMiddleware],AuthController.logout);
 router.post("/auth/forgot-password", AuthController.forgotPassword);
 router.post("/auth/set-password", AuthController.setPassword);
+router.get("/app-setting/view", FrontendController.view);
 
 
 

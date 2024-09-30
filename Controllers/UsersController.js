@@ -142,6 +142,8 @@ class UsersController extends Controller {
             user.phone = req.body.phone;
             user.roles = [req.body.roles];
             user.status = req.body.status;
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash('default123', salt);
             // var email_verification_template = await Emailtemplate.findOne({
             //     code: "EMAIL_VERIFICATION",
             // }).exec();

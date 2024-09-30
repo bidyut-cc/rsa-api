@@ -60,4 +60,7 @@ module.exports = {
             owner: ["view","materialView"],
         },
     },
+    user: {
+        
+    }
 };

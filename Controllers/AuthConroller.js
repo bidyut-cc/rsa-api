@@ -45,35 +45,54 @@ class AuthController {
      * @param {json} res
      * @return {json} 
      */
-    async signup(req, res) {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                errors: errors.array(),
+    async signup(req,res) {
+        const v = new Validator(req.body, {
+            first_name: 'required|string|minLength:2|maxLength:50',
+            last_name: 'required|string|minLength:2|maxLength:50',
+            email: 'required|unique:user,email',
+            phone: 'required|phoneNumber|digits:10',
+            password: 'required|minLength:6',
+            confirm_password: 'required|same:password',
+        });
+    
+        const matched = await v.check();
+    
+        if (!matched) {
+            // If validation fails, return error messages
+             res.status(422).json({
+                status: false,
+                errors: v.errors
             });
+            return ;
         }
-        const {username, first_name, last_name, email, phone, password, roles } = req.body;
-        try {
-            let user = await User.findOne({
-                email,
-            });
-            if (user) {
-                return res.status(400).json({
-                    message: "User Already Exists",
+        try{
+            let user_count_with_same_mail = await User.countDocuments({
+                email: req.body.email,
+            }).exec();
+            if (user_count_with_same_mail > 0) {
+                res.status(422).json({
+                    status: false,
+                    errors:{
+                        'email':{
+                            message: "This Email is already registered with us",
+                        }
+                    }
                 });
+                return ;
+                
             }
-            user = new User({
-                username,
-                first_name,
-                last_name,
-                email,
-                phone,
-                password,
-                roles,
-            });
+            let user = new User;
+            user.first_name = req.body.first_name;
+            user.last_name = req.body.last_name;
+            user.username = req.body.first_name +' '+ req.body.last_name;
+            user.email = req.body.email;
+            user.phone = req.body.phone;
+            user.roles = ['user'];
+            user.status = 'Active';
             const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(password, salt);
+            user.password = await bcrypt.hash(req.body.password, salt);
             await user.save();
+
             const payload = {
                 user: {
                     id: user.id,
@@ -86,17 +105,21 @@ class AuthController {
                 (err, token) => {
                     if (err) throw err;
                     res.status(200).json({
-                        token,
+                        status: true,
+                        access_token: token,
+                        data: user,
+                        message: "Signup Successful."
                     });
                 }
             );
-        } catch (err) {
-            console.log(err.message);
+            return ;
+        }catch (error) {
             res.status(500).json({
                 status: false,
-                message: "unable to save data",
+                message: error.message,
             });
         }
+     
     }
 
     /**
@@ -106,7 +129,7 @@ class AuthController {
      * @param {json} res
      * @return {json} 
      */
-    async  login(req, res) {
+    async login(req, res) {
         // Create a new validator instance
         const v = new Validator(req.body, {
             email: 'required|email',
