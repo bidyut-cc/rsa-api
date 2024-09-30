@@ -55,9 +55,9 @@ module.exports = {
             owner: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder"],
         },
         masterSettings: {
-            all: [ "materialView"],
-            group: ["materialView"],
-            owner: ["materialView"],
+            all: [ "view","materialView"],
+            group: ["view","materialView"],
+            owner: ["view","materialView"],
         },
     },
 };
