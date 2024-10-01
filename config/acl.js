@@ -50,9 +50,9 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder"],
-            group: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder"],
-            owner: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
         },
         masterSettings: {
             all: [ "view","materialView"],
