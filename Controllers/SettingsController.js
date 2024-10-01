@@ -166,240 +166,6 @@ class SettingsController extends Controller {
     }
   }
 
-  //  async updateQuotationBuilder1(req, res) {
-  //     // Extract type from request body
-  //     const { type, result } = req.body;
-
-  //     // Define validation rules based on the type
-  //     let validationRules = {
-  //         result: 'required|object', // Check for result object
-  //     };
-
-  //     // Add specific rules based on the type
-  //     switch (type) {
-  //         case 'IC':
-  //             validationRules['result.IC'] = 'required|object'; // Check for IC object
-  //           //  validationRules['result.IC.*'] = 'required|array'; // Ensure each item in IC is an array
-  //             break;
-  //         case 'BW':
-  //             validationRules['result.BW'] = 'required|object'; // Check for BW object
-  //            // validationRules['result.BW.*'] = 'required|array'; // Ensure each item in BW is an array
-  //             break;
-  //         case 'ALIC':
-  //             validationRules['result.ALIC'] = 'required|object'; // Check for ALIC object
-  //            // validationRules['result.ALIC.*'] = 'required|array'; // Ensure each item in ALIC is an array
-  //             break;
-  //         case 'ALBW':
-  //             validationRules['result.ALBW'] = 'required|object'; // Check for ALBW object
-  //          //   validationRules['result.ALBW.*'] = 'required|array'; // Ensure each item in ALBW is an array
-  //             break;
-  //         default:
-  //             return res.status(422).json({
-  //                 status: false,
-  //                 message: 'Invalid type provided.',
-  //             });
-  //     }
-
-  //     // Define custom messages for each validation rule
-  //     const customMessages = {
-  //         'result.IC.*': 'The IC field is required.',
-  //         'result.BW.*': 'The BW field is required.',
-  //         'result.ALIC.*': 'The ALIC field is required.',
-  //         'result.ALBW.*': 'The ALBW field is required.',
-  //     };
-
-  //     // Initialize validator with dynamic rules and custom messages
-  //     const v = new Validator(req.body, validationRules, customMessages);
-
-  //     // Check if validation passes
-  //     const matched = await v.check();
-  //     if (!matched) {
-  //         // If validation fails, respond with a 422 status and the validation errors
-
-  //         res.status(422).json({
-  //             status: false,
-  //             errors: v.errors,
-  //         });
-  //         return;
-  //     }
-
-  //     try {
-  //         console.log(type);
-  //          // Prepare the update object dynamically
-  //   const update = {
-  //     $set: {}
-  //   };
-
-  //   let basePath = '';
-
-  //   if (type === 'IC') {
-  //     basePath = 'config.IC';
-  //   } else if (type === 'BW') {
-  //     basePath = 'config.BW';
-  //   } else if (type === 'ALIC') {
-  //     basePath = 'config.ALIC';
-  //   } else if (type === 'ALBW') {
-  //     basePath = 'config.ALBW';
-  //   }
-
-  //     // Check if basePath was set
-  //     if (basePath) {
-  //         // Loop through the result based on the type and update dynamically
-  //         for (const key in result[type]) {
-  //           if (result[type].hasOwnProperty(key)) {
-  //             const path = `${basePath}.${key}`; // Construct the full path
-  //             update.$set[path] = result[type][key]; // Set the update value
-  //           }
-  //         }
-  //       }
-  //         if (basePath!='') {
-  //             const updateResult = await Setting.updateOne(
-  //             { "step": "quotation_builder" }, // Add additional criteria as needed
-  //             update
-  //           );
-
-  //         res.status(200).json({
-  //             status: true,
-  //             message: 'Quotation updated successfully',
-  //             result: update
-  //         });
-  //         }else{
-  //             res.status(422).json({
-  //                 status: false,
-  //                 message: 'No valid type provided for update.',
-  //             });
-  //             return;
-  //         }
-
-  //     } catch (error) {
-  //         // If an error occurs, respond with a 500 status and an error message
-  //          res.status(500).json({
-  //             status: false,
-  //             message: error.message,
-  //         });
-  //         return
-  //     }
-  // }
-
-  // async updateQuotationBuilder(req, res) {
-  //     const { type, result } = req.body;
-
-  //     // Define validation rules based on the type
-  //     let validationRules = {
-  //         result: 'required|object', // Ensure result is an object
-  //     };
-
-  //     // Add specific rules based on the type
-  //     switch (type) {
-  //         case 'IC':
-  //             validationRules['result.IC'] = 'required|object';
-  //           //  validationRules['result.IC.*'] = 'required|array'; // Ensure each key in IC is an array
-  //             break;
-  //         case 'BW':
-  //             validationRules['result.BW'] = 'required|object';
-  //           //  validationRules['result.BW.*'] = 'required|array';
-  //             break;
-  //         case 'ALIC':
-  //             validationRules['result.ALIC'] = 'required|object';
-  //            // validationRules['result.ALIC.*'] = 'required|array';
-  //             break;
-  //         case 'ALBW':
-  //             validationRules['result.ALBW'] = 'required|object';
-  //            // validationRules['result.ALBW.*'] = 'required|array';
-  //             break;
-  //         default:
-  //              res.status(422).json({
-  //                 status: false,
-  //                 message: 'Invalid type provided.',
-  //             });
-  //             return;
-  //     }
-
-  //     // Custom error messages
-  //     const customMessages = {
-  //         'result.IC.*': 'Each IC field is required and should be an array.',
-  //         'result.BW.*': 'Each BW field is required and should be an array.',
-  //         'result.ALIC.*': 'Each ALIC field is required and should be an array.',
-  //         'result.ALBW.*': 'Each ALBW field is required and should be an array.',
-  //     };
-
-  //     // Initialize validator
-  //     const v = new Validator(req.body, validationRules, customMessages);
-
-  //     // Validate the request
-  //     const matched = await v.check();
-  //     if (!matched) {
-  //          res.status(422).json({
-  //             status: false,
-  //             errors: v.errors,
-  //         });
-  //         return;
-  //     }
-
-  //     try {
-  //         // Prepare the update object dynamically
-  //         const update = { $set: {} };
-
-  //         // Base path for the database update
-  //         let basePath = '';
-  //         if (type === 'IC') {
-  //             basePath = 'config.IC';
-  //         } else if (type === 'BW') {
-  //             basePath = 'config.BW';
-  //         } else if (type === 'ALIC') {
-  //             basePath = 'config.ALIC';
-  //         } else if (type === 'ALBW') {
-  //             basePath = 'config.ALBW';
-  //         }
-
-  //         // Ensure basePath is valid
-  //         if (!basePath) {
-  //              res.status(422).json({
-  //                 status: false,
-  //                 message: 'No valid type provided for update.',
-  //             });
-  //             return;
-  //         }
-
-  //         // Ensure result[type] exists and is an object
-  //         if (!result[type] || typeof result[type] !== 'object') {
-  //              res.status(422).json({
-  //                 status: false,
-  //                 message: `The result for type ${type} is invalid.`,
-  //             });
-  //             return;
-  //         }
-
-  //         // Dynamically loop through the result and build the update object
-  //         for (const key in result[type]) {
-  //             if (result[type].hasOwnProperty(key)) {
-  //                 const path = `${basePath}.${key}`;
-  //                 update.$set[path] = result[type][key];
-  //             }
-  //         }
-  //         // Perform the database update
-  //         const updateResult = await Setting.updateOne(
-  //             { "step": "quotation_builder" },
-  //             update
-  //         );
-
-  //         res.status(200).json({
-  //             status: true,
-  //             message: 'Quotation updated successfully',
-  //             result: updateResult, // Include the result of the update
-  //         });
-  //         return;
-
-  //     } catch (error) {
-  //         // Handle any errors
-  //          res.status(500).json({
-  //             status: false,
-  //             message: error.message,
-  //         });
-  //         return;
-  //     }
-  // }
-
   async updateQuotationBuilder(req, res) {
     // Extract type and result from request body
     const { type, config } = req.body;
@@ -485,7 +251,10 @@ class SettingsController extends Controller {
       updateData[`config.${type}`] = config[type];
 
       const updateResult = await Setting.updateOne(
-        { step: "quotation_builder" },
+        { 
+          _id: req.params.id,
+          step: "quotation_builder"
+        },
         { $set: updateData }
       );
       // Perform your update logic here...
@@ -501,6 +270,58 @@ class SettingsController extends Controller {
         message: error.message,
       });
       return;
+    }
+  }
+
+  async updateQuotationBuilderADAprice(req, res) {
+    // Validate the input data
+    const v = new Validator(
+      req.body,
+      {
+        ADA_price: "required|numeric|min:1",
+      }
+    );
+
+  // Custom validation to check if ADA_price contains spaces
+  v.addPostRule(async (provider) => {
+    if (provider.inputs.ADA_price && provider.inputs.ADA_price.includes(" ")) {
+      provider.error("ADA_price", "spaces", "ADA price cannot contain spaces.");
+    }
+  });
+    // Check if validation passes
+    const matched = await v.check();
+    if (!matched) {
+      // If validation fails, respond with a 422 status and the validation errors
+      res.status(422).json({
+        status: false,
+        errors: v.errors,
+      });
+    } else {
+      try {
+        const updateData = {};
+        updateData[`config.ADA_price`] = req.body.ADA_price;
+  
+        const updateResult = await Setting.updateOne(
+          { 
+            _id: req.params.id,
+            step: "quotation_builder"
+          },
+          { $set: updateData }
+        );
+        // Perform your update logic here...
+        res.status(200).json({
+          status: true,
+          message: "Quotation builder ADA price updated successfully.",
+        });
+        return;
+
+      } catch (error) {
+        // If an error occurs, respond with a 500 status and an error message
+        res.status(500).json({
+          status: false,
+          message: error.message,
+        });
+      }
     }
   }
 }
