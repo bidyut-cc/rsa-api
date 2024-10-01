@@ -1,14 +1,10 @@
 const Setting = require("../Models/Setting.js");
-const Controller = require("./Controller.js");
 
 const { Validator } = require("node-input-validator");
-const _ = require("lodash");
 
 class FrontendController {
-
-    
     async view(req,res){
-            // Validate the input data
+    // Validate the input data
     const v = new Validator(req.query, {
         step: 'required|in:project,layout,measurement,quotation_builder',
       });
@@ -36,10 +32,13 @@ class FrontendController {
           res.status(500).json({
             status: false,
             message: error.message,
+            encrypted:encryptedToken
           });
         }
     }
 }
+
+
 
 }
 
