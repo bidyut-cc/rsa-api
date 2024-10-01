@@ -11,6 +11,7 @@ const CheckPermissionMiddleware = require("../Middlewares/CheckPermission");
 var AuthControllerClass = require("../Controllers/AuthConroller");
 var FrontendControllerClass = require("../Controllers/FrontendController");
 var DynamicRouteControllerClass = require("../Controllers/DynamicRouteController");
+const VerifyEncryptedTokenMiddleware = require("../Middlewares/VerifyEncryptedToken");
 const DynamicRouteController = new DynamicRouteControllerClass();
 const AuthController = new AuthControllerClass();
 const FrontendController = new FrontendControllerClass();
@@ -53,7 +54,8 @@ router.get("/auth/profile", [AuthMiddleware], AuthController.profile);
 router.get("/auth/logout", [AuthMiddleware],AuthController.logout);
 router.post("/auth/forgot-password", AuthController.forgotPassword);
 router.post("/auth/set-password", AuthController.setPassword);
-router.get("/app-setting/view", FrontendController.view);
+router.get("/app-setting/view",[VerifyEncryptedTokenMiddleware],FrontendController.view);
+
 
 
 
