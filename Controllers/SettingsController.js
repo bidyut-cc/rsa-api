@@ -119,6 +119,8 @@ class SettingsController extends Controller {
         ada_stall_max_width: "required|numeric",
         standard_stall_min_width: "required|numeric",
         standard_stall_max_width: "required|numeric",
+        standard_stall_min_depth: "required|numeric",
+        standard_stall_max_depth: "required|numeric",
         maximum_room_no: "required|integer|min:1|max:4",
       },
       {
@@ -142,6 +144,8 @@ class SettingsController extends Controller {
           ada_stall_max_width: req.body.ada_stall_max_width,
           standard_stall_min_width: req.body.standard_stall_min_width,
           standard_stall_max_width: req.body.standard_stall_max_width,
+          standard_stall_min_depth: req.body.standard_stall_min_depth,
+          standard_stall_max_depth: req.body.standard_stall_max_depth,
           maximum_room_no: req.body.maximum_room_no,
         };
         delete req.body.swings;
@@ -150,6 +154,8 @@ class SettingsController extends Controller {
         delete req.body.ada_stall_max_width;
         delete req.body.standard_stall_min_width;
         delete req.body.standard_stall_max_width;
+        delete req.body.standard_stall_min_depth;
+        delete req.body.standard_stall_max_depth;
         req.body.config = config;
         // Attempt to update the label using the inherited update method
         const result = await super.update(req);
