@@ -3,6 +3,7 @@ const Setting = require("../Models/Setting.js");
 const { Validator } = require("node-input-validator");
 const email_helper = require("../Helpers/Sendmail");
 const puppeteer = require("puppeteer");
+const moment = require('moment');
 
 class FrontendController {
   constructor() {
@@ -142,11 +143,11 @@ class FrontendController {
         const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
         <tr>
             <td style="padding: 5px 10px; text-align: left;">
-                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo">
+                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" width="60%">
             </td>
             <td style="padding: 5px 10px; text-align: right;">
-                <h3><a href="tel:866-531-1952" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">866-531-1952</a></h3>
-                <p style=" font-size:20px;      font-style: italic; margin-top: 5px;"><a href="mailto:sales@onepointpartitions.com" style="color:#000;">sales@onepointpartitions.com</a></p>
+                <h3><a href="tel:1-844-81-STALL" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">1-844-81-STALL</a></h3>
+                <p style=" font-size:20px;      font-style: italic; margin-top: 5px;"><a href="mailto:service@restroomstallsandall.com" style="color:#000;">service@restroomstallsandall.com</a></p>
            </td>
         </tr>
         <tr>
@@ -155,7 +156,7 @@ class FrontendController {
                      <tr>
                         <td >
                              <h4 style="color:#0061a6; font-size:35px; line-height: 1; font-weight: 600; margin-bottom: 10px; margin-top: 15px;">Your Quote</h4>
-                             <p>Date: 09/17/24 </p>
+                             <p>Date: ${moment().format('MM/DD/YY')} </p>
                         </td>
                         <td align="right" style="text-align: right;">
                             <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #294198.1</h4>
@@ -230,11 +231,11 @@ class FrontendController {
     <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px; margin-top: 40px;">
         <tr>
             <td style="padding: 10px; text-align: left;">
-                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo">
+                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" width="60%">
             </td>
             <td style="padding: 10px; text-align: right;">
-                <h3><a href="tel:866-531-1952" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">866-531-1952</a></h3>
-                <p style=" font-size:20px;      font-style: italic; margin-top: 5px;"><a href="mailto:sales@onepointpartitions.com" style="color:#000;">sales@onepointpartitions.com</a></p>
+                <h3><a href="tel:1-844-81-STALL" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">1-844-81-STALL</a></h3>
+                <p style=" font-size:20px;      font-style: italic; margin-top: 5px;"><a href="mailto:service@restroomstallsandall.com" style="color:#000;">service@restroomstallsandall.com</a></p>
            </td>
         </tr>
         <tr>
@@ -309,11 +310,11 @@ class FrontendController {
     <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
         <tr>
             <td style="padding: 10px; text-align: left;">
-                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo">
+                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" width="60%">
             </td>
             <td style="padding: 10px; text-align: right;">
-                <h3><a href="tel:866-531-1952" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">866-531-1952</a></h3>
-                <p style=" font-size:20px;      font-style: italic; margin-top: 5px;"><a href="mailto:sales@onepointpartitions.com" style="color:#000;">sales@onepointpartitions.com</a></p>
+                <h3><a href="tel:1-844-81-STALL" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">1-844-81-STALL</a></h3>
+                <p style=" font-size:20px;      font-style: italic; margin-top: 5px;"><a href="mailto:service@restroomstallsandall.com" style="color:#000;">service@restroomstallsandall.com</a></p>
            </td>
         </tr>
         <tr>
@@ -382,7 +383,7 @@ class FrontendController {
     <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 20px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
         <tr>
             <td colspan="2" style="width:100%; text-align: center;  border-radius: 12px; padding: 25px; ">
-                <img src="${process.env.URI}/uploads/images/ftlogo.png" alt="alt" />
+                <img src="${process.env.URI}/uploads/images/Logo.png" alt="alt" width="30%" />
             </td>
         </tr>
         <tr>
@@ -513,7 +514,7 @@ class FrontendController {
             <td colspan="2" style="text-align: center;">
                 <h5 style="color:#000; font-size: 20px; font-weight: 600; margin-bottom: 5px; margin-top: 10px;">Do you have questions?</h5>
                 <p style="color:#000; font-size: 22px; ">Call us or email us and we'd be happy to assist you.</p>
-             <h4 style="display: flex; align-items: center; justify-content: center;"><a href="tel:8665311952" style="color:#285fa1; font-weight: 900; text-decoration: none; font-size: 30px; font-family:Verdana, Geneva, Tahoma, sans-serif; font-style:italic">866-531-1952</a><a href="mailto:sales@onepointpartitions.com" style="font-size: 20px; color:#000; font-weight: 400; margin-left: 15px;">sales@onepointpartitions.com</a></h4>
+             <h4 style="display: flex; align-items: center; justify-content: center;"><a href="tel:1-844-81-STALL" style="color:#285fa1; font-weight: 900; text-decoration: none; font-size: 30px; font-family:Verdana, Geneva, Tahoma, sans-serif; font-style:italic">1-844-81-STALL</a><a href="mailto:service@restroomstallsandall.com" style="font-size: 20px; color:#000; font-weight: 400; margin-left: 15px;">service@restroomstallsandall.com</a></h4>
             </td>
         </tr>
     </table>`;
