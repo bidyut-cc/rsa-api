@@ -143,7 +143,7 @@ class FrontendController {
         const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
         <tr>
             <td style="padding: 5px 10px; text-align: left;">
-                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" width="60%">
+                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo">
             </td>
             <td style="padding: 5px 10px; text-align: right;">
                 <h3><a href="tel:1-844-81-STALL" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">1-844-81-STALL</a></h3>
@@ -182,7 +182,7 @@ class FrontendController {
                             <div width="100%"  >
                                 <div style="display: flex; align-items: center;">
                                  <div  style="width: 25% !important; margin-bottom: 0px;">
-                                     <img src="${process.env.URI}/uploads/images/proc1.png" alt="pic" style="width:100%"/>
+                                     <img src="${stall.src}" alt="pic" style="width:100%"/>
                                  </div>
                                  <div  style="width: 75% !important; padding: 10px 20px 10px; margin-bottom: 0px !important;">
                                      <h4 style="color:#0061a6; font-size: 20px; font-weight: 500; margin-bottom: 10px; margin-top: 5px;">${stall.name}</h4>
@@ -231,7 +231,7 @@ class FrontendController {
     <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px; margin-top: 40px;">
         <tr>
             <td style="padding: 10px; text-align: left;">
-                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" width="60%">
+                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" >
             </td>
             <td style="padding: 10px; text-align: right;">
                 <h3><a href="tel:1-844-81-STALL" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">1-844-81-STALL</a></h3>
@@ -310,7 +310,7 @@ class FrontendController {
     <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
         <tr>
             <td style="padding: 10px; text-align: left;">
-                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" width="60%">
+                 <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo">
             </td>
             <td style="padding: 10px; text-align: right;">
                 <h3><a href="tel:1-844-81-STALL" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">1-844-81-STALL</a></h3>
@@ -383,7 +383,7 @@ class FrontendController {
     <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 20px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
         <tr>
             <td colspan="2" style="width:100%; text-align: center;  border-radius: 12px; padding: 25px; ">
-                <img src="${process.env.URI}/uploads/images/Logo.png" alt="alt" width="30%" />
+                <img src="${process.env.URI}/uploads/images/Logo.png" alt="alt"  />
             </td>
         </tr>
         <tr>
