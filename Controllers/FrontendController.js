@@ -782,10 +782,10 @@ class FrontendController {
                       </td>
                       <td width="65%" style="width: 65%;">
                           <div style="border: 1px solid #e3e8ef; padding: 30px; text-align: center; width:90%; border-radius: 10px; min-height: 414px; display: flex; align-items: center; justify-content: center;">
-                              <img src="${process.env.URI}/uploads/images/pic2.png" alt="pic" style="width:65%; margin: 0 auto;"/>
+                              <img src="${process.env.URI}/uploads/images/room2D.png" alt="pic" style="width:65%; margin: 0 auto;"/>
                           </div>
                           <div style="border: 1px solid #e3e8ef; padding: 30px; text-align: center; width:90%; border-radius: 10px; margin-top: 20px;">
-                              <img src="${process.env.URI}/uploads/images/pic3.png" alt="pic" style="width:65%; margin: 0 auto;"/>
+                              <img src="${process.env.URI}/uploads/images/room3D.png" alt="pic" style="width:65%; margin: 0 auto;"/>
                           </div>
                       </td>
                   </tr>
@@ -793,80 +793,82 @@ class FrontendController {
           </td>
       </tr>
   </table>
-  `).join('')}
+  ${room.hasUrinalScreens ? `
   <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
-      <tr>
-          <td style="padding: 10px; text-align: left;">
-               <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo">
-          </td>
-          <td style="padding: 10px; text-align: right;">
-              <h3><a href="tel:1-844-81-STALL" style="color:#3d58a4; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">1-844-81-STALL</a></h3>
-              <p style=" font-size:20px;      font-style: italic; margin-top: 5px;"><a href="mailto:service@restroomstallsandall.com" style="color:#000;">service@restroomstallsandall.com</a></p>
-         </td>
-      </tr>
-      <tr>
-          <td colspan="2" style="padding: 10px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #edf5fb; border-radius: 30px; vertical-align: bottom;">
-              <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
-                   <tr>
-                      <td >
-                           <h4 style="color:#3d58a4; font-size:35px; line-height: 1; font-weight: 600; margin-bottom: 10px; margin-top: 15px;">Your Quote</h4>
-                           <p>Date: ${moment().format('MM/DD/YY')} </p>
-                      </td>
-                      <td align="right" style="text-align: right;">
-                          <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #294198.1</h4>
-                      </td>
-                   </tr>
-              </table>
-          </td>
-         
-      </tr>
-      <tr>
-          <td colspan="2" style="padding-left: 28px;">
-              <h5 style="color:#285fa1; font-size: 20px; line-height: 1.1; margin-top: 20px; margin-bottom: 0px;">Review your Layout</h5>
-              
-          </td>
-      </tr>
-      <tr>
-          <td colspan="2" style="padding-left: 0px;">
-              <table width="100%" cellpadding="0" cellspacing="30" style="table-layout: fixed;">
-                  <tr>
-                      <td width="35%" style="width: 35%; vertical-align: top;">
-                          <h4 style="color:#000; font-size: 25px; font-weight: 900; margin-top: 10px;">Room 1</h4>
-                          <span style="display: block; color:#000; font-size: 15px;">Room Name</span>
-                          <h3 style="border: 1px solid #e3e8ef; padding: 10px; border-radius: 10px; font-weight: 400;      margin-top: 10px;">Room 2</h3>
-  
-                          <div style="border: 1px solid #e3e8ef;  border-radius: 10px; font-weight: 400; ">
-                              <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 15px 20px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; "> Privacy screens/urinals</h4>
-                              <h5 style="padding: 15px 20px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 16px; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px;"/> 1 Privacy Screens / Urinals</h5>
-                              <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
-                                  <p style="margin-top: 0px;"><span style="color:#000; font-weight: 500;">Privacy Screen 1 </span>- 24in Supported , Post</p>
-                                  
-                              </div>
-                              
-                          </div>
-                          <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #eef5fa; padding:10px 20px; border-radius: 10px; margin-top: 40px;">
-                              <span><img src="${process.env.URI}/uploads/images/on.png" alt="pic" style="margin-right: 10px; width:40px"/></span>
-                              <p style="font-size: 15px;">Stall widths are to the centerline. Stall depths are to
-                                  the face. Alcove depths are wall to wall. This layout is
-                                  included in the price.</p>
-                          </div>
-                          <h5 style="color:#3d58a4; font-size: 20px; font-weight: 600; margin-bottom: 0px;">Need this layout bigger?</h5>
-                          <p>No problem! Our partition Experts will design it to fit
-                              your restroom.</p>
-                      </td>
-                      <td width="65%" style="width: 65%;">
-                          <div style="border: 1px solid #e3e8ef; padding: 15px; text-align: left; width:95%; border-radius: 10px; ">
-                              <img src="${process.env.URI}/uploads/images/pic4.png" alt="pic" style="width:auto;  transform: scale(0.8) translateX(-75px);"/>
-                          </div>
-                          <div style="border: 1px solid #e3e8ef; padding: 15px; text-align: center; width:95%; border-radius: 10px; margin-top: 20px;">
-                              <img src="${process.env.URI}/uploads/images/pic5.png" alt="pic" style="width:auto; margin: 0 auto;"/>
-                          </div>
-                      </td>
-                  </tr>
-              </table>
-          </td>
-      </tr>
-  </table>
+    <tr>
+        <td style="padding: 10px; text-align: left;">
+             <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo">
+        </td>
+        <td style="padding: 10px; text-align: right;">
+            <h3><a href="tel:1-844-81-STALL" style="color:#3d58a4; text-decoration:none;  font-style: italic; font-size: 40px; font-weight: 600;">1-844-81-STALL</a></h3>
+            <p style=" font-size:20px;      font-style: italic; margin-top: 5px;"><a href="mailto:service@restroomstallsandall.com" style="color:#000;">service@restroomstallsandall.com</a></p>
+       </td>
+    </tr>
+    <tr>
+        <td colspan="2" style="padding: 10px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #edf5fb; border-radius: 30px; vertical-align: bottom;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
+                 <tr>
+                    <td >
+                         <h4 style="color:#3d58a4; font-size:35px; line-height: 1; font-weight: 600; margin-bottom: 10px; margin-top: 15px;">Your Quote</h4>
+                         <p>Date: ${moment().format('MM/DD/YY')} </p>
+                    </td>
+                    <td align="right" style="text-align: right;">
+                        <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #294198.1</h4>
+                    </td>
+                 </tr>
+            </table>
+        </td>
+       
+    </tr>
+    <tr>
+        <td colspan="2" style="padding-left: 28px;">
+            <h5 style="color:#285fa1; font-size: 20px; line-height: 1.1; margin-top: 20px; margin-bottom: 0px;">Review your Layout</h5>
+            
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2" style="padding-left: 0px;">
+            <table width="100%" cellpadding="0" cellspacing="30" style="table-layout: fixed;">
+                <tr>
+                    <td width="35%" style="width: 35%; vertical-align: top;">
+                        <h4 style="color:#000; font-size: 25px; font-weight: 900; margin-top: 10px;">Room ${index+1}</h4>
+                        <span style="display: block; color:#000; font-size: 15px;">Room Name</span>
+                        <h3 style="border: 1px solid #e3e8ef; padding: 10px; border-radius: 10px; font-weight: 400;      margin-top: 10px;">${room.title}</h3>
+
+                        <div style="border: 1px solid #e3e8ef;  border-radius: 10px; font-weight: 400; ">
+                            <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 15px 20px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; "> Privacy screens/urinals</h4>
+                            <h5 style="padding: 15px 20px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 16px; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px;"/> 1 Privacy Screens / Urinals</h5>
+                            <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
+                                <p style="margin-top: 0px;"><span style="color:#000; font-weight: 500;">Privacy Screen 1 </span>- 24in Supported , Post</p>
+                                
+                            </div>
+                            
+                        </div>
+                        <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #eef5fa; padding:10px 20px; border-radius: 10px; margin-top: 40px;">
+                            <span><img src="${process.env.URI}/uploads/images/on.png" alt="pic" style="margin-right: 10px; width:40px"/></span>
+                            <p style="font-size: 15px;">Stall widths are to the centerline. Stall depths are to
+                                the face. Alcove depths are wall to wall. This layout is
+                                included in the price.</p>
+                        </div>
+                        <h5 style="color:#3d58a4; font-size: 20px; font-weight: 600; margin-bottom: 0px;">Need this layout bigger?</h5>
+                        <p>No problem! Our partition Experts will design it to fit
+                            your restroom.</p>
+                    </td>
+                    <td width="65%" style="width: 65%;">
+                        <div style="border: 1px solid #e3e8ef; padding: 15px; text-align: left; width:95%; border-radius: 10px; ">
+                            <img src="${process.env.URI}/uploads/images/urinal2D.png" alt="pic" style="width:auto;  transform: scale(0.8) translateX(-75px);"/>
+                        </div>
+                        <div style="border: 1px solid #e3e8ef; padding: 15px; text-align: center; width:95%; border-radius: 10px; margin-top: 20px;">
+                            <img src="${process.env.URI}/uploads/images/urinal3D.png" alt="pic" style="width:auto; margin: 0 auto;"/>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+` : ''}
+  `).join('')}
   <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 20px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
       <tr>
           <td colspan="2" style="width:100%; text-align: center;  border-radius: 12px; padding: 25px; ">
@@ -1049,12 +1051,21 @@ class FrontendController {
   
 
   async generatePDF(htmlContent) {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox', // Disable sandboxing
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage', // Overcome limited resource problems
+      ],
+    });
+    
     const page = await browser.newPage();
-    await page.setContent(htmlContent);
-    const pdfBuffer = await page.pdf({ format: "A4" });
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4' });
+    
     await browser.close();
-    return pdfBuffer;
+    return pdfBuffer
   }
 }
 
