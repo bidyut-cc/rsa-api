@@ -2,7 +2,9 @@ const Setting = require("../Models/Setting.js");
 
 const { Validator } = require("node-input-validator");
 const email_helper = require("../Helpers/Sendmail");
-const puppeteer = require("puppeteer");
+const puppeteer = require('puppeteer-core');
+const chromium = require('chrome-aws-lambda');
+const path = require('path');
 const moment = require('moment');
 const MasterSettingsController = require('./MasterSettingsController');
 
@@ -1045,17 +1047,48 @@ class FrontendController {
     }
   }
   
+  async  generatePDF(htmlContent) {
+    let browser = null;
   
+    try {
+      if (process.env.VERCEL) {
+        // Running on Vercel
+        browser = await chromium.puppeteer.launch({
+          args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+          defaultViewport: chromium.defaultViewport,
+          executablePath: await chromium.executablePath,
+        });
+      } else {
+        // Running locally
+        const executablePath = process.platform === 'darwin' 
+          ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // macOS path
+          : process.platform === 'win32'
+          ? 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe' // Windows path
+          : '/usr/bin/google-chrome'; // Linux path
+  
+        browser = await puppeteer.launch({
+          headless: true,
+          executablePath, // Specify the Chromium executable path
+        });
+      }
+  
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      const pdfBuffer = await page.pdf({ format: 'A4' });
+  
+      return pdfBuffer;
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw error; // Re-throw the error to handle it outside the function
+    } finally {
+      if (browser) {
+        await browser.close();
+      }
+    }
+  }
+
   
 
-  async generatePDF(htmlContent) {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setContent(htmlContent);
-    const pdfBuffer = await page.pdf({ format: "A4" });
-    await browser.close();
-    return pdfBuffer;
-  }
 }
 
 module.exports = FrontendController;

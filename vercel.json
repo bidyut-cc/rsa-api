@@ -1,24 +1,49 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "./index.js",
-        "use": "@vercel/node"
-      },
-      {
-        "src": "public/api/uploads/**",
-        "use": "@vercel/static"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/api/uploads/(.*)",
-        "dest": "/public/api/uploads/$1"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/"
-      }
-    ]
+  "version": 2,
+  "builds": [
+    {
+      "src": "./index.js", 
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/api/uploads/**", 
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/generate-pdf.js", 
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/quotation/create.js", 
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/uploads/(.*)",
+      "dest": "/public/api/uploads/$1"
+    },
+    {
+      "src": "/api/generate-pdf", 
+      "dest": "/api/generate-pdf.js"
+    },
+    {
+      "src": "/api/quotation/create", 
+      "dest": "/api/quotation/create.js"
+    },
+    {
+      "src": "/(.*)", 
+      "dest": "/"
+    }
+  ],
+  "functions": {
+    "api/generate-pdf.js": {
+      "maxDuration": 10, 
+      "memory": 3008 
+    },
+    "api/quotation/create.js": {
+      "maxDuration": 10, 
+      "memory": 3008 
+    }
   }
-  
+}
