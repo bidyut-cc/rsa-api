@@ -7,6 +7,7 @@ const _ = require("lodash");
 require("dotenv").config();
 const email_helper = require("../Helpers/Sendmail");
 const { Validator } = require('node-input-validator');
+const AccountLog = require("../Helpers/AccountLog.js");
 require('../Helpers/extend-node-input-validator');
 
 class UsersController extends Controller {
@@ -167,6 +168,12 @@ class UsersController extends Controller {
             //     user.set_password_token = set_password_token;
             // }
             await user.save();
+
+            if (User.schema.changeLog) {
+                const accountLog = new AccountLog();
+                const message = `New user added.`;
+                await accountLog.saveLog("saved", user, req.user, message); // Log the change
+            }
             
             res.status(200).json({
                 status: true,
