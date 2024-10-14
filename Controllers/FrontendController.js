@@ -600,7 +600,7 @@ class FrontendController {
       const results = await Promise.all(promises);
   
       // Aggregate prices and map materials in one pass
-      const priceByProduct = {};
+      const priceByProductAndRoom = {};
       const reqQuery = { query: { key: 'materials' } };
       const masterSettingResponse = await new MasterSettingsController().materialView(reqQuery, res);
       const masterSettings = masterSettingResponse; 
@@ -609,22 +609,46 @@ class FrontendController {
         throw new Error('No active materials found');
       }
   
-      results.forEach(({ stalls }) => {
+    //   results.forEach(({ stalls }) => {
+    //     stalls.forEach(({ name, id, price }) => {
+    //       if (!priceByProduct[name]) {
+    //         priceByProduct[name] = { price: 0, id }; 
+    //       }
+    //       priceByProduct[name].price += price;
+    //     });
+    //   });
+  
+    //   const materials = Object.keys(priceByProduct).map((productName) => {
+    //     const matchingMaterial = masterSettings.find((material) => material.name === productName);
+    //     return {
+    //       id: priceByProduct[productName].id,
+    //       name: productName,
+    //       price: priceByProduct[productName].price.toFixed(2),
+    //       src: matchingMaterial ? matchingMaterial.src : null
+    //     };
+    //   });
+
+      results.forEach(({ roomId, stalls }) => {
         stalls.forEach(({ name, id, price }) => {
-          if (!priceByProduct[name]) {
-            priceByProduct[name] = { price: 0, id }; 
+          if (!priceByProductAndRoom[name]) {
+            priceByProductAndRoom[name] = { id, totalPrice: 0, rooms: [] }; 
           }
-          priceByProduct[name].price += price;
+          priceByProductAndRoom[name].totalPrice += price;
+      
+          // Track price details for each room
+          priceByProductAndRoom[name].rooms.push({ room_id: roomId, price: price.toFixed(2) });
         });
       });
-  
-      const materials = Object.keys(priceByProduct).map((productName) => {
+      
+      // Build materials array with price details per room
+      const materials = Object.keys(priceByProductAndRoom).map((productName) => {
         const matchingMaterial = masterSettings.find((material) => material.name === productName);
         return {
-          id: priceByProduct[productName].id,
+          id: priceByProductAndRoom[productName].id,
           name: productName,
-          price: priceByProduct[productName].price.toFixed(2),
-          src: matchingMaterial ? matchingMaterial.src : null
+          price: priceByProductAndRoom[productName].totalPrice.toFixed(2), // total aggregated price
+          src: matchingMaterial ? matchingMaterial.src : null,
+          price_details: priceByProductAndRoom[productName].rooms, // detailed price per room
         };
       });
  
@@ -675,6 +699,12 @@ class FrontendController {
                                <div  style="width: 75% !important; padding: 10px 20px 10px; margin-bottom: 0px !important;">
                                    <h4 style="color:#3d58a4; font-size: 20px; font-weight: 500; margin-bottom: 10px; margin-top: 5px;">${material.name}</h4>
                                    <h5 style="font-size: 28px; font-weight: 700; margin-top: 10px; margin-bottom: 10px;">$${material.price}</h5>
+                            
+                                <h6 style="margin-top: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                                ${material.price_details?.map(mat_price => `
+                                <span style="color:#0061a6; margin-right:10px; font-weight: 400; ">Room ${mat_price.room_id}: <strong style="color:#000">${mat_price.price}</strong></span>
+                                `).join('')}
+                                </h6>
                                    <h6 style="font-size: 22px; font-weight: 700; margin-top: 10px; margin-bottom: 10px;">3 years warranty</h6>
                                    <p style="vertical-align: middle; margin-top:15px; display: flex; align-items: flex-start; justify-content: flex-start; line-height: 1.5;"><img src="${process.env.URI}/uploads/images/delevary.png" alt="pic" style="width: 20px; margin-right: 5px; "/> Delivered in 4 - 6 business days to
                                        ZIP 30549</p>

@@ -3,6 +3,7 @@ const Controller = require("./Controller.js");
 
 const { Validator } = require("node-input-validator");
 const _ = require("lodash");
+const AccountLog = require("../Helpers/AccountLog.js");
 
 class SettingsController extends Controller {
   constructor() {
@@ -274,19 +275,33 @@ class SettingsController extends Controller {
       const updateData = {};
       updateData[`config.${type}`] = config[type];
 
-      const updateResult = await Setting.updateOne(
-        { 
+        const foundData = await Setting.findOne({
           _id: req.params.id,
           step: "quotation_builder"
-        },
-        { $set: updateData }
-      );
-      // Perform your update logic here...
+        });
+        
+        if (foundData) {
+          foundData.set(updateData); // Update fields using the updateData object
+           // Log the change if changeLog is enabled in the schema
+        if (Setting.schema.changeLog) {
+              const accountLog = new AccountLog();
+              const message = `Quotation price data Updated.`;
+              await accountLog.saveLog("updated", foundData, req.user, message); // Log the change
+          }
+          await foundData.save();
+                // Perform your update logic here...
       res.status(200).json({
         status: true,
         message: "Quotation builder updated successfully.",
       });
       return;
+        }else{
+          res.status(404).json({
+            status: true,
+            message: "Source not found."
+        });
+        return; // Exit function
+        }
     } catch (error) {
       // Handle any error during the update process
       res.status(500).json({
@@ -324,20 +339,33 @@ class SettingsController extends Controller {
       try {
         const updateData = {};
         updateData[`config.ADA_price`] = req.body.ADA_price;
-  
-        const updateResult = await Setting.updateOne(
-          { 
-            _id: req.params.id,
-            step: "quotation_builder"
-          },
-          { $set: updateData }
-        );
-        // Perform your update logic here...
-        res.status(200).json({
-          status: true,
-          message: "Quotation builder ADA price updated successfully.",
+
+        const foundData = await Setting.findOne({
+          _id: req.params.id,
+          step: "quotation_builder"
         });
-        return;
+        
+        if (foundData) {
+          foundData.set(updateData); // Update fields using the updateData object
+           // Log the change if changeLog is enabled in the schema
+        if (Setting.schema.changeLog) {
+              const accountLog = new AccountLog();
+              const message = `Quotation ADA price data Updated.`;
+              await accountLog.saveLog("updated", foundData, req.user, message); // Log the change
+          }
+          await foundData.save();
+          res.status(200).json({
+            status: true,
+            message: "Quotation builder ADA price updated successfully.",
+          });
+          return;
+        }else{
+          res.status(404).json({
+            status: true,
+            message: "Source not found."
+        });
+        return; // Exit function
+        }
 
       } catch (error) {
         // If an error occurs, respond with a 500 status and an error message

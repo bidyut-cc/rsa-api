@@ -79,6 +79,7 @@ var UserSchema = mongoose.Schema({
 });
 UserSchema.set("toObject", { getters: true });
 UserSchema.set("toJSON", { getters: true });
+UserSchema.changeLog = true;
 
 UserSchema.plugin(mongoose_delete);
 UserSchema.plugin(mongoose_delete, { overrideMethods: "all" });
