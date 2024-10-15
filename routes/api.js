@@ -56,7 +56,9 @@ router.post("/auth/forgot-password", AuthController.forgotPassword);
 router.post("/auth/set-password", AuthController.setPassword);
 router.get("/app-setting/view",[VerifyEncryptedTokenMiddleware],FrontendController.view);
 router.post("/app-setting/config",[VerifyEncryptedTokenMiddleware],FrontendController.config);
-router.get("/quotation/create",[VerifyEncryptedTokenMiddleware],FrontendController.quotationCreate);
+router.post("/quotation/create",[VerifyEncryptedTokenMiddleware],FrontendController.quotationCreate);
+router.get("/quotation/view",[VerifyEncryptedTokenMiddleware],FrontendController.quotationView);
+router.post("/quotation/generatePaymentLink",[VerifyEncryptedTokenMiddleware],FrontendController.generatePaymentLink);
 
 
 

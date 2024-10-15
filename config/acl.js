@@ -59,6 +59,11 @@ module.exports = {
             group: ["view","materialView"],
             owner: ["view","materialView"],
         },
+        quotations: {
+            all: [ "list","view"],
+            group: [ "list","view"],
+            owner: [ "list","view"],
+        },
     },
     super_admin: {
         users: {
@@ -114,6 +119,11 @@ module.exports = {
             all: [ "view","materialView"],
             group: ["view","materialView"],
             owner: ["view","materialView"],
+        },
+        quotations: {
+            all: [ "list","view"],
+            group: [ "list","view"],
+            owner: [ "list","view"],
         },
     },
     user: {
