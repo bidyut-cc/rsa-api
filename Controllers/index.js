@@ -8,3 +8,4 @@ exports.UsersController = require("./UsersController");
 exports.CheckoutsController = require("./CheckoutsController");
 exports.SettingsController = require("./SettingsController");
 exports.MasterSettingsController = require("./MasterSettingsController");
+exports.QuotationsController = require("./QuotationsController");

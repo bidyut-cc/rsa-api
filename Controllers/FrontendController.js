@@ -5,11 +5,15 @@ const email_helper = require("../Helpers/Sendmail");
 const puppeteer = require("puppeteer");
 const moment = require('moment');
 const MasterSettingsController = require('./MasterSettingsController');
+const Quotation = require("../Models/Quotation.js");
+const mongoose = require('mongoose');
+const { default: axios } = require("axios");
 
 class FrontendController {
   constructor() {
     // Bind the method to ensure correct context
     this.quotationCreate = this.quotationCreate.bind(this);
+    this.generatePaymentLink = this.generatePaymentLink.bind(this);
   }
 
   async view(req, res) {
@@ -577,6 +581,11 @@ class FrontendController {
     try {
       const promises = req.body.rooms.map(async ({ id: roomId, stall }) => {
         const { type, noOfStalls: no_of_stall, adaStall: is_include_ada } = stall;
+        let full_type_name = 
+        type === 'IC' ? 'In Corner' :
+        type === 'BW' ? 'Between Wall' :
+        type === 'ALIC' ? 'Alcove Corner' :
+        type === 'ALBW' ? 'Alcove Between Wall' : '';
   
         const data = await Setting.findOne(
           { [`config.${type}.${no_of_stall}`]: { $exists: true } },
@@ -594,7 +603,7 @@ class FrontendController {
           price: Number(item.price) + (is_include_ada ? ada_price : 0),
         }));
   
-        return { roomId, stalls };
+        return { roomId, type, full_type_name ,stalls };
       });
   
       const results = await Promise.all(promises);
@@ -651,6 +660,16 @@ class FrontendController {
           price_details: priceByProductAndRoom[productName].rooms, // detailed price per room
         };
       });
+
+      let quotation = new Quotation;
+      quotation.first_name = req.body.first_name;
+      quotation.last_name = req.body.last_name;
+      quotation.email = req.body.email;
+      quotation.phone_number = req.body.phone_number;
+      quotation.submittedData = req.body;
+      quotation.roomData = results;
+      quotation.materials = materials;
+      await quotation.save();
  
       const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
       <tr>
@@ -700,12 +719,13 @@ class FrontendController {
                                    <h4 style="color:#3d58a4; font-size: 20px; font-weight: 500; margin-bottom: 10px; margin-top: 5px;">${material.name}</h4>
                                    <h5 style="font-size: 28px; font-weight: 700; margin-top: 10px; margin-bottom: 10px;">$${material.price}</h5>
                             
-                                <h6 style="margin-top: 10px; margin-bottom: 10px; display: flex; align-items: center;">
-                                ${material.price_details?.map(mat_price => `
-                                <span style="color:#0061a6; margin-right:10px; font-weight: 400; ">Room ${mat_price.room_id}: <strong style="color:#000">${mat_price.price}</strong></span>
-                                `).join('')}
-                                </h6>
                                    <h6 style="font-size: 22px; font-weight: 700; margin-top: 10px; margin-bottom: 10px;">3 years warranty</h6>
+                                   <h6 style="margin-top: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                                    ${results.map(room_data => `
+                                    <span style="color:#0061a6; margin-right:10px; font-weight: 400; ">Room ${room_data.roomId}: <strong style="color:#000; display: block;">${room_data.full_type_name}</strong>
+                                    </span>
+                                    `).join('')}
+                                    </h6>
                                    <p style="vertical-align: middle; margin-top:15px; display: flex; align-items: flex-start; justify-content: flex-start; line-height: 1.5;"><img src="${process.env.URI}/uploads/images/delevary.png" alt="pic" style="width: 20px; margin-right: 5px; "/> Delivered in 4 - 6 business days to
                                        ZIP 30549</p>
                                </div>
@@ -927,14 +947,14 @@ class FrontendController {
                               <tr>
                                   <td>
                                       <div>
-                                          <img src="${process.env.URI}/uploads/images/teampic1.png" alt="pic" style="margin-bottom: 15px;"/>
+                                          <img src="${process.env.URI}/uploads/images/Jim_Southard.png" alt="pic" style="margin-bottom: 15px;"/>
                                           <h4 style="margin-top: 0px; color:#285fa1;">Jim Southard</h4>
   
                                       </div>
                                   </td>
                                   <td>
                                       <div>
-                                          <img src="${process.env.URI}/uploads/images/teampic2.png" alt="pic" style="margin-bottom: 15px;"/>
+                                          <img src="${process.env.URI}/uploads/images/Josh_Williams.png" alt="pic" style="margin-bottom: 15px;"/>
                                           <h4 style="margin-top: 0px; color:#285fa1;">Josh Williams
                                           </h4>
   
@@ -942,14 +962,14 @@ class FrontendController {
                                   </td>
                                   <td>
                                       <div>
-                                          <img src="${process.env.URI}/uploads/images/teampic3.png" alt="pic" style="margin-bottom: 15px;"/>
+                                          <img src="${process.env.URI}/uploads/images/DJ_Bunn.png" alt="pic" style="margin-bottom: 15px;"/>
                                           <h4 style="margin-top: 0px; color:#285fa1;">DJ Bunn</h4>
   
                                       </div>
                                   </td>
                                   <td>
                                       <div>
-                                          <img src="${process.env.URI}/uploads/images/teampic4.png" alt="pic" style="margin-bottom: 15px;"/>
+                                          <img src="${process.env.URI}/uploads/images/Jennifer_Hollis.png" alt="pic" style="margin-bottom: 15px;"/>
                                           <h4 style="margin-top: 0px; color:#285fa1;">Jennifer Hollis</h4>
   
                                       </div>
@@ -958,14 +978,14 @@ class FrontendController {
                               <tr>
                                   <td>
                                       <div>
-                                          <img src="${process.env.URI}/uploads/images/teampic5.png" alt="pic" style="margin-bottom: 15px;"/>
+                                          <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 15px;"/>
                                           <h4 style="margin-top: 0px; color:#285fa1;">Jim Artman</h4>
   
                                       </div>
                                   </td>
                                   <td>
                                       <div>
-                                          <img src="${process.env.URI}/uploads/images/teampic6.png" alt="pic" style="margin-bottom: 15px;"/>
+                                          <img src="${process.env.URI}/uploads/images/Megan_Schroeder.png" alt="pic" style="margin-bottom: 15px;"/>
                                           <h4 style="margin-top: 0px; color:#285fa1;">Megan Schroeder
                                           </h4>
   
@@ -973,7 +993,7 @@ class FrontendController {
                                   </td>
                                   <td>
                                       <div>
-                                          <img src="${process.env.URI}/uploads/images/teampic7.png" alt="pic" style="margin-bottom: 15px;"/>
+                                          <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 15px;"/>
                                           <h4 style="margin-top: 0px; color:#285fa1;">Peyton Cape
                                           </h4>
   
@@ -981,7 +1001,7 @@ class FrontendController {
                                   </td>
                                   <td>
                                       <div>
-                                          <img src="${process.env.URI}/uploads/images/teampic8.png" alt="pic" style="margin-bottom: 15px;"/>
+                                          <img src="${process.env.URI}/uploads/images/Rob_Watkins.png" alt="pic" style="margin-bottom: 15px;"/>
                                           <h4 style="margin-top: 0px; color:#285fa1;">Rob Watkins
                                           </h4>
   
@@ -994,7 +1014,7 @@ class FrontendController {
                                           <tr>
                                               <td>
                                                   <div>
-                                                      <img src="${process.env.URI}/uploads/images/teampic9.png" alt="pic" style="margin-bottom: 15px;"/>
+                                                      <img src="${process.env.URI}/uploads/images/Tracy_Hanson.png" alt="pic" style="margin-bottom: 15px;"/>
                                                       <h4 style="margin-top: 0px; color:#285fa1;">Tracy Hanson
                                                       </h4>
           
@@ -1002,7 +1022,7 @@ class FrontendController {
                                               </td>
                                               <td>
                                                   <div>
-                                                      <img src="${process.env.URI}/uploads/images/teampic10.png" alt="pic" style="margin-bottom: 15px;"/>
+                                                      <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 15px;"/>
                                                       <h4 style="margin-top: 0px; color:#285fa1;">Travis Perdue
                                                       </h4>
           
@@ -1010,7 +1030,7 @@ class FrontendController {
                                               </td>
                                               <td>
                                                   <div>
-                                                      <img src="${process.env.URI}/uploads/images/teampic11.png" alt="pic" style="margin-bottom: 15px;"/>
+                                                      <img src="${process.env.URI}/uploads/images/CJ_Cooper.png" alt="pic" style="margin-bottom: 15px;"/>
                                                       <h4 style="margin-top: 0px; color:#285fa1;">CJ Cooper
                                                       </h4>
           
@@ -1076,9 +1096,6 @@ class FrontendController {
       });
     }
   }
-  
-  
-  
 
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
@@ -1096,6 +1113,160 @@ class FrontendController {
     
     await browser.close();
     return pdfBuffer
+  }
+
+  async quotationView(req, res) {
+    // Validate the input data
+    const v = new Validator(req.query, {
+      id: "required",
+    });
+
+    // Check if validation passes
+    const matched = await v.check();
+    if (!matched) {
+      // If validation fails, respond with a 422 status and the validation errors
+      res.status(422).json({
+        status: false,
+        errors: v.errors,
+      });
+    } else {
+      const { id } = req.query;
+      // Validate if 'id' is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        res.status(422).json({
+        status: false,
+        errors:{
+            'id':{
+                message: "Invalid MongoDB ObjectId",
+            }
+        }
+        });
+        return
+    }
+      try {
+        const data = await Quotation.findOne(
+          { _id: id },
+          { submittedData: 1, roomData: 1, materials:1, _id: 1 }
+        );
+        res.status(200).json({
+          status: true,
+          data: data,
+        });
+        return;
+      } catch (error) {
+        res.status(500).json({
+          status: false,
+          message: error.message,
+        });
+      }
+    }
+  }
+  
+  async generatePaymentLink(req, res) {
+    // Validate the input data
+    const v = new Validator(req.body, {
+      id: "required",
+      material_id: "required|integer"
+    });
+
+    // Check if validation passes
+    const matched = await v.check();
+    if (!matched) {
+      // If validation fails, respond with a 422 status and the validation errors
+      res.status(422).json({
+        status: false,
+        errors: v.errors,
+      });
+    } else {
+      const { id, material_id } = req.body;
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        res.status(422).json({
+         status: false,
+         errors:{
+           'id':{
+               message: "Invalid MongoDB ObjectId",
+           }
+       }
+       });
+       return
+     }
+
+      try {
+        const data = await Quotation.findOne(
+            { _id: id, materials: { $elemMatch: { id: Number(material_id) } } },
+            { "materials.$": 1, _id: 1 } // Return only the matched material
+          );
+      
+          if (!data) {
+             res.status(404).json({
+              status: false,
+              message: 'Quotation or material not found with provided ID',
+            });
+            return;
+          }
+      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0]);
+    if(bigCommerceCart.status){
+        res.status(200).json({
+            status: true,
+            checkoutUrl:bigCommerceCart.data.data.redirect_urls.checkout_url
+          });
+          return;
+    }else{
+        res.status(500).json({
+            status: false,
+            message: bigCommerceCart.message,
+          });
+          return; 
+    }
+       
+        
+      } catch (error) {
+        res.status(500).json({
+          status: false,
+          message: error.message,
+        });
+        return;
+      }
+    }
+  }
+
+  async createBigCommerceCart(materials) {
+   
+    try {
+      // Prepare the data for BigCommerce cart (example: passing materials and prices)
+      const cartData = {
+        "customer_id": 0,
+        "line_items": [
+          {
+            "quantity": 1,
+            "product_id": 111,
+            "list_price": materials.price,
+            "name": "calendar"
+          }
+        ]
+      }
+      const bigCommerceApiUrl = `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v3/carts?include=redirect_urls`;
+      const bigCommerceHeaders = {
+        'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN,  // Replace with your BigCommerce API token
+        'Content-Type': 'application/json',
+      };
+  
+      // Make POST request to BigCommerce API
+      const bigCommerceResponse = await axios.post(bigCommerceApiUrl, cartData, { headers: bigCommerceHeaders });
+ 
+      // Extract checkout URL from the response
+     // const checkoutUrl = bigCommerceResponse.data.data.redirect_urls.checkout_url;
+      return {
+        status:true,
+        data:bigCommerceResponse.data
+      }
+    } catch (error) {
+      console.error('BigCommerce Error:', error);
+      return {
+        status:false,
+        message:'Failed to create cart in BigCommerce'
+      }
+    }
   }
 }
 
