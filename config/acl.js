@@ -60,6 +60,11 @@ module.exports = {
             owner: ["view","materialView"],
         },
         quotations: {
+            all: [ "list","view","generateQuotationPDF"],
+            group: [ "list","view","generateQuotationPDF"],
+            owner: [ "list","view","generateQuotationPDF"],
+        },
+        orders: {
             all: [ "list","view"],
             group: [ "list","view"],
             owner: [ "list","view"],
@@ -121,6 +126,11 @@ module.exports = {
             owner: ["view","materialView"],
         },
         quotations: {
+            all: [ "list","view","generateQuotationPDF"],
+            group: [ "list","view","generateQuotationPDF"],
+            owner: [ "list","view","generateQuotationPDF"],
+        },
+        orders: {
             all: [ "list","view"],
             group: [ "list","view"],
             owner: [ "list","view"],

@@ -59,6 +59,7 @@ router.post("/app-setting/config",[VerifyEncryptedTokenMiddleware],FrontendContr
 router.post("/quotation/create",[VerifyEncryptedTokenMiddleware],FrontendController.quotationCreate);
 router.get("/quotation/view",[VerifyEncryptedTokenMiddleware],FrontendController.quotationView);
 router.post("/quotation/generatePaymentLink",[VerifyEncryptedTokenMiddleware],FrontendController.generatePaymentLink);
+router.post("/quotation/updatePaymentResponse",[VerifyEncryptedTokenMiddleware],FrontendController.updatePaymentResponse);
 
 
 
