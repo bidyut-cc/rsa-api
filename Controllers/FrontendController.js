@@ -538,7 +538,7 @@ class FrontendController {
           {
             receivers: ["bidyut.patra@codeclouds.com"],
             subject: "Quotation PDF",
-            context: { body_content: "<h2>Hello, Bidyut </h2>" },
+            context: { body_content: `<h2>Hello, Bidyut </h2>` },
           },
           [
             {
@@ -1073,7 +1073,7 @@ class FrontendController {
         {
           receivers: ["bidyut.patra@codeclouds.com"],
           subject: "Quotation PDF",
-          context: { body_content: "<h2>Hello, Bidyut </h2>" },
+          context: { body_content: `<h2>Hello, ${quotation.first_name} ${quotation.last_name} </h2>` },
         },
         [
           {
