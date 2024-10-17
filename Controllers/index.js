@@ -9,3 +9,4 @@ exports.CheckoutsController = require("./CheckoutsController");
 exports.SettingsController = require("./SettingsController");
 exports.MasterSettingsController = require("./MasterSettingsController");
 exports.QuotationsController = require("./QuotationsController");
+exports.OrdersController = require("./OrdersController");

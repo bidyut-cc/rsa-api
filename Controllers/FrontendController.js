@@ -8,12 +8,14 @@ const MasterSettingsController = require('./MasterSettingsController');
 const Quotation = require("../Models/Quotation.js");
 const mongoose = require('mongoose');
 const { default: axios } = require("axios");
+const Order = require("../Models/Order.js");
 
 class FrontendController {
   constructor() {
     // Bind the method to ensure correct context
     this.quotationCreate = this.quotationCreate.bind(this);
     this.generatePaymentLink = this.generatePaymentLink.bind(this);
+    this.updatePaymentResponse = this.updatePaymentResponse.bind(this);
   }
 
   async view(req, res) {
@@ -662,6 +664,7 @@ class FrontendController {
       });
 
       let quotation = new Quotation;
+      quotation.quotation_no = Date.now();
       quotation.first_name = req.body.first_name;
       quotation.last_name = req.body.last_name;
       quotation.email = req.body.email;
@@ -690,7 +693,7 @@ class FrontendController {
                            <p>Date: ${moment().format('MM/DD/YY')} </p>
                       </td>
                       <td align="right" style="text-align: right;">
-                          <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #294198.1</h4>
+                          <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #${quotation.quotation_no}</h4>
                       </td>
                    </tr>
               </table>
@@ -736,10 +739,10 @@ class FrontendController {
                                       
                                            <div style="width:100%; display: flex; align-items: center; gap:25px">
                                               <div style="text-align: right; width: 50%;">
-                                                  <a href="javascript:void(0)" style="text-decoration: none; color:#000; padding: 14px 20px; border:1px solid #cbd5e1; border-radius: 10px; width: 80%; display: block; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/videoicon1.png" alt="pc" style="width:20px; margin-right: 5px;"/> Videos</a>
+                                                  <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}" style="text-decoration: none; color:#000; padding: 14px 20px; border:1px solid #cbd5e1; border-radius: 10px; width: 80%; display: block; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/videoicon1.png" alt="pc" style="width:20px; margin-right: 5px;"/> Videos</a>
                                               </div>
                                               <div  style="text-align: right; width: 50%;">
-                                                  <a href="javascript:void(0)" style="text-decoration: none; color:#000; padding: 14px 20px; border:1px solid #cbd5e1; border-radius: 10px; width: 80%; display: block; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; margin-left: auto;"><img src="${process.env.URI}/uploads/images/color.png" alt="pc" style="width:20px; margin-right: 5px;"/> Colours</a>
+                                                  <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}" style="text-decoration: none; color:#000; padding: 14px 20px; border:1px solid #cbd5e1; border-radius: 10px; width: 80%; display: block; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; margin-left: auto;"><img src="${process.env.URI}/uploads/images/color.png" alt="pc" style="width:20px; margin-right: 5px;"/> Colours</a>
                                               </div>
                                            </div>
                                       
@@ -786,7 +789,7 @@ class FrontendController {
                            <p>Date: ${moment().format('MM/DD/YY')} </p>
                       </td>
                       <td align="right" style="text-align: right;">
-                          <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #294198.1</h4>
+                          <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #${quotation.quotation_no}</h4>
                       </td>
                    </tr>
               </table>
@@ -832,10 +835,10 @@ class FrontendController {
                       </td>
                       <td width="65%" style="width: 65%;">
                           <div style="border: 1px solid #e3e8ef; padding: 30px; text-align: center; width:90%; border-radius: 10px; min-height: 414px; display: flex; align-items: center; justify-content: center;">
-                              <img src="${process.env.URI}/uploads/images/room2D.png" alt="pic" style="width:65%; margin: 0 auto;"/>
+                              <img src="${room.image_2D}" alt="pic" style="width:65%; margin: 0 auto;"/>
                           </div>
                           <div style="border: 1px solid #e3e8ef; padding: 30px; text-align: center; width:90%; border-radius: 10px; margin-top: 20px;">
-                              <img src="${process.env.URI}/uploads/images/room3D.png" alt="pic" style="width:65%; margin: 0 auto;"/>
+                              <img src="${room.image_3D}" alt="pic" style="width:65%; margin: 0 auto;"/>
                           </div>
                       </td>
                   </tr>
@@ -863,7 +866,7 @@ class FrontendController {
                          <p>Date: ${moment().format('MM/DD/YY')} </p>
                     </td>
                     <td align="right" style="text-align: right;">
-                        <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #294198.1</h4>
+                        <h4 style="border:4px solid #cbd5e1; padding: 5px 15px; background: #fff; display: inline-block; border-radius: 15px; color:#0061a5; font-size: 20px;">JOB NUMBER #${quotation.quotation_no}</h4>
                     </td>
                  </tr>
             </table>
@@ -906,10 +909,10 @@ class FrontendController {
                     </td>
                     <td width="65%" style="width: 65%;">
                         <div style="border: 1px solid #e3e8ef; padding: 15px; text-align: left; width:95%; border-radius: 10px; ">
-                            <img src="${process.env.URI}/uploads/images/urinal2D.png" alt="pic" style="width:auto;  transform: scale(0.8) translateX(-75px);"/>
+                            <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;  transform: scale(0.8) translateX(-75px);"/>
                         </div>
                         <div style="border: 1px solid #e3e8ef; padding: 15px; text-align: center; width:95%; border-radius: 10px; margin-top: 20px;">
-                            <img src="${process.env.URI}/uploads/images/urinal3D.png" alt="pic" style="width:auto; margin: 0 auto;"/>
+                            <img src="${room.urinalScreen?.urinal_3D}" alt="pic" style="width:auto; margin: 0 auto;"/>
                         </div>
                     </td>
                 </tr>
@@ -1084,6 +1087,7 @@ class FrontendController {
       res.status(200).json({
         status: true,
         data: {
+          id:quotation._id,
           submittedData: req.body,
           roomData: results,
           materials,
@@ -1166,7 +1170,8 @@ class FrontendController {
     // Validate the input data
     const v = new Validator(req.body, {
       id: "required",
-      material_id: "required|integer"
+      material_id: "required|integer",
+      color: "required",
     });
 
     // Check if validation passes
@@ -1178,7 +1183,7 @@ class FrontendController {
         errors: v.errors,
       });
     } else {
-      const { id, material_id } = req.body;
+      const { id, material_id, color } = req.body;
       if (!mongoose.Types.ObjectId.isValid(id)) {
         res.status(422).json({
          status: false,
@@ -1194,7 +1199,7 @@ class FrontendController {
       try {
         const data = await Quotation.findOne(
             { _id: id, materials: { $elemMatch: { id: Number(material_id) } } },
-            { "materials.$": 1, _id: 1 } // Return only the matched material
+            { "materials.$": 1, _id: 1,first_name:1,last_name:1,email:1,phone_number:1 } // Return only the matched material
           );
       
           if (!data) {
@@ -1206,8 +1211,23 @@ class FrontendController {
           }
       const bigCommerceCart = await this.createBigCommerceCart(data.materials[0]);
     if(bigCommerceCart.status){
+      let order = new Order;
+      order.quotation_id=id
+      order.material_id=material_id
+      order.cart_id=bigCommerceCart.data.data.id
+      order.order_id=null
+      order.transaction_id=null
+      order.zendesk_ticket_id=zendesk_ticket_id
+      order.first_name = data.first_name;
+      order.last_name =data.last_name;
+      order.email = data.email;
+      order.phone_number = data.phone_number;
+      order.color=color
+      order.amount = bigCommerceCart.data.data.base_amount;
+      await order.save();
         res.status(200).json({
             status: true,
+            id:order._id,
             checkoutUrl:bigCommerceCart.data.data.redirect_urls.checkout_url
           });
           return;
@@ -1231,7 +1251,6 @@ class FrontendController {
   }
 
   async createBigCommerceCart(materials) {
-   
     try {
       // Prepare the data for BigCommerce cart (example: passing materials and prices)
       const cartData = {
@@ -1243,7 +1262,10 @@ class FrontendController {
             "list_price": materials.price,
             "name": "calendar"
           }
-        ]
+        ],
+        "redirect_urls": {
+          "return_url": process.env.BIGCOMMERCE_RETURN_URL
+      }
       }
       const bigCommerceApiUrl = `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v3/carts?include=redirect_urls`;
       const bigCommerceHeaders = {
@@ -1268,6 +1290,118 @@ class FrontendController {
       }
     }
   }
+
+  async updatePaymentResponse(req,res){
+        // Validate the input data
+        const v = new Validator(req.body, {
+          id: "required",
+          transaction_id: "required",
+          order_id: "required",
+          payment_status: "required",
+        });
+    
+        // Check if validation passes
+        const matched = await v.check();
+        if (!matched) {
+          // If validation fails, respond with a 422 status and the validation errors
+          res.status(422).json({
+            status: false,
+            errors: v.errors,
+          });
+        } else {
+          const { id, transaction_id, order_id, payment_status} = req.body;
+          if (!mongoose.Types.ObjectId.isValid(id)) {
+            res.status(422).json({
+             status: false,
+             errors:{
+               'id':{
+                   message: "Invalid MongoDB ObjectId",
+               }
+           }
+           });
+           return
+         }
+          try {
+            const order = await Order.findOne({ _id: id });
+                  order.order_id=order_id
+                  order.transaction_id=transaction_id
+                  order.payment_status=payment_status
+                  const zendesk_ticket=await this.createZendeskTicket(order);
+                  if(zendesk_ticket){
+                    order.zendesk_ticket_id=zendesk_ticket.ticket_id
+                    await order.save();
+                    res.status(200).json({
+                      status: true,
+                      zendesk_ticket:zendesk_ticket.ticket_id,
+                      message:"Order Updated successfully."
+                    });
+                    return;
+                  }else{
+                    res.status(500).json({
+                      status: false,
+                      message:"Server error."
+                    });
+                    return;
+                  }
+
+              
+            
+          } catch (error) {
+            res.status(500).json({
+              status: false,
+              message: error.message,
+            });
+            return;
+          }
+        }
+  }
+
+  // Create a Zendesk ticket with order data
+  async createZendeskTicket (orderData){
+  try {
+    const ticketData = {
+      ticket: {
+        subject: `New Order #${orderData.id}`,
+        description: `Order ID: ${orderData.order_id}\nCustomer Name: ${orderData.first_name} ${orderData.last_name}\nTotal Amount: ${orderData.amount}`,
+        priority: 'normal',
+        custom_fields: [
+          {
+            id: 22019106776722,  // Replace with your Zendesk custom field ID for order number
+            value: orderData.order_id,
+          },
+          {
+            id: 22019094465938,  // Replace with your Zendesk custom field ID for order total
+            value: orderData.amount,
+          },
+        ],
+        tags: ['bigcommerce', 'order'],
+      },
+    };
+
+    const response = await axios.post(
+      `${process.env.ZENDESK_DOMAIN}/api/v2/tickets.json`,
+      ticketData,
+      {
+        auth: {
+          username: `${process.env.ZENDESK_EMAIL}/token`,
+          password: process.env.ZENDESK_API_TOKEN,
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return {
+      status:true,
+      ticket_id:response.data.ticket.id
+    }
+  } catch (error) {
+    console.error('Error creating Zendesk ticket:', error);
+    throw error;
+  }
+};
+
+
 }
 
 module.exports = FrontendController;

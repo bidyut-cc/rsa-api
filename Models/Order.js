@@ -1,10 +1,27 @@
 const mongoose = require("mongoose");
 const _ = require("lodash");
 var mongoose_delete = require("mongoose-delete");
-var QuotationSchema = mongoose.Schema({
-    quotation_no: {
+var OrderSchema = mongoose.Schema({
+    quotation_id: { type: mongoose.Schema.Types.ObjectId, ref: 'quotation', required: true },
+    material_id: {
         type: String,
         required: true,
+    },
+    cart_id: {
+        type: String,
+        required: true,
+    },
+    order_id: {
+        type: String,
+        required: false,
+    },
+    zendesk_ticket_id: {
+        type: String,
+        required: false,
+    },
+    transaction_id: {
+        type: String,
+        required: false,
     },
     first_name: {
         type: String,
@@ -22,17 +39,18 @@ var QuotationSchema = mongoose.Schema({
         type: String,
         required: false,
     },
-    submittedData: {
-        type: Object,
+    color: {
+        type: String,
         required: true,
     },
-    roomData: {
-        type: Object,
+    amount: {
+        type: String,
         required: true,
     },
-    materials: {
-        type: Object,
-        required: true,
+    payment_status: {
+        type: String,
+        enum: ['Pending', 'Completed', 'Failed'],  // Restrict to these values
+        default: 'Pending'
     },
     
     deleted: {
@@ -46,16 +64,16 @@ var QuotationSchema = mongoose.Schema({
     },
     
 });
-QuotationSchema.set("toObject", { getters: true });
-QuotationSchema.set("toJSON", { getters: true });
+OrderSchema.set("toObject", { getters: true });
+OrderSchema.set("toJSON", { getters: true });
 
-QuotationSchema.changeLog = true;
+OrderSchema.changeLog = true;
 
-QuotationSchema.plugin(mongoose_delete);
-QuotationSchema.plugin(mongoose_delete, { overrideMethods: "all" });
-QuotationSchema.fillable = ["quotation_no","first_name","last_name","email","phone_number","submittedData","roomData","materials"];
+OrderSchema.plugin(mongoose_delete);
+OrderSchema.plugin(mongoose_delete, { overrideMethods: "all" });
+OrderSchema.fillable = ["quotation_id","material_id","cart_id","order_id","zendesk_ticket_id","transaction_id","first_name","last_name","email","phone_number","color","amount","payment_status"];
 
-QuotationSchema.customFields = {
+OrderSchema.customFields = {
     _id: {
         field_name: "_id",
         db_name: "_id",
@@ -70,11 +88,76 @@ QuotationSchema.customFields = {
         width: "50",
         searchable: false,
     },
-    quotation_no: {
-        field_name: "quotation_no",
-        db_name: "quotation_no",
+    quotation_id: {
+        field_name: "quotation_id",
+        db_name: "quotation_id",
         type: "text",
-        placeholder: "quotation_no",
+        placeholder: "quotation_id",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    material_id: {
+        field_name: "material_id",
+        db_name: "material_id",
+        type: "text",
+        placeholder: "material_id",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    order_id: {
+        field_name: "order_id",
+        db_name: "order_id",
+        type: "text",
+        placeholder: "order_id",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    zendesk_ticket_id: {
+        field_name: "zendesk_ticket_id",
+        db_name: "zendesk_ticket_id",
+        type: "text",
+        placeholder: "zendesk_ticket_id",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    cart_id: {
+        field_name: "cart_id",
+        db_name: "cart_id",
+        type: "text",
+        placeholder: "cart_id",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    transaction_id: {
+        field_name: "transaction_id",
+        db_name: "transaction_id",
+        type: "text",
+        placeholder: "transaction_id",
         listing: true,
         sort: true,
         default_sort: false,
@@ -135,24 +218,11 @@ QuotationSchema.customFields = {
         width: "50",
         searchable: true,
     },
-    submittedData: {
-        field_name: "submittedData",
-        db_name: "submittedData",
-        type: "object",
-        placeholder: "submittedData",
-        listing: true,
-        sort: true,
-        default_sort: false,
-        required: false,
-        value: "",
-        width: "50",
-        searchable: true,
-    },
-    roomData: {
-        field_name: "roomData",
-        db_name: "object",
+    color: {
+        field_name: "color",
+        db_name: "color",
         type: "text",
-        placeholder: "roomData",
+        placeholder: "color",
         listing: true,
         sort: true,
         default_sort: false,
@@ -161,11 +231,11 @@ QuotationSchema.customFields = {
         width: "50",
         searchable: true,
     },
-    materials: {
-        field_name: "materials",
-        db_name: "materials",
-        type: "object",
-        placeholder: "materials",
+    amount: {
+        field_name: "amount",
+        db_name: "amount",
+        type: "text",
+        placeholder: "amount",
         listing: true,
         sort: true,
         default_sort: false,
@@ -174,6 +244,20 @@ QuotationSchema.customFields = {
         width: "50",
         searchable: true,
     },
+    payment_status: {
+        field_name: "payment_status",
+        db_name: "payment_status",
+        type: "text",
+        placeholder: "payment_status",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+
     createdAt: {
         "field_name": "createdAt",
         "db_name": "createdAt",
@@ -189,4 +273,4 @@ QuotationSchema.customFields = {
     },
 };
 
-module.exports = mongoose.model("quotation", QuotationSchema);
+module.exports = mongoose.model("orders", OrderSchema);
