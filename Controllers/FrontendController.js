@@ -1224,7 +1224,7 @@ class FrontendController {
       order.cart_id=bigCommerceCart.data.data.id
       order.order_id=null
       order.transaction_id=null
-      order.zendesk_ticket_id=zendesk_ticket_id
+      order.zendesk_ticket_id=null
       order.first_name = data.first_name;
       order.last_name =data.last_name;
       order.email = data.email;
