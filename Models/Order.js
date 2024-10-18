@@ -99,7 +99,7 @@ OrderSchema.customFields = {
         required: false,
         value: "",
         width: "50",
-        searchable: true,
+        searchable: false,
     },
     material_id: {
         field_name: "material_id",

@@ -9,6 +9,7 @@ const Quotation = require("../Models/Quotation.js");
 const mongoose = require('mongoose');
 const { default: axios } = require("axios");
 const Order = require("../Models/Order.js");
+const Emailtemplate = require('../Models/Emailtemplate');
 
 class FrontendController {
   constructor() {
@@ -1068,12 +1069,18 @@ class FrontendController {
           .status(500)
           .json({ status: false, message: "Failed to generate PDF." });
       }
+
+      var email_verification_template = await Emailtemplate.findOne({
+        code: "QUOTATION",
+    }).exec();
+    var template = email_verification_template.template;
+    let body = template.replace("{{name}}", `${quotation.first_name} ${quotation.last_name}`);
       // Send email with PDF attachment
       await email_helper.sendEmail(
         {
-          receivers: ["bidyut.patra@codeclouds.com"],
+          receivers: ["bidyut.patra@codeclouds.com",quotation.email],
           subject: "Quotation PDF",
-          context: { body_content: `<h2>Hello, ${quotation.first_name} ${quotation.last_name} </h2>` },
+          context: { body_content: body },
         },
         [
           {
