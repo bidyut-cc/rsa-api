@@ -4,6 +4,7 @@ const Controller = require("./Controller.js");
 const { Validator } = require("node-input-validator");
 const _ = require("lodash");
 const AccountLog = require("../Helpers/AccountLog.js");
+const MasterSetting = require("../Models/MasterSetting.js");
 
 class SettingsController extends Controller {
   constructor() {
@@ -25,10 +26,18 @@ class SettingsController extends Controller {
     }
   }
   async updateProject(req, res) {
+    const maximum_number_of_stalls = await MasterSetting.findOne(
+      { key: 'maximum_number_of_stalls' },
+      { key: 1, value: 1, _id: 1 }
+    );
+    const maximum_number_of_urinal_screens = await MasterSetting.findOne(
+      { key: 'maximum_number_of_urinal_screens' },
+      { key: 1, value: 1, _id: 1 }
+    );
     // Validate the input data
     const v = new Validator(req.body, {
-      maximum_number_of_stalls: "required|integer|min:1|max:10",
-      maximum_number_of_urinal_screens: "required|integer|min:1|max:10",
+      maximum_number_of_stalls: `required|integer|min:1|max:${maximum_number_of_stalls.value}`,
+      maximum_number_of_urinal_screens: `required|integer|min:1|max:${maximum_number_of_urinal_screens.value}`,
       interested_for_material_installation_quote: "required|in:Yes,No",
     });
 
