@@ -698,7 +698,7 @@ class FrontendController {
               <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
                    <tr>
                       <td colspan="2">
-                           <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Your Quote</h4>
+                           <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
                            <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
                       </td>
                    </tr>
@@ -709,7 +709,11 @@ class FrontendController {
       <tr>
           <td colspan="2" style="text-align: center; margin-top: 0px;">
               <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 10px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 10px;">Review the Prices for your Rooms</h4>
-              <p style="font-size: 12px; line-height: 1.2; color:#000; font-weight: 400;">Prices and delivery times are subject to review by RSA. Add sales tax if applicable.</p>
+              <div style="display: flex; align-items: center; justify-content:center; position: relative;">
+                <p style="font-size: 12px; line-height: 1.2; color:#000; font-weight: 400;">Prices and delivery times are subject to review by RSA. Add sales tax if applicable.</p>
+                <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}" style="color:#000; font-size: 15px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; border-radius: 5px; padding: 6px 20px; text-decoration: none; margin-left: 0px; position: absolute; right: 0;">Buy</a>
+              </div>
+              
           </td>
           
       </tr>
@@ -735,7 +739,7 @@ class FrontendController {
                                     </span>
                                     `).join('')}
                                     </h6>
-                                   <p style="vertical-align: middle; margin-top:15px; display: flex; align-items: flex-start; justify-content: flex-start; line-height: 1.1; margin-bottom: 0px; font-size: 14px;"><img src="${process.env.URI}/uploads/images/delevary.png" alt="pic" style="width: 20px; margin-right: 5px; "/> Delivered in 4 - 6 business days to
+                                   <p style="vertical-align: middle; margin-top:15px; display: flex; align-items: flex-start; justify-content: flex-start; line-height: 1.1; margin-bottom: 0px; font-size: 13px;"><img src="${process.env.URI}/uploads/images/delevary.png" alt="pic" style="width: 20px; margin-right: 5px; "/> Delivered in 4 - 6 business days to
                                        ZIP 30549</p>
                                </div>
            
@@ -743,13 +747,14 @@ class FrontendController {
                               <div>
                                  
                                       
-                                           <div style="width:100%; display: flex; align-items: center; gap:25px">
-                                              <div style="text-align: right; width: 50%;">
-                                                  <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #cbd5e1; border-radius: 10px; width: 80%; display: block; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/videoicon1.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
+                                           <div style="width:100%; display: flex; align-items: center; gap:0px">
+                                              <div style="text-align: right; width: 100%;">
+                                                  <a href="${process.env.QUOTATION_PAYMENT_URL}?id=${quotation._id}&material_id=${material.id}&color=Blue" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #cbd5e1; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
                                               </div>
-                                              <div  style="text-align: right; width: 50%;">
+                                              <!-- <div  style="text-align: right; width: 50%;">
                                                   <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #cbd5e1; border-radius: 10px; width: 80%; display: block; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; margin-left: auto;"><img src="${process.env.URI}/uploads/images/color.png" alt="pc" style="width:20px; margin-right: 5px;"/> Colours</a>
-                                              </div>
+                                              </div> -->
+  
                                            </div>
                                       
                                   
@@ -759,10 +764,10 @@ class FrontendController {
                        </div>
                        `).join('')}
                        <div style="padding: 10px 40px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px; print-color-adjust: exact;  -webkit-print-color-adjust: exact;  background: #eef5fa; width:48%; box-sizing: border-box; min-height: 200px;" >
-                          <img src="${process.env.URI}/uploads/images/on.png" alt="alt"/>
-                          <p style="color:#000; font-size: 16px; line-height: 1.3; text-align: left; padding: 0px 30px; margin-top: 5px;">All doors, panels, pilaster, screws, brackets, and
+                          <img src="${process.env.URI}/uploads/images/on.png" alt="alt" style="width:30px"/>
+                          <p style="color:#000; font-size: 14px; line-height: 1.3; text-align: left; padding: 0px 30px; margin-top: 5px;">All doors, panels, pilaster, screws, brackets, and
                               anchors for a typical install are included.</p>
-                          <p style="color:#000; font-size: 16px; line-height: 1.3; text-align: left; padding: 0px 30px;">Delivery from our local terminal to anywhere within
+                          <p style="color:#000; font-size: 14px; line-height: 1.3; text-align: left; padding: 0px 30px;">Delivery from our local terminal to anywhere within
                               your specified zip code are also included. Please add
                               sales tax if applicable.</p>
                        </div> 
@@ -791,7 +796,7 @@ class FrontendController {
                   <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
                        <tr>
                           <td colspan="2">
-                               <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Your Quote</h4>
+                               <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
                                <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
                           </td>
                        </tr>
@@ -801,7 +806,7 @@ class FrontendController {
           </tr>
           <tr>
               <td colspan="2" style="padding-left: 10px;">
-                  <h5 style="color:#285fa1; font-size: 25px; line-height: 1.1; margin-top: 20px; margin-bottom: 0px;">Review your Layout</h5>
+                  <h5 style="color:#285fa1; font-size: 20px; line-height: 1; margin-top: 10px; margin-bottom: 0px;">Review your Layout</h5>
                   
               </td>
           </tr>
@@ -820,11 +825,11 @@ class FrontendController {
                                   <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 7px 14px; margin-bottom: 0px; font-size: 13px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; margin-bottom: 0px;"> Stalls</h4>
                                   <h5 style="padding: 5px 20px 12px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 15px; margin-top: 5px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px; "/> ${room.stall.noOfStalls} Stalls</h5>
                                   <div style="padding: 0px 20px 15px 20px; margin-top: 0px; display: flex; flex-wrap: wrap; justify-content: space-between;">
-                                      ${room?.stall?.stallConfig?.map((stall, stallIndex) => `
-                                      <p style="margin-top: 0px; font-size: 13px; width:48%; margin-bottom: 0;"><span style="color:#000; font-weight: 500;">Stall ${stallIndex+1} </span>- Width: ${stall.stallWidth}"; Door: ${stall.doorOpening}"; Door Swing: ${stall.doorSwing}
-                                          In.</p>
+                                      ${room?.stall?.stallConfig?.map((stall, stallIndex) =>`
+                                      <p style="margin-top: 0px; font-size: 13px; width:48%; margin-bottom: 0; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"; <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"; <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
+                                          .</p>
                                           `).join('')}        
-                                      <p style="display: flex; align-items: center; font-size: 14px; width:100%"><img src="${process.env.URI}/uploads/images/layout.png" alt="pic" style="width: 15px; margin-right:10px;"/><span style="color:#000; font-weight: 500;">Layout </span>- ${room.stall?.layout?.layoutDirection}</p>
+                                      <p style="display: flex; align-items: center; font-size: 14px; width:100%; line-height: 1;"><img src="${process.env.URI}/uploads/images/layout.png" alt="pic" style="width: 15px; margin-right:10px;"/><span style="color:#000; font-weight: 500; font-weight: 700; line-height: 1;color:#0061a6;">Layout </span>- ${room.stall?.layout?.layoutDirection}</p>
                                   </div>
                                   
                               </div>
@@ -832,30 +837,30 @@ class FrontendController {
                           </td>
                       </tr>
                       <tr>
-                          <td width="50%" style="width: 50%; border: 1px solid #e3e8ef; border-radius: 10px;">
+                          <td colspan="2" width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 13px; text-align: center; width:95%;  min-height: 140px; display: flex; align-items: center; justify-content: center;">
                                   <img src="${room.image_2D}" alt="pic" style="width:100%; margin: 0 auto;"/>
                               </div>
                               
                           </td>
-                          <td width="50%" style="width: 50%; border: 1px solid #e3e8ef; border-radius: 10px;">
+                          <!-- <td width="50%" style="width: 50%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 13px; text-align: center; width:95%;  margin-top: 10px;">
                                   <img src="${room.image_3D}" alt="pic" style="width:100%; margin: 0 auto;"/>
                               </div>
-                          </td>
+                          </td> -->
                       </tr>
                       <tr>
                           <td width="50%" style="width: 50%;">
-                              <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #eef5fa; padding:10px 20px; border-radius: 10px; margin-top: 0px;">
+                              <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #eef5fa; padding:10px 20px; border-radius: 10px; margin-top: 0px; ">
                               <span><img src="${process.env.URI}/uploads/images/on.png" alt="pic" style="margin-right: 10px; width:40px"/></span>
-                              <p style="font-size: 15px;">Stall widths are to the centerline. Stall depths are to
+                              <p style="font-size: 15px; margin: 0px;">Stall widths are to the centerline. Stall depths are to
                                   the face. Alcove depths are wall to wall. This layout is
                                   included in the price.</p>
                               </div>
                           </td>
                           <td width="50%" style="width: 50%;">
                               <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need this layout bigger?</h5>
-                              <p>No problem! Our partition Experts will design it to fit
+                              <p style="margin-top: 5px; margin-bottom: 5px;">No problem! Our partition Experts will design it to fit
                               your restroom.</p>
                           </td>
                       </tr>
@@ -879,7 +884,7 @@ class FrontendController {
                   <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
                        <tr>
                           <td colspan="2">
-                               <h4 style="color:#0061a6; font-size:26px; line-height: 1; font-weight: 600; margin-bottom: 10px; margin-top: 15px;">Your Quote</h4>
+                               <h4 style="color:#0061a6; font-size:26px; line-height: 1; font-weight: 600; margin-bottom: 10px; margin-top: 15px;">Quote Number #${quotation.quotation_no}</h4>
                                <p>Date: ${moment().format('MM/DD/YY')} </p>
                           </td>
                        </tr>
@@ -889,7 +894,7 @@ class FrontendController {
           </tr>
           <tr>
               <td colspan="2" style="padding-left: 0px;">
-                  <h5 style="color:#285fa1; font-size: 25px; line-height: 1.1; margin-top: 20px; margin-bottom: 10px;">Review your Layout</h5>
+                  <h5 style="color:#285fa1; font-size: 20px; line-height: 1; margin-top: 10px; margin-bottom: 0px;">Review your Layout</h5>
                   
               </td>
           </tr>
@@ -901,7 +906,7 @@ class FrontendController {
                               <h4 style="color:#000; font-size: 20px; font-weight: 900; margin-top: 0px; margin-bottom: 10px;">Room ${index+1}</h4>
                               <div style="display: flex; align-items:center;">
                                   <span style="display: block; color:#000; font-size: 15px; width:50%">Room Name</span>
-                                  <h3 style="border: 1px solid #e3e8ef; padding: 10px; border-radius: 10px; font-weight: 400;      margin-top: 10px; width:50%">#${index+1}. ${room.title}</h3>
+                                  <h3 style="border: 1px solid #e3e8ef; padding: 10px; border-radius: 10px; font-weight: 400;      margin-top: 1px; width:50%">#${index+1}. ${room.title}</h3>
                               </div>
                               <div style="border: 1px solid #e3e8ef;  border-radius: 10px; font-weight: 400; ">
                                   <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 15px 20px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; "> Privacy screens/urinals</h4>
@@ -916,30 +921,30 @@ class FrontendController {
                           </td>
                           </tr>
                           <tr>
-                          <td width="50%" style="width: 50%; border: 1px solid #e3e8ef; border-radius: 10px;">
+                          <td colspan="2"  width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 3px; text-align: center; width:97%;  ">
                                   <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:100%;  transform: scale(1) ;"/>
                               </div>
                               
                           </td>
-                          <td width="50%" style="width: 50%; border: 1px solid #e3e8ef; border-radius: 10px;">
+                          <!-- <td width="50%" style="width: 50%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 3px; text-align: center; width:97%;  margin-top: 10px;">
                                   <img src="${room.urinalScreen?.urinal_3D}" alt="pic" style="width:100%; margin: 0 auto; transform: scale(1)"/>
                               </div>
-                          </td>
+                          </td> -->
                       </tr>
                       <tr>
                           <td width="50%" style="width: 50%;">
                               <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #eef5fa; padding:10px 20px; border-radius: 10px; margin-top: 0px;">
                               <span><img src="${process.env.URI}/uploads/images/on.png" alt="pic" style="margin-right: 10px; width:40px"/></span>
-                              <p style="font-size: 15px;">Stall widths are to the centerline. Stall depths are to
+                              <p style="font-size: 15px; margin: 0px;">Stall widths are to the centerline. Stall depths are to
                                   the face. Alcove depths are wall to wall. This layout is
                                   included in the price.</p>
                               </div>
                           </td>
                           <td width="50%" style="width: 50%;">
                               <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need this layout bigger?</h5>
-                              <p>No problem! Our partition Experts will design it to fit
+                              <p style="margin-top: 0px;">No problem! Our partition Experts will design it to fit
                               your restroom.</p>
                           </td>
                       </tr>
@@ -951,7 +956,7 @@ class FrontendController {
   `).join('')}
   <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 20px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
       <tr>
-          <td colspan="2" style="width:100%; text-align: center;  border-radius: 12px; padding: 25px; ">
+          <td colspan="2" style="width:100%; text-align: center;  border-radius: 12px; padding: 10px; ">
               <img src="${process.env.URI}/uploads/images/Logo.png" alt="alt" style="width:150px" />
           </td>
       </tr>
@@ -970,8 +975,8 @@ class FrontendController {
                           <table width="100%" cellpadding="0" cellspacing="10" style="margin-top: 10px; vertical-align: top; text-align: center; border: 1px solid #e3e8ef; padding: 10px;  width:100%; border-radius: 10px; ">
                               <tr>
                                   <td colspan="4" style="width: 100%;">
-                                      <h3 style="font-size: 24px; font-weight: 900; font-family:Verdana, Geneva, Tahoma, sans-serif; color:#285fa1; margin-bottom: 10px; margin-top: 0px;">Meet the Partition Experts</h3>
-                                      <h6 style="color:#285fa1; font-size: 18px; margin-top: 5px; font-weight: 400;">The team behind making your dream ideas come true</h6>
+                                      <h3 style="font-size: 21px; font-weight: 900; font-family:Verdana, Geneva, Tahoma, sans-serif; color:#285fa1; margin-bottom: 10px; margin-top: 0px;">Meet the Partition Experts</h3>
+                                      <h6 style="color:#285fa1; font-size: 18px; margin-top: 5px; font-weight: 400; margin-bottom: 10px;">The team behind making your dream ideas come true</h6>
                                   </td>
                                </tr>
                               <tr>
@@ -1065,7 +1070,7 @@ class FrontendController {
                                                       </h4>
           
                                                   </div>
-                                              </td>n
+                                              </td>
                                           </tr>
                                       </table>
                                   </td>
