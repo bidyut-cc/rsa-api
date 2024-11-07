@@ -39,8 +39,8 @@ var OrderSchema = mongoose.Schema({
         type: String,
         required: false,
     },
-    color: {
-        type: String,
+    colors: {
+        type: Object,
         required: true,
     },
     amount: {
