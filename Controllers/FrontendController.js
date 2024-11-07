@@ -1209,7 +1209,7 @@ class FrontendController {
     const v = new Validator(req.body, {
       id: "required",
       material_id: "required|integer",
-      color: "required",
+      colors: "required|array",
     });
 
     // Check if validation passes
@@ -1221,7 +1221,7 @@ class FrontendController {
         errors: v.errors,
       });
     } else {
-      const { id, material_id, color } = req.body;
+      const { id, material_id, colors } = req.body;
       if (!mongoose.Types.ObjectId.isValid(id)) {
         res.status(422).json({
          status: false,
@@ -1260,7 +1260,7 @@ class FrontendController {
       order.last_name =data.last_name;
       order.email = data.email;
       order.phone_number = data.phone_number;
-      order.color=color
+      order.colors=colors
       order.amount = bigCommerceCart.data.data.base_amount;
       await order.save();
         res.status(200).json({
