@@ -366,7 +366,7 @@ class FrontendController {
                               <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 15px 20px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; "> Privacy screens/urinals</h4>
                               <h5 style="padding: 15px 20px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 16px; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px;"/> 1 Privacy Screens / Urinals</h5>
                               <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
-                                  <p style="margin-top: 0px;"><span style="color:#000; font-weight: 500;">Privacy Screen 1 </span>- 24in Supported , Post</p>
+                                  <p style="margin-top: 0px;"><span style="color:#000; font-weight: 500;">Screen Depth </span>- ${room.urinalScreen?.urinalScreenConfig[0]?.screenDepth}"</p>
                                   
                               </div>
                               
@@ -749,7 +749,7 @@ class FrontendController {
                                       
                                            <div style="width:100%; display: flex; align-items: center; gap:0px">
                                               <div style="text-align: right; width: 100%;">
-                                                  <a href="${process.env.QUOTATION_PAYMENT_URL}?id=${quotation._id}&material_id=${material.id}&color=Blue" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #cbd5e1; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
+                                                  <a href="${process.env.QUOTATION_PAYMENT_URL}?id=${quotation._id}&material_id=${material.id}&color=3d58a4" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #cbd5e1; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
                                               </div>
                                               <!-- <div  style="text-align: right; width: 50%;">
                                                   <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #cbd5e1; border-radius: 10px; width: 80%; display: block; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; margin-left: auto;"><img src="${process.env.URI}/uploads/images/color.png" alt="pc" style="width:20px; margin-right: 5px;"/> Colours</a>
@@ -912,7 +912,7 @@ class FrontendController {
                                   <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 15px 20px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; "> Privacy screens/urinals</h4>
                                   <h5 style="padding: 15px 20px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 16px; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px;"/> ${room.urinalScreen?.noOfUrinalScreens} Privacy Screens / Urinals</h5>
                                   <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
-                                      <p style="margin-top: 0px;"><span style="color:#000; font-weight: 500;">Privacy Screen 1 </span>- 24in Supported , Post</p>
+                                      <p style="margin-top: 0px;"><span style="color:#000; font-weight: 500;">Screen Depth </span>- ${room.urinalScreen?.urinalScreenConfig[0]?.screenDepth}"</p>
                                       
                                   </div>
                                   
@@ -1260,7 +1260,7 @@ class FrontendController {
       order.last_name =data.last_name;
       order.email = data.email;
       order.phone_number = data.phone_number;
-      order.colors=colors
+      order.colors=`#${colors}`
       order.amount = bigCommerceCart.data.data.base_amount;
       await order.save();
         res.status(200).json({
