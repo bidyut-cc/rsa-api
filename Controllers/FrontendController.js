@@ -1260,7 +1260,7 @@ class FrontendController {
       order.last_name =data.last_name;
       order.email = data.email;
       order.phone_number = data.phone_number;
-      order.colors=`#${colors}`
+      order.colors=colors
       order.amount = bigCommerceCart.data.data.base_amount;
       await order.save();
         res.status(200).json({
