@@ -10,6 +10,9 @@ const mongoose = require('mongoose');
 const { default: axios } = require("axios");
 const Order = require("../Models/Order.js");
 const Emailtemplate = require('../Models/Emailtemplate');
+const querystring = require("querystring");
+const winston = require('winston');
+const DailyRotateFile = require('winston-daily-rotate-file');
 
 class FrontendController {
   constructor() {
@@ -1438,6 +1441,26 @@ class FrontendController {
     throw error;
   }
 };
+
+async order(req, res){
+  const logger = winston.createLogger({
+    transports: [
+        new DailyRotateFile({
+            filename: 'logs/order-%DATE%.log',
+            datePattern: 'YYYY-MM-DD',
+            zippedArchive: true,
+            maxSize: '20m',
+            maxFiles: '14d',
+        }),
+    ],
+});
+
+logger.info("Request Data: " + querystring.stringify(req.body));
+res.status(200).json({
+  status: true,
+  data: req.body,
+});
+}
 
 
 }

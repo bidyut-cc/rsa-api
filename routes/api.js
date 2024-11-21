@@ -60,6 +60,7 @@ router.post("/quotation/create",[VerifyEncryptedTokenMiddleware],FrontendControl
 router.get("/quotation/view",[VerifyEncryptedTokenMiddleware],FrontendController.quotationView);
 router.post("/quotation/generatePaymentLink",[VerifyEncryptedTokenMiddleware],FrontendController.generatePaymentLink);
 router.post("/quotation/updatePaymentResponse",[VerifyEncryptedTokenMiddleware],FrontendController.updatePaymentResponse);
+router.post("/webhook/order",FrontendController.order);
 
 
 
