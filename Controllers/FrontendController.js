@@ -1443,23 +1443,37 @@ class FrontendController {
 };
 
 async order(req, res){
-  const logger = winston.createLogger({
-    transports: [
-        new DailyRotateFile({
-            filename: 'logs/order-%DATE%.log',
-            datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
-            maxSize: '20m',
-            maxFiles: '14d',
-        }),
-    ],
-});
+//   const logger = winston.createLogger({
+//     transports: [
+//         new DailyRotateFile({
+//             filename: 'logs/order-%DATE%.log',
+//             datePattern: 'YYYY-MM-DD',
+//             zippedArchive: true,
+//             maxSize: '20m',
+//             maxFiles: '14d',
+//         }),
+//     ],
+// });
 
-logger.info("Request Data: " + querystring.stringify(req.body));
-res.status(200).json({
-  status: true,
-  data: req.body,
-});
+// logger.info("Request Data: " + querystring.stringify(req.body));
+// res.status(200).json({
+//   status: true,
+//   data: req.body,
+// });
+  let order = new Order;
+order.quotation_id=123
+order.material_id=1
+order.cart_id=1
+order.order_id=null
+order.transaction_id=null
+order.zendesk_ticket_id=null
+order.first_name = 1;
+order.last_name =1;
+order.email = 1;
+order.phone_number = 1;
+order.colors=req.body
+order.amount = 1;
+await order.save();
 }
 
 
