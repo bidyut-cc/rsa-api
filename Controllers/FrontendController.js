@@ -3,6 +3,7 @@ const Setting = require("../Models/Setting.js");
 const { Validator } = require("node-input-validator");
 const email_helper = require("../Helpers/Sendmail");
 const puppeteer = require("puppeteer");
+const chromium = require("@sparticuz/chromium");
 const moment = require('moment');
 const MasterSettingsController = require('./MasterSettingsController');
 const Quotation = require("../Models/Quotation.js");
@@ -20,6 +21,8 @@ class FrontendController {
     this.quotationCreate = this.quotationCreate.bind(this);
     this.generatePaymentLink = this.generatePaymentLink.bind(this);
     this.updatePaymentResponse = this.updatePaymentResponse.bind(this);
+   // this.uploadAttachment = this.uploadAttachment.bind(this);
+    
   }
 
   async view(req, res) {
@@ -1096,34 +1099,64 @@ class FrontendController {
       </tr>
   </table>`;
 
-    //   const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
-    //   if (!pdfBuffer || pdfBuffer.length === 0) {
-    //     console.error("Generated PDF buffer is empty or undefined.");
-    //     return res
-    //       .status(500)
-    //       .json({ status: false, message: "Failed to generate PDF." });
-    //   }
+      const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        console.error("Generated PDF buffer is empty or undefined.");
+        return res
+          .status(500)
+          .json({ status: false, message: "Failed to generate PDF." });
+      }
 
-    //   var email_verification_template = await Emailtemplate.findOne({
-    //     code: "QUOTATION",
-    // }).exec();
-    // var template = email_verification_template.template;
-    // let body = template.replace("{{name}}", `${quotation.first_name} ${quotation.last_name}`);
-    //   // Send email with PDF attachment
-    //   await email_helper.sendEmail(
-    //     {
-    //       receivers: ["bidyut.patra@codeclouds.com",quotation.email],
-    //       subject: "Quotation PDF",
-    //       context: { body_content: body },
-    //     },
-    //     [
-    //       {
-    //         filename: "quotation.pdf",
-    //         content: pdfBuffer,
-    //         contentType: "application/pdf",
-    //       },
-    //     ]
-    //   );
+      var email_verification_template = await Emailtemplate.findOne({
+        code: "QUOTATION",
+    }).exec();
+    var template = email_verification_template.template;
+    let body = template.replace("{{name}}", `${quotation.first_name} ${quotation.last_name}`);
+      // Send email with PDF attachment
+      await email_helper.sendEmail(
+        {
+          receivers: ["bidyut.patra@codeclouds.com",quotation.email],
+          subject: "Quotation PDF",
+          context: { body_content: body },
+        },
+        [
+          {
+            filename: "quotation.pdf",
+            content: pdfBuffer,
+            contentType: "application/pdf",
+          },
+        ]
+      );
+
+
+
+
+    // const uploadToken = await this.uploadAttachment(pdfBuffer,'quotation.pdf');
+    // const ticketData = {
+    //   ticket: {
+    //     subject: `New Ticket #${quotation._id}`,
+    //     requester: {
+    //       email: 'bidyut.patra31@gmail.com',
+    //       name: quotation.first_name,
+    //   },
+    //     // custom_fields: [
+    //     //   {
+    //     //     id: 22019106776722,  // Replace with your Zendesk custom field ID for order number
+    //     //     value: 123,
+    //     //   },
+    //     //   {
+    //     //     id: 22019094465938,  // Replace with your Zendesk custom field ID for order total
+    //     //     value: 1234,
+    //     //   },
+    //     // ],
+    //     comment: {
+    //       body: 'The smoke is very colorful.',
+    //       uploads: [uploadToken], // Attach the upload token here
+    //   },
+    //     tags: ['bigcommerce', 'order'],
+    //   },
+    // };
+    // const ticket=await this.createTicket(ticketData);
   
       res.status(200).json({
         status: true,
@@ -1132,6 +1165,8 @@ class FrontendController {
           submittedData: req.body,
           roomData: results,
           materials,
+          // uploadToken:uploadToken,
+          // ticket:ticket
         },
       });
     } catch (error) {
@@ -1142,15 +1177,27 @@ class FrontendController {
     }
   }
 
+  
+
   async generatePDF(htmlContent) {
+    const chromiumPath = await chromium.executablePath();
     const browser = await puppeteer.launch({
       headless: true,
-      args: [
-        '--no-sandbox', // Disable sandboxing
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage', // Overcome limited resource problems
-      ],
+        executablePath: chromiumPath,
+        args: [
+            ...chromium.args, // Include recommended Chromium args for compatibility
+            '--no-sandbox', // Disable sandboxing
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage', // Overcome limited resource problems
+        ],
+        defaultViewport: chromium.defaultViewport,
     });
+  //   const browser = await puppeteer.launch({
+  //     executablePath: await chromium.executablePath(), // Use optimized Chromium
+  //     headless: true,
+  //     args: chromium.args, // Predefined arguments for serverless environments
+  //     defaultViewport: chromium.defaultViewport, // Predefined viewport for serverless environments
+  // });
     
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
@@ -1442,6 +1489,62 @@ class FrontendController {
   }
 };
 
+async  uploadAttachment(pdfBuffer, fileName) {
+  const url = `${process.env.ZENDESK_DOMAIN}/api/v2/uploads.json?filename=${encodeURIComponent(fileName)}`;
+  try {
+    const response = await axios.post(url, pdfBuffer, {
+      auth: {
+          username: `${process.env.ZENDESK_EMAIL}/token`,
+          password: process.env.ZENDESK_API_TOKEN,
+      },
+      headers: {
+          'Content-Type': 'application/pdf', // Specify the correct content type for PDF
+      },
+  });
+      console.log('Attachment uploaded successfully:', response.data.upload.token);
+      return response.data.upload.token;
+  } catch (error) {
+      console.error('Error uploading attachment:', error.response?.data || error.message);
+      throw error;
+  }
+}
+
+// Function to create the ticket
+async createTicket(ticketData) {
+  const url = `${process.env.ZENDESK_DOMAIN}/api/v2/tickets.json`;
+
+  // const ticketData = {
+  //     ticket: {
+  //         subject: 'My printer is on fire!',
+  //         requester: {
+  //             email: 'bidyut.patra@codeclouds.com',
+  //             name: 'Bidyut Patra',
+  //         },
+  //         comment: {
+  //             body: 'The smoke is very colorful.',
+  //             uploads: [uploadToken], // Attach the upload token here
+  //         },
+  //     },
+  // };
+
+  try {
+      const response = await axios.post(url, ticketData, {
+        auth: {
+          username: `${process.env.ZENDESK_EMAIL}/token`,
+          password: process.env.ZENDESK_API_TOKEN,
+      },
+      headers: {
+        'Content-Type': 'application/json', // Correct content type for JSON
+    },
+      });
+      console.log('Ticket created successfully:', response.data.ticket);
+      return response.data.ticket;
+  } catch (error) {
+      console.error('Error creating ticket:', error.response?.data || error.message);
+      throw error;
+  }
+}
+
 async order(req, res){
 //   const logger = winston.createLogger({
 //     transports: [
@@ -1460,21 +1563,23 @@ async order(req, res){
 //   status: true,
 //   data: req.body,
 // });
-  let order = new Order;
-order.quotation_id=123
-order.material_id=1
-order.cart_id=1
-order.order_id=null
-order.transaction_id=null
-order.zendesk_ticket_id=null
-order.first_name = 1;
-order.last_name =1;
-order.email = 1;
-order.phone_number = 1;
-order.colors=req.body
-order.amount = 1;
-await order.save();
+//   let order = new Order;
+// order.quotation_id=123
+// order.material_id=1
+// order.cart_id=1
+// order.order_id=null
+// order.transaction_id=null
+// order.zendesk_ticket_id=null
+// order.first_name = 1;
+// order.last_name =1;
+// order.email = 1;
+// order.phone_number = 1;
+// order.colors=req.body
+// order.amount = 1;
+// await order.save();
 }
+
+
 
 
 }
