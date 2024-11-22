@@ -15,6 +15,7 @@ const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
 const puppeteerCore = require("puppeteer-core");
 const chromium = require('@sparticuz/chromium');
+const chrome = require("chrome-aws-lambda");
 
 class FrontendController {
   constructor() {
