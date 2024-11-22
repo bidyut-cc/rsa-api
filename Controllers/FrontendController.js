@@ -3,7 +3,6 @@ const Setting = require("../Models/Setting.js");
 const { Validator } = require("node-input-validator");
 const email_helper = require("../Helpers/Sendmail");
 const puppeteer = require("puppeteer");
-const chromium = require("@sparticuz/chromium");
 const moment = require('moment');
 const MasterSettingsController = require('./MasterSettingsController');
 const Quotation = require("../Models/Quotation.js");
@@ -1107,26 +1106,26 @@ class FrontendController {
           .json({ status: false, message: "Failed to generate PDF." });
       }
 
-      var email_verification_template = await Emailtemplate.findOne({
-        code: "QUOTATION",
-    }).exec();
-    var template = email_verification_template.template;
-    let body = template.replace("{{name}}", `${quotation.first_name} ${quotation.last_name}`);
-      // Send email with PDF attachment
-      await email_helper.sendEmail(
-        {
-          receivers: ["bidyut.patra@codeclouds.com",quotation.email],
-          subject: "Quotation PDF",
-          context: { body_content: body },
-        },
-        [
-          {
-            filename: "quotation.pdf",
-            content: pdfBuffer,
-            contentType: "application/pdf",
-          },
-        ]
-      );
+    //   var email_verification_template = await Emailtemplate.findOne({
+    //     code: "QUOTATION",
+    // }).exec();
+    // var template = email_verification_template.template;
+    // let body = template.replace("{{name}}", `${quotation.first_name} ${quotation.last_name}`);
+    //   // Send email with PDF attachment
+    //   await email_helper.sendEmail(
+    //     {
+    //       receivers: ["bidyut.patra@codeclouds.com",quotation.email],
+    //       subject: "Quotation PDF",
+    //       context: { body_content: body },
+    //     },
+    //     [
+    //       {
+    //         filename: "quotation.pdf",
+    //         content: pdfBuffer,
+    //         contentType: "application/pdf",
+    //       },
+    //     ]
+    //   );
 
 
 
@@ -1177,27 +1176,15 @@ class FrontendController {
     }
   }
 
-  
-
   async generatePDF(htmlContent) {
-    const chromiumPath = await chromium.executablePath();
     const browser = await puppeteer.launch({
       headless: true,
-        executablePath: chromiumPath,
-        args: [
-            ...chromium.args, // Include recommended Chromium args for compatibility
-            '--no-sandbox', // Disable sandboxing
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage', // Overcome limited resource problems
-        ],
-        defaultViewport: chromium.defaultViewport,
+      args: [
+        '--no-sandbox', // Disable sandboxing
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage', // Overcome limited resource problems
+      ],
     });
-  //   const browser = await puppeteer.launch({
-  //     executablePath: await chromium.executablePath(), // Use optimized Chromium
-  //     headless: true,
-  //     args: chromium.args, // Predefined arguments for serverless environments
-  //     defaultViewport: chromium.defaultViewport, // Predefined viewport for serverless environments
-  // });
     
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
