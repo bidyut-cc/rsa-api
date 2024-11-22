@@ -13,6 +13,8 @@ const Emailtemplate = require('../Models/Emailtemplate');
 const querystring = require("querystring");
 const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
+const puppeteerCore = require("puppeteer-core");
+const chromium = require('@sparticuz/chromium');
 
 class FrontendController {
   constructor() {
@@ -1097,35 +1099,36 @@ class FrontendController {
           </td>
       </tr>
   </table>`;
+  if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+      const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        console.error("Generated PDF buffer is empty or undefined.");
+        return res
+          .status(500)
+          .json({ status: false, message: "Failed to generate PDF." });
+      }
 
-      // const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
-      // if (!pdfBuffer || pdfBuffer.length === 0) {
-      //   console.error("Generated PDF buffer is empty or undefined.");
-      //   return res
-      //     .status(500)
-      //     .json({ status: false, message: "Failed to generate PDF." });
-      // }
-
-    //   var email_verification_template = await Emailtemplate.findOne({
-    //     code: "QUOTATION",
-    // }).exec();
-    // var template = email_verification_template.template;
-    // let body = template.replace("{{name}}", `${quotation.first_name} ${quotation.last_name}`);
-    //   // Send email with PDF attachment
-    //   await email_helper.sendEmail(
-    //     {
-    //       receivers: ["bidyut.patra@codeclouds.com",quotation.email],
-    //       subject: "Quotation PDF",
-    //       context: { body_content: body },
-    //     },
-    //     [
-    //       {
-    //         filename: "quotation.pdf",
-    //         content: pdfBuffer,
-    //         contentType: "application/pdf",
-    //       },
-    //     ]
-    //   );
+      var email_verification_template = await Emailtemplate.findOne({
+        code: "QUOTATION",
+    }).exec();
+    var template = email_verification_template.template;
+    let body = template.replace("{{name}}", `${quotation.first_name} ${quotation.last_name}`);
+      // Send email with PDF attachment
+      await email_helper.sendEmail(
+        {
+          receivers: ["bidyut.patra@codeclouds.com",quotation.email],
+          subject: "Quotation PDF",
+          context: { body_content: body },
+        },
+        [
+          {
+            filename: "quotation.pdf",
+            content: pdfBuffer,
+            contentType: "application/pdf",
+          },
+        ]
+      );
+  }
 
 
 
@@ -1177,14 +1180,22 @@ class FrontendController {
   }
 
   async generatePDF(htmlContent) {
-    const browser = await puppeteer.launch({
+    let options = {
+      args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+      defaultViewport: chrome.defaultViewport,
+      executablePath: await chrome.executablePath,
       headless: true,
-      args: [
-        '--no-sandbox', // Disable sandboxing
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage', // Overcome limited resource problems
-      ],
-    });
+      ignoreHTTPSErrors: true,
+    };
+    // const browser = await puppeteer.launch({
+    //   headless: true,
+    //   args: [
+    //     '--no-sandbox', // Disable sandboxing
+    //     '--disable-setuid-sandbox',
+    //     '--disable-dev-shm-usage', // Overcome limited resource problems
+    //   ],
+    // });
+    const browser = await puppeteerCore.launch(options);
     
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
