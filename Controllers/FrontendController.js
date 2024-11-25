@@ -13,14 +13,15 @@ const Emailtemplate = require('../Models/Emailtemplate');
 const querystring = require("querystring");
 const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
-
+const { generateQuotePDF } = require("../Helpers/GeneratePdf.js");
 class FrontendController {
   constructor() {
     // Bind the method to ensure correct context
     this.quotationCreate = this.quotationCreate.bind(this);
     this.generatePaymentLink = this.generatePaymentLink.bind(this);
     this.updatePaymentResponse = this.updatePaymentResponse.bind(this);
-   // this.uploadAttachment = this.uploadAttachment.bind(this);
+    this.generateQuotationPDF = this.generateQuotationPDF.bind(this);
+    this.uploadAttachment = this.uploadAttachment.bind(this);
     
   }
 
@@ -1564,6 +1565,287 @@ async order(req, res){
 // order.colors=req.body
 // order.amount = 1;
 // await order.save();
+}
+
+async generateQuotationPDF(req,res){
+  var htmlObj = {
+    "content": [
+      {
+        "nodeName": "DIV",
+        "stack": [
+          {
+            "text": " ",
+            "style": [
+              "html-div"
+            ]
+          },
+          {
+            "text": "My title",
+            "nodeName": "H1",
+            "fontSize": 24,
+            "bold": true,
+            "marginBottom": 5,
+            "style": [
+              "html-h1",
+              "html-div"
+            ]
+          },
+          {
+            "text": " ",
+            "style": [
+              "html-div"
+            ]
+          },
+          {
+            "text": [
+              {
+                "text": " This is a sentence with a ",
+                "margin": [
+                  0,
+                  5,
+                  0,
+                  10
+                ],
+                "style": [
+                  "html-p",
+                  "html-div"
+                ]
+              },
+              {
+                "text": "bold word",
+                "nodeName": "STRONG",
+                "bold": true,
+                "style": [
+                  "html-strong",
+                  "html-p",
+                  "html-div"
+                ]
+              },
+              {
+                "text": ", ",
+                "margin": [
+                  0,
+                  5,
+                  0,
+                  10
+                ],
+                "style": [
+                  "html-p",
+                  "html-div"
+                ]
+              },
+              {
+                "text": "one in italic",
+                "nodeName": "EM",
+                "italics": true,
+                "style": [
+                  "html-em",
+                  "html-p",
+                  "html-div"
+                ]
+              },
+              {
+                "text": ", and ",
+                "margin": [
+                  0,
+                  5,
+                  0,
+                  10
+                ],
+                "style": [
+                  "html-p",
+                  "html-div"
+                ]
+              },
+              {
+                "text": "one with underline",
+                "nodeName": "U",
+                "decoration": [
+                  "underline"
+                ],
+                "style": [
+                  "html-u",
+                  "html-p",
+                  "html-div"
+                ]
+              },
+              {
+                "text": ". And finally ",
+                "margin": [
+                  0,
+                  5,
+                  0,
+                  10
+                ],
+                "style": [
+                  "html-p",
+                  "html-div"
+                ]
+              },
+              {
+                "text": "a link",
+                "color": "blue",
+                "decoration": [
+                  "underline"
+                ],
+                "style": [
+                  "html-a",
+                  "html-p",
+                  "html-div"
+                ],
+                "link": "https://www.somewhere.com",
+                "nodeName": "A"
+              },
+              {
+                "text": ". ",
+                "margin": [
+                  0,
+                  5,
+                  0,
+                  10
+                ],
+                "style": [
+                  "html-p",
+                  "html-div"
+                ]
+              }
+            ],
+            "nodeName": "P",
+            "margin": [
+              0,
+              5,
+              0,
+              10
+            ],
+            "style": [
+              "html-p",
+              "html-div"
+            ]
+          },
+          {
+            "text": " ",
+            "style": [
+              "html-div"
+            ]
+          },
+          {
+            "nodeName": "TABLE",
+            "marginBottom": 5,
+            "style": [
+              "html-table",
+              "html-div"
+            ],
+            "table": {
+              "body": [
+                [
+                  {
+                    "text": "Header 1",
+                    "nodeName": "TH",
+                    "bold": true,
+                    "fillColor": "#EEEEEE",
+                    "width": 113,
+                    "style": [
+                      "html-th",
+                      "html-tr",
+                      "html-tbody",
+                      "html-table",
+                      "html-div"
+                    ]
+                  }
+                ],
+                [
+                  {
+                    "text": "Cell A1",
+                    "nodeName": "TD",
+                    "height": 38,
+                    "alignment": "center",
+                    "style": [
+                      "html-td",
+                      "html-tr",
+                      "html-tbody",
+                      "html-table",
+                      "html-div"
+                    ]
+                  }
+                ]
+              ],
+              "widths": [
+                113
+              ],
+              "heights": [
+                "auto",
+                38
+              ]
+            }
+          },
+          {
+            "text": " ",
+            "style": [
+              "html-div"
+            ]
+          },
+          {
+            "text": "Text in green using the styles from PDFMake",
+            "nodeName": "SPAN",
+            "style": [
+              "html-span",
+              "html-div",
+              "green"
+            ]
+          },
+          {
+            "text": " ",
+            "style": [
+              "html-div"
+            ]
+          }
+        ]
+      },
+      {
+        "text": " "
+      }
+    ],
+    "styles": {
+      "green": {
+        "color": "green"
+      }
+    }
+  }
+  const pdfBuffer = await generateQuotePDF(htmlObj);
+
+    const uploadToken = await this.uploadAttachment(Buffer.from(pdfBuffer, 'base64'),'quotation.pdf');
+    console.log(uploadToken);
+    const ticketData = {
+      ticket: {
+        subject: `New Ticket #111`,
+        requester: {
+          email: 'bidyut.patra@codeclouds.com',
+          name: 'Bidyut',
+      },
+        // custom_fields: [
+        //   {
+        //     id: 22019106776722,  // Replace with your Zendesk custom field ID for order number
+        //     value: 123,
+        //   },
+        //   {
+        //     id: 22019094465938,  // Replace with your Zendesk custom field ID for order total
+        //     value: 1234,
+        //   },
+        // ],
+        comment: {
+          body: 'The smoke is very colorful.',
+          uploads: [uploadToken], // Attach the upload token here
+      },
+        tags: ['bigcommerce', 'order'],
+      },
+    };
+    const ticket=await this.createTicket(ticketData);
+
+  res.status(200).json({
+    status: true,
+    uploadToken:uploadToken,
+    ticket:ticket
+  });
 }
 
 
