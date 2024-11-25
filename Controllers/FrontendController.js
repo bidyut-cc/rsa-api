@@ -1099,13 +1099,13 @@ class FrontendController {
       </tr>
   </table>`;
 
-      // const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
-      // if (!pdfBuffer || pdfBuffer.length === 0) {
-      //   console.error("Generated PDF buffer is empty or undefined.");
-      //   return res
-      //     .status(500)
-      //     .json({ status: false, message: "Failed to generate PDF." });
-      // }
+    //   const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
+    //   if (!pdfBuffer || pdfBuffer.length === 0) {
+    //     console.error("Generated PDF buffer is empty or undefined.");
+    //     return res
+    //       .status(500)
+    //       .json({ status: false, message: "Failed to generate PDF." });
+    //   }
 
     //   var email_verification_template = await Emailtemplate.findOne({
     //     code: "QUOTATION",
@@ -1131,32 +1131,32 @@ class FrontendController {
 
 
 
-    // const uploadToken = await this.uploadAttachment(pdfBuffer,'quotation.pdf');
-    // const ticketData = {
-    //   ticket: {
-    //     subject: `New Ticket #${quotation._id}`,
-    //     requester: {
-    //       email: 'bidyut.patra31@gmail.com',
-    //       name: quotation.first_name,
-    //   },
-    //     // custom_fields: [
-    //     //   {
-    //     //     id: 22019106776722,  // Replace with your Zendesk custom field ID for order number
-    //     //     value: 123,
-    //     //   },
-    //     //   {
-    //     //     id: 22019094465938,  // Replace with your Zendesk custom field ID for order total
-    //     //     value: 1234,
-    //     //   },
-    //     // ],
-    //     comment: {
-    //       body: 'The smoke is very colorful.',
-    //       uploads: [uploadToken], // Attach the upload token here
-    //   },
-    //     tags: ['bigcommerce', 'order'],
-    //   },
-    // };
-    // const ticket=await this.createTicket(ticketData);
+    const uploadToken = await this.uploadAttachment(pdfBuffer,'quotation.pdf');
+    const ticketData = {
+      ticket: {
+        subject: `New Ticket #${quotation._id}`,
+        requester: {
+          email: 'bidyut.patra@codeclouds.com',
+          name: quotation.first_name,
+      },
+        // custom_fields: [
+        //   {
+        //     id: 22019106776722,  // Replace with your Zendesk custom field ID for order number
+        //     value: 123,
+        //   },
+        //   {
+        //     id: 22019094465938,  // Replace with your Zendesk custom field ID for order total
+        //     value: 1234,
+        //   },
+        // ],
+        comment: {
+          body: 'The smoke is very colorful.',
+          uploads: [uploadToken], // Attach the upload token here
+      },
+        tags: ['bigcommerce', 'order'],
+      },
+    };
+    const ticket=await this.createTicket(ticketData);
   
       res.status(200).json({
         status: true,
