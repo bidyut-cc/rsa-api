@@ -1,24 +1,29 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "./index.js",
-        "use": "@vercel/node"
-      },
-      {
-        "src": "public/api/uploads/**",
-        "use": "@vercel/static"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/api/uploads/(.*)",
-        "dest": "/public/api/uploads/$1"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/"
-      }
-    ]
+  "version": 2,
+  "builds": [
+    {
+      "src": "./index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/api/uploads/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/uploads/(.*)",
+      "dest": "/api/uploads.js" // Point to the file handler
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ],
+  "functions": {
+    "api/uploads.js": {
+      "memory": 8000,   
+      "maxDuration": 30 
+    }
   }
-  
+}
