@@ -34,7 +34,10 @@ var QuotationSchema = mongoose.Schema({
         type: Object,
         required: true,
     },
-    
+    zendesk_ticket_id: {
+        type: String,
+        required: false,
+    },
     deleted: {
         type: Boolean,
         required: false,
