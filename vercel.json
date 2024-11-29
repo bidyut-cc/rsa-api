@@ -11,8 +11,8 @@
     }
   ],
   "functions": {
-    "memory": 9024,
-    "maxDuration": 3600
+    "memory": 1024,
+    "maxDuration": 30
   },
   "routes": [
     {
