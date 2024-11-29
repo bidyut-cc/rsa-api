@@ -10,6 +10,10 @@
         "use": "@vercel/static"
       }
     ],
+    "functions": {
+    "memory": 100000,
+    "maxDuration": 60
+  },
     "routes": [
       {
         "src": "/api/uploads/(.*)",
