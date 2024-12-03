@@ -16,7 +16,7 @@ const DynamicRouteController = new DynamicRouteControllerClass();
 const AuthController = new AuthControllerClass();
 const FrontendController = new FrontendControllerClass();
 router.get("/", (req, res) => {
-    res.json({ message: "API Works" });
+    res.json({ message: "API Works..." });
 });
 
 router.post(
@@ -61,7 +61,6 @@ router.get("/quotation/view",[VerifyEncryptedTokenMiddleware],FrontendController
 router.post("/quotation/generatePaymentLink",[VerifyEncryptedTokenMiddleware],FrontendController.generatePaymentLink);
 router.post("/quotation/updatePaymentResponse",[VerifyEncryptedTokenMiddleware],FrontendController.updatePaymentResponse);
 router.post("/webhook/order",FrontendController.order);
-router.post("/quotation/generateQuotationPDF",[VerifyEncryptedTokenMiddleware],FrontendController.generateQuotationPDF);
 
 
 

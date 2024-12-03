@@ -38,7 +38,7 @@ app.options("*", cors());
 app.get("/", async (req, res) => {
    res.status(200).json({
     status:true,
-    message: "Server running",
+    message: "Server running...",
    
 });
 });
