@@ -102,11 +102,14 @@ class UsersController extends Controller {
             first_name: 'required|string|minLength:2|maxLength:50',
             last_name: 'required|string|minLength:2|maxLength:50',
             email: 'required|unique:user,email',
+            password: 'required|minLength:6',
+            confirm_password: 'required|same:password',
             phone: 'required|phoneNumber|digits:10',
             roles: 'required|in:user,super_admin,admin,developer',
             status: 'required|in:Active,Inactive',
         },{
             'roles.required': 'The role field is mandatory.',
+            'confirm_password.same': 'The confirm password must match the password.',
         });
     
         const matched = await v.check();
@@ -144,7 +147,7 @@ class UsersController extends Controller {
             user.roles = [req.body.roles];
             user.status = req.body.status;
             const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash('default123', salt);
+            user.password = await bcrypt.hash(req.body.password, salt);
             // var email_verification_template = await Emailtemplate.findOne({
             //     code: "EMAIL_VERIFICATION",
             // }).exec();
@@ -205,6 +208,8 @@ class UsersController extends Controller {
             phone: 'required|phoneNumber|digits:10',
             roles: 'required|in:user,super_admin,admin,developer',
             status: 'required|in:Active,Inactive',
+            password: 'sometimes|string|minLength:6',
+            confirm_password: 'same:password',
         },{
             'roles.required': 'The role field is mandatory.',
         });
@@ -218,7 +223,37 @@ class UsersController extends Controller {
                 errors: v.errors
             });
         } else {
+                    // Custom logic for `password` and `confirm_password`
+        if (req.body.password) {
+            if (!req.body.confirm_password) {
+             res.status(422).json({
+                status: false,
+                errors:{
+                    confirm_password:{
+                        message: 'Confirm password is required when password is provided.',
+                    }
+                }
+               
+            });
+            return;
+            }
+            if (req.body.password !== req.body.confirm_password) {
+             res.status(422).json({
+                status: false,
+                errors:{
+                    confirm_password:{
+                        message: 'The confirm password must match the password.',
+                    }
+                }
+            });
+            return;
+            }
+        }
             try {
+                if (req.body.password) {
+                    const salt = await bcrypt.genSalt(10);
+                    req.body.password =  await bcrypt.hash(req.body.password, salt);
+                }
                 // Attempt to update the label using the inherited update method
                 const result = await super.update(req);
 
