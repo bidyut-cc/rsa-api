@@ -359,7 +359,7 @@ class FrontendController {
                       <tr>
                           <td colspan="2" width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 13px; text-align: center; width:95%;  min-height: 140px; display: flex; align-items: center; justify-content: center;">
-                                  <img src="${room.image_2D}" alt="pic" style="width:100%; margin: 0 auto;"/>
+                                  <img src="${room.image_2D}" alt="pic" style="width:auto;height:470px;max-width:100%; margin: 0 auto;"/>
                               </div>
                               
                           </td>
@@ -443,7 +443,7 @@ class FrontendController {
                           <tr>
                           <td colspan="2"  width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 3px; text-align: center; width:97%;  ">
-                                  <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:100%;  transform: scale(1) ;"/>
+                                  <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:430px;max-width:100%;transform: scale(1) ;"/>
                               </div>
                               
                           </td>
@@ -612,6 +612,7 @@ class FrontendController {
           </td>
       </tr>
   </table>`; 
+
 
       const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
       if (!pdfBuffer || pdfBuffer.length === 0) {

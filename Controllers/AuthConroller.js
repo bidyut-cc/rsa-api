@@ -197,7 +197,7 @@ class AuthController {
     
             // Log account activity
             const accountLog = new AccountLog();
-            await accountLog.saveLog("login", user, user);
+            await accountLog.saveLog("login", user, user ,'Logged in.');
     
             await user.save();
     
@@ -411,7 +411,7 @@ class AuthController {
     let user = await User.findById(req.user._id);
        
         var accountLog = new AccountLog();
-        await accountLog.saveLog("saved", user, req.user);
+        await accountLog.saveLog("saved", user, req.user,'Logout.');
         res.status(200).json({ status: true });
     }
 
