@@ -10,3 +10,4 @@ exports.SettingsController = require("./SettingsController");
 exports.MasterSettingsController = require("./MasterSettingsController");
 exports.QuotationsController = require("./QuotationsController");
 exports.OrdersController = require("./OrdersController");
+exports.ChangelogsController = require("./ChangelogsController");

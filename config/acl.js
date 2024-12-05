@@ -50,9 +50,9 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
-            group: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
-            owner: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
         },
         masterSettings: {
             all: [ "view","materialView"],
@@ -116,9 +116,9 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
-            group: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
-            owner: ["view", "updateProject", "updateLayout", "updateMeasurement","updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
         },
         masterSettings: {
             all: [ "view","materialView"],

@@ -254,6 +254,7 @@ class UsersController extends Controller {
                     const salt = await bcrypt.genSalt(10);
                     req.body.password =  await bcrypt.hash(req.body.password, salt);
                 }
+                req.body.username = req.body.first_name +' '+ req.body.last_name;
                 // Attempt to update the label using the inherited update method
                 const result = await super.update(req);
 

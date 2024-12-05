@@ -309,7 +309,7 @@ class AuthController {
         // Save the password change and log the action (if needed)
         await user.save();
         var accountLog = new AccountLog();
-        await accountLog.saveLog("updated", user, req.user);
+        await accountLog.saveLog("updated", user, req.user, "Password" );
 
         // Send success response
         return res.status(200).json({
@@ -369,7 +369,7 @@ class AuthController {
                 }
                 
                 var accountLog = new AccountLog();
-                await accountLog.saveLog("updated", user, req.user);
+                await accountLog.saveLog("updated", user, req.user ,"Profile");
                 await user.save();
                 res.status(200).json({
                     status: true,
@@ -411,7 +411,7 @@ class AuthController {
     let user = await User.findById(req.user._id);
        
         var accountLog = new AccountLog();
-        await accountLog.saveLog("saved", user, req.user,'Logout.');
+        await accountLog.saveLog("logout", user, req.user,'Logged out.');
         res.status(200).json({ status: true });
     }
 
