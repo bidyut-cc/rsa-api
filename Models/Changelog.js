@@ -123,11 +123,24 @@ ChangelogSchema.customFields = {
         width: "50",
         searchable: true,
     },
-    user: {
-        field_name: "user",
-        db_name: "user",
-        type: "objectId",
-        placeholder: "user",
+    // user: {
+    //     field_name: "user",
+    //     db_name: "user",
+    //     type: "objectId",
+    //     placeholder: "user",
+    //     listing: true,
+    //     sort: true,
+    //     default_sort: false,
+    //     required: true,
+    //     value: "",
+    //     width: "50",
+    //     searchable: true,
+    // },
+    "user.username": {
+        field_name: "username",
+        db_name: "username",
+        type: "text",
+        placeholder: "username",
         listing: true,
         sort: true,
         default_sort: false,
@@ -136,6 +149,7 @@ ChangelogSchema.customFields = {
         width: "50",
         searchable: true,
     },
+ 
     createdAt: {
         "field_name": "createdAt",
         "db_name": "createdAt",

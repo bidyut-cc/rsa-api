@@ -22,7 +22,7 @@ class FrontendController {
   async view(req, res) {
     // Validate the input data
     const v = new Validator(req.query, {
-      step: "required|in:project,layout,measurement,quotation_builder",
+      step: "required|in:project,layout,measurement,color,quotation_builder",
     });
 
     // Check if validation passes
@@ -57,9 +57,9 @@ class FrontendController {
     // Validate the input data
     const v = new Validator(req.body, {
       step: "required|array|minLength:1",  // Ensure step is an array with at least 1 element
-      "step.*": "in:project,layout,measurement,quotation_builder",  // Validate each element in the array
+      "step.*": "in:project,layout,measurement,color,quotation_builder",  // Validate each element in the array
     },{
-        "step.*.in": "Each step must be one of the following: project, layout, measurement, or quotation_builder.",  // Custom message for invalid step values
+        "step.*.in": "Each step must be one of the following: project, layout, measurement, color or quotation_builder.",  // Custom message for invalid step values
       });
   
     // Check if validation passes
@@ -400,18 +400,17 @@ class FrontendController {
              </td>
           </tr>
           <tr>
-              <td colspan="2" style="padding: 10px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #edf5fb; border-radius: 30px; vertical-align: bottom;">
-                  <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
-                       <tr>
-                          <td colspan="2">
-                               <h4 style="color:#0061a6; font-size:26px; line-height: 1; font-weight: 600; margin-bottom: 10px; margin-top: 15px;">Quote Number #${quotation.quotation_no}</h4>
-                               <p>Date: ${moment().format('MM/DD/YY')} </p>
-                          </td>
-                       </tr>
-                  </table>
-              </td>
-             
-          </tr>
+          <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #edf5fb; border-radius: 30px; vertical-align: bottom;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
+                   <tr>
+                      <td colspan="2">
+                           <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
+                           <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
+                      </td>
+                   </tr>
+              </table>
+          </td>
+      </tr>
           <tr>
               <td colspan="2" style="padding-left: 0px;">
                   <h5 style="color:#285fa1; font-size: 20px; line-height: 1; margin-top: 10px; margin-bottom: 0px;">Review your Layout</h5>
@@ -425,14 +424,14 @@ class FrontendController {
                           <td width="100%" style="width: 100%; vertical-align: top;" colspan="2">
                               <h4 style="color:#000; font-size: 20px; font-weight: 900; margin-top: 0px; margin-bottom: 10px;">Room ${index+1}</h4>
                               <div style="display: flex; align-items:center;">
-                                  <span style="display: block; color:#000; font-size: 15px; width:50%">Room Name</span>
-                                  <h3 style="border: 1px solid #e3e8ef; padding: 10px; border-radius: 10px; font-weight: 400;      margin-top: 1px; width:50%">#${index+1}. ${room.title}</h3>
+                                <span style="display: block; color:#000; font-size: 15px;  width:50%">Room Name</span>
+                                <h3 style="border: 1px solid #e3e8ef; padding: 7px; border-radius: 10px; font-weight: 400;      margin-top: 10px; font-size: 13px; width:50%; margin-bottom: 10px; margin-top: 0px;">#${index+1}. ${room.title}</h3>
                               </div>
                               <div style="border: 1px solid #e3e8ef;  border-radius: 10px; font-weight: 400; ">
-                                  <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 15px 20px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; "> Privacy screens/urinals</h4>
-                                  <h5 style="padding: 15px 20px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 16px; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px;"/> ${room.urinalScreen?.noOfUrinalScreens} Privacy Screens / Urinals</h5>
-                                  <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
-                                      <p style="margin-top: 0px;"><span style="color:#000; font-weight: 500;">Screen Depth </span>- ${room.urinalScreen?.urinalScreenConfig[0]?.screenDepth}"</p>
+                                  <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 7px 14px; margin-bottom: 0px; font-size: 13px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; margin-bottom: 0px;"> Privacy screens/urinals</h4>
+                                  <h5 style="padding: 5px 20px 12px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 15px; margin-top: 5px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px; "/> ${room.urinalScreen?.noOfUrinalScreens} Privacy Screens / Urinals</h5>
+                                  <div style="padding: 0px 20px 15px 20px; margin-top: 0px; display: flex; flex-wrap: wrap; justify-content: space-between;">
+                                      <p style="margin-top: 0px; font-size: 13px; width:48%; margin-bottom: 0; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Screen Depth </span>- ${room.urinalScreen?.urinalScreenConfig[0]?.screenDepth}"</p>
                                       
                                   </div>
                                   
