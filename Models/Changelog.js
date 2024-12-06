@@ -34,7 +34,7 @@ const ChangelogSchema = mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: new Date(),
+        default: () => Date.now(), 
         get: (val) => {
             return moment(val).format('MM-DD-YYYY HH:mm:ss');
         },
