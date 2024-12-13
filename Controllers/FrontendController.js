@@ -9,6 +9,7 @@ const Quotation = require("../Models/Quotation.js");
 const mongoose = require('mongoose');
 const { default: axios } = require("axios");
 const Order = require("../Models/Order.js");
+const Changelog = require("../Models/Changelog.js");
 
 class FrontendController {
   constructor() {
@@ -680,7 +681,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium-browser',
+    //  executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -835,7 +836,7 @@ class FrontendController {
         "line_items": [
           {
             "quantity": 1,
-            "product_id": 5194,
+            "product_id": 111,
             "list_price": materials.price,
             "name": "Restroom Stall"
           }
@@ -963,7 +964,19 @@ async createTicket(ticketData) {
 }
 
 async order(req, res){
- console.log('webhook calling');
+  let log = new Changelog;
+  log.modelName='Quotation';
+  log.event='saved';
+  log.modelId='675191019397b999dbb90b4a';
+  log.user={
+    username:"Test"
+  };
+  log.currentData=req.body.data;
+      await log.save();
+      res.status(200).json({
+        status: true,
+      });
+      return;
 }
 
 }
