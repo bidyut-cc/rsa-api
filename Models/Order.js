@@ -15,14 +15,6 @@ var OrderSchema = mongoose.Schema({
         type: String,
         required: false,
     },
-    zendesk_ticket_id: {
-        type: String,
-        required: false,
-    },
-    transaction_id: {
-        type: String,
-        required: false,
-    },
     first_name: {
         type: String,
         required: false,
@@ -47,11 +39,19 @@ var OrderSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    billing_address: {
+        type: Object,
+        required: false,
+    },
     payment_status: {
         type: String,
-        enum: ['Pending', 'Completed', 'Failed'],  // Restrict to these values
         default: 'Pending'
     },
+    order_status: {
+        type: String,
+        default: 'Pending'
+    },
+  
     
     deleted: {
         type: Boolean,
@@ -61,6 +61,10 @@ var OrderSchema = mongoose.Schema({
     createdAt: {
         type: Date,
         default: () => Date.now(), 
+    },
+    paymentDate: {
+        type: Date,
+        default: null, 
     },
     
 });
@@ -127,37 +131,11 @@ OrderSchema.customFields = {
         width: "50",
         searchable: true,
     },
-    zendesk_ticket_id: {
-        field_name: "zendesk_ticket_id",
-        db_name: "zendesk_ticket_id",
-        type: "text",
-        placeholder: "zendesk_ticket_id",
-        listing: true,
-        sort: true,
-        default_sort: false,
-        required: false,
-        value: "",
-        width: "50",
-        searchable: true,
-    },
     cart_id: {
         field_name: "cart_id",
         db_name: "cart_id",
         type: "text",
         placeholder: "cart_id",
-        listing: true,
-        sort: true,
-        default_sort: false,
-        required: false,
-        value: "",
-        width: "50",
-        searchable: true,
-    },
-    transaction_id: {
-        field_name: "transaction_id",
-        db_name: "transaction_id",
-        type: "text",
-        placeholder: "transaction_id",
         listing: true,
         sort: true,
         default_sort: false,

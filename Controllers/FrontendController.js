@@ -794,8 +794,6 @@ class FrontendController {
       order.material_id=material_id
       order.cart_id=bigCommerceCart.data.data.id
       order.order_id=null
-      order.transaction_id=null
-      order.zendesk_ticket_id=null
       order.first_name = data.first_name;
       order.last_name =data.last_name;
       order.email = data.email;
@@ -964,19 +962,66 @@ async createTicket(ticketData) {
 }
 
 async order(req, res){
-  let log = new Changelog;
-  log.modelName='Quotation';
-  log.event='saved';
-  log.modelId='675191019397b999dbb90b4a';
-  log.user={
-    username:"Test"
-  };
-  log.currentData=req.body.data;
-      await log.save();
-      res.status(200).json({
-        status: true,
-      });
-      return;
+  try {
+    const { type, id } = req.body.data;
+
+    // Validate if type is 'order' and id exists
+    if (type === 'order' && id) {
+      // Fetch order details using BigCommerce API
+      const orderResponse = await axios.get(
+        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v2/orders/${id}`,
+        {
+          headers: {
+            'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN, // Use token from environment variables
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      const orderData = orderResponse.data;
+
+      if (orderData && orderData.cart_id) {
+        // Check if order exists in your database
+        const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
+
+        if (existingOrder) {
+          // Update payment and order status
+          existingOrder.payment_status = orderData.payment_status || 'Pending';
+          existingOrder.order_status = orderData.status || 'Pending';
+          existingOrder.billing_address = orderData.billing_address || {};
+          existingOrder.order_id = orderData.id || null;
+          existingOrder.paymentDate = new Date(orderData.date_modified) || null;
+
+          // Save the updated order
+          await existingOrder.save();
+
+           res.status(200).json({
+            success: true,
+            message: 'Order status updated successfully',
+            data: {
+              cart_id:orderData.cart_id,
+              order_id: existingOrder.id,
+              payment_status: existingOrder.payment_status,
+              order_status: existingOrder.order_status,
+            },
+          });
+          return;
+        } else {
+          throw new Error('Order not found in the database');
+        }
+      } else {
+        throw new Error('Cart ID not found in order data');
+      }
+    } else {
+      throw new Error('Invalid webhook payload');
+    }
+  } catch (error) {
+    console.error('Error processing order:', error.message);
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 }
 
 }
