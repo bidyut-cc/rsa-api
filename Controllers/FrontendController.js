@@ -9,7 +9,7 @@ const Quotation = require("../Models/Quotation.js");
 const mongoose = require('mongoose');
 const { default: axios } = require("axios");
 const Order = require("../Models/Order.js");
-const Changelog = require("../Models/Changelog.js");
+
 
 class FrontendController {
   constructor() {
@@ -622,8 +622,11 @@ class FrontendController {
           .json({ status: false, message: "Failed to generate PDF." });
       }
       
-    const uploadToken = await this.uploadAttachment(Buffer.from(pdfBuffer, 'base64'),'quotation.pdf');
-    const ticketData = {
+      let ticketData = {}
+    try {
+      const uploadToken = await this.uploadAttachment(Buffer.from(pdfBuffer, 'base64'),'quotation.pdf');
+
+    ticketData = {
       ticket: {
         subject: `New Quotation #${quotation.quotation_no}`,
         requester: {
@@ -652,10 +655,20 @@ class FrontendController {
         tags: ['Quotation'],
       },
     };
-    const ticket=await this.createTicket(ticketData);
-    zendesk_ticket_id=ticket.id;
+    } catch (error) {
+      console.error("Error creating ticket:", error.message);
+      // Continue without breaking the process
+    }
 
-    quotation.zendesk_ticket_id = zendesk_ticket_id;
+    try {
+      const ticket=await this.createTicket(ticketData);
+      zendesk_ticket_id=ticket.id;
+      quotation.zendesk_ticket_id = zendesk_ticket_id;
+    } catch (error) {
+      console.error("Error creating ticket:", error.message);
+      // Continue without breaking the process
+    }
+
    await quotation.save();
   
       res.status(200).json({
@@ -665,8 +678,6 @@ class FrontendController {
           submittedData: req.body,
           roomData: results,
           materials,
-         uploadToken:uploadToken,
-         ticket:ticket
         
         },
       });
@@ -681,7 +692,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-    //  executablePath: '/usr/bin/chromium-browser',
+      executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
