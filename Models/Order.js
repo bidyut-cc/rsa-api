@@ -75,7 +75,7 @@ OrderSchema.changeLog = true;
 
 OrderSchema.plugin(mongoose_delete);
 OrderSchema.plugin(mongoose_delete, { overrideMethods: "all" });
-OrderSchema.fillable = ["quotation_id","material_id","cart_id","order_id","zendesk_ticket_id","transaction_id","first_name","last_name","email","phone_number","color","amount","payment_status"];
+OrderSchema.fillable = ["quotation_id","material_id","cart_id","order_id","first_name","last_name","email","phone_number","colors","amount","payment_status","billing_address"];
 
 OrderSchema.customFields = {
     _id: {
@@ -196,7 +196,7 @@ OrderSchema.customFields = {
         width: "50",
         searchable: true,
     },
-    color: {
+    colors: {
         field_name: "color",
         db_name: "color",
         type: "text",
@@ -227,6 +227,32 @@ OrderSchema.customFields = {
         db_name: "payment_status",
         type: "text",
         placeholder: "payment_status",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    order_status: {
+        field_name: "order_status",
+        db_name: "order_status",
+        type: "text",
+        placeholder: "order_status",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    billing_address: {
+        field_name: "billing_address",
+        db_name: "billing_address",
+        type: "text",
+        placeholder: "billing_address",
         listing: true,
         sort: true,
         default_sort: false,

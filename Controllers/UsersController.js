@@ -105,7 +105,7 @@ class UsersController extends Controller {
             password: 'required|minLength:6',
             confirm_password: 'required|same:password',
             phone: 'required|phoneNumber|digits:10',
-            roles: 'required|in:user,super_admin,admin,developer',
+            roles: 'required|in:sales_agent,super_admin,admin,developer',
             status: 'required|in:Active,Inactive',
         },{
             'roles.required': 'The role field is mandatory.',
@@ -206,7 +206,7 @@ class UsersController extends Controller {
             last_name: 'required|string|minLength:2|maxLength:50',
             email: 'required|email|unique:user,email,' + req.params.id,
             phone: 'required|phoneNumber|digits:10',
-            roles: 'required|in:user,super_admin,admin,developer',
+            roles: 'required|in:sales_agent,super_admin,admin,developer',
             status: 'required|in:Active,Inactive',
             password: 'sometimes|string|minLength:6',
             confirm_password: 'same:password',
