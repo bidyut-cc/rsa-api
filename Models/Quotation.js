@@ -38,6 +38,14 @@ var QuotationSchema = mongoose.Schema({
         type: String,
         required: false,
     },
+    is_converted_to_deal: {
+        type: Boolean,
+        required: false,
+        default: false,
+        get: function(value) {
+            return value ? 'Yes' : 'No'; // Return "Yes" if true, "No" if false
+        }
+    },
     deleted: {
         type: Boolean,
         required: false,
@@ -149,7 +157,7 @@ QuotationSchema.customFields = {
         required: false,
         value: "",
         width: "50",
-        searchable: true,
+        searchable: false,
     },
     roomData: {
         field_name: "roomData",
@@ -162,7 +170,7 @@ QuotationSchema.customFields = {
         required: false,
         value: "",
         width: "50",
-        searchable: true,
+        searchable: false,
     },
     materials: {
         field_name: "materials",
@@ -175,7 +183,20 @@ QuotationSchema.customFields = {
         required: false,
         value: "",
         width: "50",
-        searchable: true,
+        searchable: false,
+    },
+    is_converted_to_deal: {
+        field_name: "is_converted_to_deal",
+        db_name: "is_converted_to_deal",
+        type: "boolean",
+        placeholder: "is_converted_to_deal",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: false,
     },
     createdAt: {
         "field_name": "createdAt",

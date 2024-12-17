@@ -18,6 +18,7 @@ class FrontendController {
     this.generatePaymentLink = this.generatePaymentLink.bind(this);
     this.updatePaymentResponse = this.updatePaymentResponse.bind(this);
     this.uploadAttachment = this.uploadAttachment.bind(this);
+    this.order = this.order.bind(this);
   }
 
   async view(req, res) {
@@ -997,14 +998,18 @@ async order(req, res){
 
         if (existingOrder) {
           // Update payment and order status
-          existingOrder.payment_status = orderData.payment_status || 'Pending';
-          existingOrder.order_status = orderData.status || 'Pending';
+          existingOrder.payment_status = await this.capitalizeWords(orderData.payment_status) || 'Pending';
+          existingOrder.order_status = await this.capitalizeWords(orderData.status) || 'Pending';
           existingOrder.billing_address = orderData.billing_address || {};
           existingOrder.order_id = orderData.id || null;
           existingOrder.paymentDate = new Date(orderData.date_modified) || null;
 
           // Save the updated order
           await existingOrder.save();
+          const existingQuotation = await Quotation.findOne({ _id: existingOrder.quotation_id });
+          existingQuotation.is_converted_to_deal = true;
+          // Save the updated quotation
+          await existingQuotation.save();
 
            res.status(200).json({
             success: true,
@@ -1034,6 +1039,16 @@ async order(req, res){
     });
   }
 }
+
+async capitalizeWords(str) {
+  if (!str) return '';
+  return str
+    .toLowerCase() // Ensure the string is in lowercase to handle mixed cases
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 
 }
 

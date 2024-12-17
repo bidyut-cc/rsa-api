@@ -8,6 +8,8 @@ class QuotationsController extends Controller {
         super("Quotation");
     }
 
+
+
     async generateQuotationPDF(req,res){
         try {
             const {id,quotation_no,submittedData,roomData,materials} = req.body
