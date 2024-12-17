@@ -65,10 +65,11 @@ module.exports = {
             owner: [ "list","view","generateQuotationPDF"],
         },
         orders: {
-            all: [ "list","view"],
-            group: [ "list","view"],
-            owner: [ "list","view"],
+            all: [ "list","view","charts"],
+            group: [ "list","view","charts"],
+            owner: [ "list","view","charts"],
         },
+        
     },
     super_admin: {
         users: {
@@ -131,9 +132,9 @@ module.exports = {
             owner: [ "list","view","generateQuotationPDF"],
         },
         orders: {
-            all: [ "list","view"],
-            group: [ "list","view"],
-            owner: [ "list","view"],
+            all: [ "list","view","charts"],
+            group: [ "list","view","charts"],
+            owner: [ "list","view","charts"],
         },
     },
     sales_agent: {
@@ -154,9 +155,9 @@ module.exports = {
             owner: [ "list","view","generateQuotationPDF"],
         },
         orders: {
-            all: [ "list","view"],
-            group: [ "list","view"],
-            owner: [ "list","view"],
+            all: [ "list","view","charts"],
+            group: [ "list","view","charts"],
+            owner: [ "list","view","charts"],
         },
         masterSettings: {
             all: ["materialView"],
