@@ -693,7 +693,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-    //  executablePath: '/usr/bin/chromium-browser',
+      executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -841,14 +841,25 @@ class FrontendController {
   async createBigCommerceCart(materials) {
     try {
       // Prepare the data for BigCommerce cart (example: passing materials and prices)
+        const mappingDoc = await Setting.findOne({ step: 'product_material_mapping', deleted: false });
+        if (!mappingDoc || !mappingDoc.config || !mappingDoc.config.mapping) {
+          throw new Error('Mapping document or config is missing.');
+        }
+        const material_id = materials.id;
+       // Retrieve the product_id based on the material_id
+    const product_id = mappingDoc.config.mapping[material_id.toString()];
+    if (!product_id) {
+      throw new Error(`No product ID found for material ID: ${material_id}`);
+    }
+   
       const cartData = {
         "customer_id": 0,
         "line_items": [
           {
             "quantity": 1,
-            "product_id": 111,
+            "product_id": product_id,
             "list_price": materials.price,
-            "name": "Restroom Stall"
+           // "name": "Restroom Stall"
           }
         ],
         "redirect_urls": {
