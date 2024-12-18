@@ -693,7 +693,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium-browser',
+    //  executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',

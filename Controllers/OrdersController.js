@@ -16,6 +16,7 @@ class OrdersController extends Controller {
       const monthlyOrders = await this.monthtyOrder();
       const totalOrders = await Quotation.countDocuments();
       const totalCompleteOrders = await Quotation.countDocuments({ is_converted_to_deal: true });
+      const recentOrders = await super.list(req);
       // res.status(200).json({
       //   status:true,
       //   data:monthlyOrders
@@ -27,14 +28,17 @@ class OrdersController extends Controller {
             orderRatio:{
               totalOrders:totalOrders,
               totalCompleteOrders:totalCompleteOrders
-            }
+            },
+            recentOrders:recentOrders.results.results.data
           }
       }
      } catch (error) {
+      console.log(error);
       res.status(500).json({ error: 'Failed to fetch order totals' });
      }
       
     }
+
     async monthtyOrder(){
         try {
             const sixMonthsAgo = moment().subtract(6, 'months').startOf('month').toDate();
