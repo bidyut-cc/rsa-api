@@ -14,6 +14,7 @@ class OrdersController extends Controller {
     async charts(req,res){
      try {
       const monthlyOrders = await this.monthtyOrder();
+      const monthlyLeads = await this.monthlyLead();
       const totalOrders = await Quotation.countDocuments();
       const totalCompleteOrders = await Quotation.countDocuments({ is_converted_to_deal: true });
       const recentOrders = await super.list(req);
@@ -25,6 +26,7 @@ class OrdersController extends Controller {
           status:true,
           data:{
             monthlyOrders:monthlyOrders,
+            monthlyLeads:monthlyLeads,
             orderRatio:{
               totalOrders:totalOrders,
               totalCompleteOrders:totalCompleteOrders
@@ -69,7 +71,7 @@ class OrdersController extends Controller {
             ]);
         
             // Format the result for easier usage
-            const formattedResult = await this.fillMissingMonths(result, 6);
+            const formattedResult = await this.fillMissingMonths(result, 6, 'totalAmount');
             return formattedResult
             //res.status(200).json(formattedResult);
           } catch (error) {
@@ -81,7 +83,47 @@ class OrdersController extends Controller {
           }
     }
 
-    async fillMissingMonths(data, monthsCount) {
+    async monthlyLead() {
+      try {
+          const sixMonthsAgo = moment().subtract(6, 'months').startOf('month').toDate();
+          const now = moment().endOf('month').toDate();
+  
+          // Aggregate data
+          const result = await Quotation.aggregate([
+              {
+                  $match: {
+                      createdAt: { $gte: sixMonthsAgo, $lte: now }, // Filter by last 6 months
+                      deleted: false, // Exclude deleted records
+                  },
+              },
+              {
+                  $group: {
+                      _id: {
+                          year: { $year: '$createdAt' },
+                          month: { $month: '$createdAt' },
+                      },
+                      count: { $sum: 1 }, // Count the number of records
+                  },
+              },
+              {
+                  $sort: { '_id.year': 1, '_id.month': 1 }, // Sort by year and month
+              },
+          ]);
+  
+          // Fill in missing months
+          const formattedResult = await this.fillMissingMonths(result, 6, 'count');
+  
+          return formattedResult;
+      } catch (error) {
+          console.error('Error fetching monthly data:', error);
+          return {
+              status: false,
+              message: 'Failed to fetch monthly data',
+          };
+      }
+  }
+
+    async fillMissingMonths(data, monthsCount, key) {
         const result = [];
         const now = moment();
       
@@ -97,7 +139,7 @@ class OrdersController extends Controller {
           result.push({
             year,
             month,
-            totalAmount: existingEntry ? existingEntry.totalAmount : 0
+            [key]: existingEntry ? existingEntry[key] : 0
           });
         }
       
