@@ -12,6 +12,18 @@ const Order = require("../Models/Order.js");
 
 
 class FrontendController {
+  
+/**
+ * Constructor for the class.
+ *
+ * @description
+ * The constructor binds class methods to the class instance to ensure they maintain the correct context when called.
+ * - `quotationCreate` is bound to the class instance.
+ * - `generatePaymentLink` is bound to the class instance.
+ * - `updatePaymentResponse` is bound to the class instance.
+ * - `uploadAttachment` is bound to the class instance.
+ * - `order` is bound to the class instance.
+ */
   constructor() {
     // Bind the method to ensure correct context
     this.quotationCreate = this.quotationCreate.bind(this);
@@ -20,6 +32,22 @@ class FrontendController {
     this.uploadAttachment = this.uploadAttachment.bind(this);
     this.order = this.order.bind(this);
   }
+
+/**
+ * Retrieves configuration data based on the provided step.
+ *
+ * @param {object} req - The HTTP request object containing query parameters.
+ * @param {object} req.query - The query parameters from the request.
+ * @param {string} req.query.step - The step to retrieve data for. Must be one of: 'project', 'layout', 'measurement', 'color', 'quotation_builder'.
+ * @param {object} res - The HTTP response object used to send the JSON response.
+ * @returns {object} JSON response with the status and data or errors.
+ *
+ * @description
+ * - Validates the `step` query parameter to ensure it is required and within allowed values.
+ * - If validation fails, responds with a 422 status and validation errors.
+ * - If validation passes, fetches the configuration data for the specified step from the database.
+ * - Responds with the data on success or a 500 status with an error message on failure.
+ */
 
   async view(req, res) {
     // Validate the input data
@@ -54,6 +82,23 @@ class FrontendController {
       }
     }
   }
+
+/**
+ * Retrieves configuration data for multiple steps.
+ *
+ * @param {object} req - The HTTP request object containing the request body.
+ * @param {object} req.body - The body of the request.
+ * @param {string[]} req.body.step - An array of steps to retrieve data for. 
+ *                                    Each step must be one of: 'project', 'layout', 'measurement', 'color', 'quotation_builder'.
+ * @param {object} res - The HTTP response object used to send the JSON response.
+ * @returns {object} JSON response with the status and data or validation errors.
+ *
+ * @description
+ * - Validates the `step` array to ensure it is provided, contains at least one element, and all elements are valid step values.
+ * - If validation fails, responds with a 422 status and custom validation error messages.
+ * - If validation passes, retrieves configuration data for all provided steps from the database using MongoDB's `$in` operator.
+ * - Responds with the retrieved data on success or a 500 status with an error message on failure.
+ */
 
   async config(req, res) {
     // Validate the input data
@@ -93,6 +138,26 @@ class FrontendController {
       }
     }
   }
+
+/**
+ * Handles the creation of a new quotation.
+ *
+ * @param {object} req - The HTTP request object containing the request body.
+ * @param {object} req.body - The body of the request.
+ * @param {string} req.body.first_name - The first name of the user creating the quotation. (Required)
+ * @param {string} req.body.last_name - The last name of the user creating the quotation. (Required)
+ * @param {string} req.body.email - The email address of the user creating the quotation. (Required)
+ * @param {string} req.body.phone_number - The phone number of the user creating the quotation. (Required)
+ * @param {object[]} req.body.rooms - An array of room details required for the quotation. (Required)
+ * @param {object} res - The HTTP response object used to send the JSON response.
+ * @returns {object} JSON response with validation errors or a status indicating success or failure.
+ *
+ * @description
+ * - Validates the request body to ensure all required fields (`first_name`, `last_name`, `email`, `phone_number`, and `rooms`) are present.
+ * - Ensures `rooms` is an array.
+ * - Responds with a 422 status and validation errors if the input data is invalid.
+ * - If validation passes, the function logic proceeds to handle the creation of the quotation (not shown in this snippet).
+ */
 
   async quotationCreate(req, res) {
     const v = new Validator(req.body, {
@@ -690,6 +755,22 @@ class FrontendController {
     }
   }
 
+/**
+ * Generates a PDF from the given HTML content using Puppeteer.
+ *
+ * @param {string} htmlContent - The HTML content to be rendered as a PDF.
+ * @returns {Promise<Buffer>} A promise that resolves to a buffer containing the generated PDF.
+ *
+ * @description
+ * - Launches a headless Chromium browser instance with specific configurations:
+ *   - `--no-sandbox` and `--disable-setuid-sandbox` for security settings.
+ *   - `--disable-dev-shm-usage` to handle resource limitations.
+ * - Opens a new page and sets the provided HTML content to it.
+ * - Waits until the network is idle (`networkidle0`) before generating the PDF.
+ * - Generates a PDF in A4 format and returns it as a buffer.
+ * - Ensures the browser is closed after PDF generation.
+ */
+
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
@@ -708,6 +789,24 @@ class FrontendController {
     await browser.close();
     return pdfBuffer
   }
+
+/**
+ * Retrieves a specific quotation by its ID.
+ *
+ * @param {object} req - The HTTP request object containing the query parameters.
+ * @param {object} req.query - The query parameters of the request.
+ * @param {string} req.query.id - The ID of the quotation to retrieve. (Required)
+ * @param {object} res - The HTTP response object used to send the JSON response.
+ * @returns {object} JSON response containing the quotation data or validation errors.
+ *
+ * @description
+ * - Validates the `id` query parameter to ensure it is provided.
+ * - Checks if the `id` is a valid MongoDB ObjectId.
+ * - Responds with a 422 status and validation error if the input data is invalid or the ID format is incorrect.
+ * - If validation passes, attempts to retrieve the quotation from the database by its ID.
+ * - Retrieves specific fields: `submittedData`, `roomData`, and `materials`.
+ * - Responds with the retrieved data on success or a 500 status with an error message on failure.
+ */
 
   async quotationView(req, res) {
     // Validate the input data
@@ -756,6 +855,31 @@ class FrontendController {
     }
   }
   
+/**
+ * Generates a payment link for a specific quotation and material.
+ *
+ * @param {object} req - The HTTP request object containing the request body.
+ * @param {object} req.body - The body parameters of the request.
+ * @param {string} req.body.id - The ID of the quotation. (Required)
+ * @param {number} req.body.material_id - The ID of the material associated with the quotation. (Required)
+ * @param {Array<string>} req.body.colors - The array of selected colors. (Required)
+ * @param {object} res - The HTTP response object used to send the JSON response.
+ * @returns {object} JSON response containing the payment link or validation errors.
+ *
+ * @description
+ * - Validates the request body to ensure required parameters (`id`, `material_id`, and `colors`) are provided and correctly formatted.
+ * - Checks if the `id` is a valid MongoDB ObjectId.
+ * - Searches for the specified quotation and verifies the existence of the provided material ID.
+ * - Responds with a 404 status if no matching quotation or material is found.
+ * - Calls `createBigCommerceCart` to generate a cart in BigCommerce for the selected material.
+ * - On success:
+ *   - Creates an order record in the database with details like `quotation_id`, `material_id`, `cart_id`, customer information, and the selected colors.
+ *   - Responds with a 200 status containing the order ID and the BigCommerce checkout URL.
+ * - Handles errors:
+ *   - Responds with a 422 status for validation issues or invalid MongoDB ObjectId.
+ *   - Responds with a 500 status if an error occurs during the process or BigCommerce cart creation fails.
+ */
+
   async generatePaymentLink(req, res) {
     // Validate the input data
     const v = new Validator(req.body, {
@@ -838,6 +962,38 @@ class FrontendController {
     }
   }
 
+/**
+ * Creates a BigCommerce cart for the specified materials.
+ *
+ * @param {object} materials - The materials data containing details for the cart.
+ * @param {number} materials.id - The material ID.
+ * @param {number} materials.price - The price of the material.
+ * @returns {Promise<object>} A promise resolving to an object containing the cart creation status and data or an error message.
+ *
+ * @description
+ * - Fetches the material-to-product mapping configuration from the `Setting` collection.
+ * - Validates the presence of the mapping configuration and the corresponding product ID for the material ID.
+ * - Constructs a cart data payload with the product ID, price, and a redirect URL for checkout.
+ * - Sends a POST request to the BigCommerce API to create the cart.
+ * - On success:
+ *   - Returns an object with `status: true` and the BigCommerce API response containing the cart and redirect URL.
+ * - On failure:
+ *   - Logs the error to the console.
+ *   - Returns an object with `status: false` and a failure message.
+ *
+ * @throws
+ * - Throws an error if the mapping document or configuration is missing or if no product ID is found for the material ID.
+ *
+ * @example
+ * const materials = { id: 123, price: 299.99 };
+ * const cart = await createBigCommerceCart(materials);
+ * if (cart.status) {
+ *   console.log('Cart created successfully:', cart.data);
+ * } else {
+ *   console.error('Error creating cart:', cart.message);
+ * }
+ */
+
   async createBigCommerceCart(materials) {
     try {
       // Prepare the data for BigCommerce cart (example: passing materials and prices)
@@ -889,6 +1045,44 @@ class FrontendController {
       }
     }
   }
+
+/**
+ * Updates the payment response details in the order.
+ *
+ * @param {object} req - The request object containing the payment response data.
+ * @param {object} req.body - The request body with the payment details.
+ * @param {string} req.body.id - The MongoDB ObjectId of the order to be updated.
+ * @param {string} req.body.transaction_id - The transaction ID of the payment.
+ * @param {string} req.body.order_id - The order ID associated with the payment.
+ * @param {string} req.body.payment_status - The payment status (e.g., 'success', 'failed').
+ * @param {object} res - The response object to send the response.
+ * @returns {json} A JSON response containing the status and any relevant message or error details.
+ *
+ * @description
+ * - Validates the required fields (`id`, `transaction_id`, `order_id`, `payment_status`) from the request body.
+ * - Verifies that the `id` is a valid MongoDB ObjectId.
+ * - Searches for the order using the provided `id`.
+ * - Updates the order with the payment details (`order_id`, `transaction_id`, `payment_status`) and clears the `zendesk_ticket_id`.
+ * - On success, returns a 200 status with a success message.
+ * - On failure, returns a 422 status with validation errors or a 500 status with error details.
+ *
+ * @throws
+ * - Throws an error if the provided `id` is not a valid MongoDB ObjectId.
+ *
+ * @example
+ * const paymentDetails = {
+ *   id: "60c72b2f9f1b2c1d08c83e6f",
+ *   transaction_id: "txn_12345",
+ *   order_id: "order_67890",
+ *   payment_status: "success"
+ * };
+ * const response = await updatePaymentResponse(paymentDetails);
+ * if (response.status) {
+ *   console.log('Order updated successfully:', response.message);
+ * } else {
+ *   console.error('Error:', response.errors);
+ * }
+ */
 
   async updatePaymentResponse(req,res){
         // Validate the input data
@@ -943,6 +1137,32 @@ class FrontendController {
         }
   }
 
+/**
+ * Uploads a PDF attachment to Zendesk and returns the upload token.
+ *
+ * @param {Buffer} pdfBuffer - The PDF file buffer to be uploaded.
+ * @param {string} fileName - The name of the PDF file being uploaded.
+ * @returns {Promise<string>} A promise that resolves to the upload token for the uploaded file.
+ *
+ * @description
+ * - Sends a POST request to the Zendesk API's file upload endpoint with the provided PDF buffer and file name.
+ * - Uses basic authentication with Zendesk email and API token.
+ * - Sets the `Content-Type` to `application/pdf` to correctly identify the file type.
+ * - Returns the upload token if the upload is successful.
+ * - If an error occurs, the function throws the error.
+ *
+ * @throws {Error} If there is an issue uploading the attachment, an error is thrown.
+ *
+ * @example
+ * const pdfBuffer = Buffer.from('PDF data...');
+ * const fileName = 'invoice.pdf';
+ * try {
+ *   const uploadToken = await uploadAttachment(pdfBuffer, fileName);
+ *   console.log('Upload successful. Token:', uploadToken);
+ * } catch (error) {
+ *   console.error('Upload failed:', error);
+ * }
+ */
 
 
 async  uploadAttachment(pdfBuffer, fileName) {
@@ -964,8 +1184,39 @@ async  uploadAttachment(pdfBuffer, fileName) {
       throw error;
   }
 }
+/**
+ * Creates a new ticket in Zendesk.
+ *
+ * @param {Object} ticketData - The data for the ticket to be created.
+ * @param {string} ticketData.subject - The subject of the ticket.
+ * @param {string} ticketData.description - The description of the ticket.
+ * @param {string} [ticketData.priority] - The priority of the ticket (optional).
+ * @param {string} [ticketData.requester] - The email of the ticket requester (optional).
+ * @returns {Promise<Object>} A promise that resolves to the created ticket object.
+ *
+ * @description
+ * - Sends a POST request to the Zendesk API's tickets endpoint with the provided ticket data.
+ * - Uses basic authentication with Zendesk email and API token.
+ * - Sets the `Content-Type` to `application/json` to specify that the request body is JSON.
+ * - Returns the created ticket's data if the request is successful.
+ * - If there is an error in creating the ticket, the function throws an error.
+ *
+ * @throws {Error} If there is an issue creating the ticket, an error is thrown.
+ *
+ * @example
+ * const ticketData = {
+ *   subject: 'Issue with the product',
+ *   description: 'The product is defective.',
+ *   priority: 'high',
+ * };
+ * try {
+ *   const ticket = await createTicket(ticketData);
+ *   console.log('Ticket created:', ticket);
+ * } catch (error) {
+ *   console.error('Failed to create ticket:', error);
+ * }
+ */
 
-// Function to create the ticket
 async createTicket(ticketData) {
   const url = `${process.env.ZENDESK_DOMAIN}/api/v2/tickets.json`;
   try {
@@ -983,6 +1234,39 @@ async createTicket(ticketData) {
       throw error;
   }
 }
+
+/**
+ * Handles the order status update based on a webhook payload from BigCommerce.
+ *
+ * @param {Object} req - The request object, containing the webhook payload.
+ * @param {Object} req.body.data - The data sent in the webhook payload.
+ * @param {string} req.body.data.type - The type of the event, must be 'order'.
+ * @param {string} req.body.data.id - The order ID from BigCommerce.
+ * @param {Object} res - The response object, used to send the response back.
+ * @returns {Promise<void>} A promise that resolves when the order is processed.
+ *
+ * @description
+ * - Validates the incoming request to ensure the type is 'order' and the order ID exists.
+ * - Fetches order details from the BigCommerce API using the provided order ID.
+ * - Updates the corresponding order record in the database, setting payment and order status.
+ * - Marks the related quotation as converted to a deal.
+ * - Returns a success message if the order status is updated successfully.
+ * - Throws an error if the order data is invalid, not found in the database, or if the webhook payload is incorrect.
+ *
+ * @throws {Error} If there is an issue processing the order, an error with a message is thrown.
+ *
+ * @example
+ * const orderPayload = {
+ *   type: 'order',
+ *   id: '12345',
+ * };
+ * try {
+ *   await order(orderPayload);
+ *   console.log('Order processed successfully');
+ * } catch (error) {
+ *   console.error('Error processing order:', error.message);
+ * }
+ */
 
 async order(req, res){
   try {
@@ -1050,6 +1334,26 @@ async order(req, res){
     });
   }
 }
+
+/**
+ * Capitalizes the first letter of each word in a string.
+ *
+ * @param {string} str - The input string to capitalize.
+ * @returns {string} The string with the first letter of each word capitalized.
+ *
+ * @description
+ * - The function ensures that the string is in lowercase before capitalizing the first letter of each word.
+ * - It splits the string into words, capitalizes the first letter of each word, and joins them back together.
+ * - If the input string is empty or falsy, it returns an empty string.
+ *
+ * @example
+ * const result = capitalizeWords('hello world');
+ * console.log(result); // 'Hello World'
+ * 
+ * @example
+ * const result = capitalizeWords('capitalize first letter');
+ * console.log(result); // 'Capitalize First Letter'
+ */
 
 async capitalizeWords(str) {
   if (!str) return '';

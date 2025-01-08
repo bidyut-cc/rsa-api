@@ -7,6 +7,25 @@ class MasterSettingsController extends Controller {
     constructor() {
         super("MasterSetting");
     }
+
+/**
+ * Fetches and returns active material settings based on the provided key.
+ *
+ * @async
+ * @function materialView
+ * @param {Object} req - The request object, containing the `key` query parameter.
+ * @param {Object} res - The response object, used to send the result or error response.
+ * @returns {Object} - An object containing active material values for the specified key, or an empty object if no data is found.
+ * 
+ * @throws {Error} - If there is an issue fetching the data from the database.
+ * 
+ * @description
+ * This method:
+ * - Accepts a `key` query parameter to filter material settings from the `MasterSetting` collection.
+ * - Only includes items with a status of "Active" in the returned value array.
+ * - Returns the filtered data if available, or an empty object if no active items are found.
+ */
+
     async materialView(req,res) {
         const {key} = req.query;
         try {
@@ -37,6 +56,23 @@ class MasterSettingsController extends Controller {
             });
           }
     }
+
+/**
+ * Fetches and returns material settings for a specified key.
+ *
+ * @async
+ * @function view
+ * @param {Object} req - The request object, containing the `key` query parameter.
+ * @param {Object} res - The response object, used to send the result or error response.
+ * @returns {Object} - An object containing the material settings for the specified key.
+ * 
+ * @throws {Error} - If there is an issue fetching the data from the database.
+ * 
+ * @description
+ * This method:
+ * - Accepts a `key` query parameter to fetch material settings from the `MasterSetting` collection.
+ * - Returns the matching document, including the `key`, `value`, and `_id` fields.
+ */
 
     async view(req, res) {
         const { key } = req.query;
