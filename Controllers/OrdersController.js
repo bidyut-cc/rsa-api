@@ -11,7 +11,28 @@ class OrdersController extends Controller {
         // this.fillMissingMonths = this.fillMissingMonths.bind(this);
     }
   
-    async charts(req,res){
+/**
+ * Fetches and returns various charts data for orders and leads.
+ *
+ * @async
+ * @function charts
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} - An object containing data for monthly orders, monthly leads, order ratios, and recent orders.
+ * 
+ * @throws {Error} - If there is an issue fetching the required data from the database or other services.
+ * 
+ * @description
+ * This method fetches:
+ * - Monthly orders data
+ * - Monthly leads data
+ * - Total orders count
+ * - Total completed orders count
+ * - Recent orders
+ * 
+ * The method aggregates these results into a response object and returns them.
+ */
+async charts(req,res){
      try {
       const monthlyOrders = await this.monthtyOrder();
       const monthlyLeads = await this.monthlyLead();
@@ -40,6 +61,24 @@ class OrdersController extends Controller {
      }
       
     }
+
+/**
+ * Fetches the total order amount for the past 6 months, grouped by month.
+ *
+ * @async
+ * @function monthtyOrder
+ * @returns {Object} - An array of objects containing the year, month, and total amount for each month.
+ * 
+ * @throws {Error} - If there is an issue fetching or processing the data from the database.
+ * 
+ * @description
+ * This method:
+ * - Filters the orders to include only those from the past 6 months.
+ * - Groups the data by year and month, and sums the `amount` for each group.
+ * - Returns an array of objects, each containing the year, month, and the total order amount for that month.
+ * 
+ * The result is formatted to ensure that data for every month in the last 6 months is included, even if there are no orders for some months.
+ */
 
     async monthtyOrder(){
         try {
@@ -83,6 +122,24 @@ class OrdersController extends Controller {
           }
     }
 
+/**
+ * Fetches the number of leads (quotations) created in the past 6 months, grouped by month.
+ *
+ * @async
+ * @function monthlyLead
+ * @returns {Object} - An array of objects containing the year, month, and the count of leads for each month.
+ * 
+ * @throws {Error} - If there is an issue fetching or processing the data from the database.
+ * 
+ * @description
+ * This method:
+ * - Filters the quotations to include only those created in the past 6 months.
+ * - Groups the data by year and month, and counts the number of leads (quotations) for each group.
+ * - Returns an array of objects, each containing the year, month, and the total count of leads for that month.
+ * 
+ * The result is formatted to ensure that data for every month in the last 6 months is included, even if there are no leads for some months.
+ */
+
     async monthlyLead() {
       try {
           const sixMonthsAgo = moment().subtract(6, 'months').startOf('month').toDate();
@@ -122,6 +179,25 @@ class OrdersController extends Controller {
           };
       }
   }
+
+/**
+ * Fills in missing months for a given time range and returns an array of objects with year, month, and a specific value.
+ *
+ * @async
+ * @function fillMissingMonths
+ * @param {Array} data - The aggregated data to be filled with missing months.
+ * @param {number} monthsCount - The total number of months to consider, starting from the current month and going backwards.
+ * @param {string} key - The key in the data objects that contains the value to be returned (e.g., 'totalAmount', 'count').
+ * @returns {Array} - An array of objects, each containing the year, month, and the value for the specified key.
+ * 
+ * @description
+ * This method:
+ * - Iterates over the specified number of months (from the current month back to `monthsCount` months ago).
+ * - Checks if there is an entry for each month in the provided data.
+ * - If an entry exists for the month, it adds the value from the data, otherwise it assigns a default value of `0`.
+ * 
+ * The result ensures that all months within the range are included in the returned array, even if no data is available for some months.
+ */
 
     async fillMissingMonths(data, monthsCount, key) {
         const result = [];

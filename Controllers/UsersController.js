@@ -91,12 +91,28 @@ class UsersController extends Controller {
     //     };
     // }
 
-    /**
-     * To add a user 
-     *
-     * @param {object} req
-     * @return {json} 
-     */
+/**
+ * Saves a new user to the database.
+ *
+ * @async
+ * @function save
+ * @param {Object} req - The request object containing user details (first name, last name, email, etc.) to be saved.
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the user creation process, or error response if validation fails or an error occurs.
+ * 
+ * @throws {Error} - If there is an issue with validation, user creation, or saving the user to the database.
+ * 
+ * @description
+ * This method:
+ * - Validates the input data, ensuring all required fields (first name, last name, email, etc.) meet the specified criteria.
+ * - Checks if the email is already registered.
+ * - If validation or the email check fails, responds with a 422 status and error messages.
+ * - If validation passes and the email is unique, creates a new user and saves it to the database.
+ * - Logs the change in the system if change logs are enabled in the schema.
+ * - Responds with a 200 status and the newly created user data upon success.
+ * - If an error occurs during the process, responds with a 500 status and an error message.
+ */
+
     async save(req,res) {
         const v = new Validator(req.body, {
             first_name: 'required|string|minLength:2|maxLength:50',
@@ -193,12 +209,30 @@ class UsersController extends Controller {
      
     }
 
-    /**
-     * To update a user 
-     *
-     * @param {object} req
-     * @return {json} 
-     */
+/**
+ * Updates an existing user's details in the database.
+ *
+ * @async
+ * @function update
+ * @param {Object} req - The request object containing updated user details (first name, last name, email, etc.).
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the user update process, or error response if validation fails or an error occurs.
+ * 
+ * @throws {Error} - If there is an issue with validation, user update, or saving the user to the database.
+ * 
+ * @description
+ * This method:
+ * - Validates the input data, ensuring all required fields (first name, last name, email, etc.) meet the specified criteria.
+ * - Checks that the `confirm_password` matches the `password` if `password` is provided.
+ * - If validation fails, responds with a 422 status and error messages.
+ * - If validation passes, updates the user's details in the database.
+ * - If the password is updated, it hashes the new password before saving it.
+ * - Attempts to update the user using the inherited `update` method from the parent class.
+ * - Logs the update if necessary (depending on the parent class implementation).
+ * - Responds with a 200 status and the updated user data upon success.
+ * - If an error occurs during the process, responds with a 500 status and an error message.
+ */
+
     async update(req, res) {
         // Validate the input data
         const v = new Validator(req.body, {
@@ -269,6 +303,26 @@ class UsersController extends Controller {
             }
         }
     }
+
+/**
+ * Deletes specified user from the database based on provided IDs.
+ *
+ * @async
+ * @function delete
+ * @param {Object} req - The request object containing an array of IDs (`ids`) to be deleted.
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the delete operation, or error response if validation fails or an error occurs.
+ * 
+ * @throws {Error} - If there is an issue with validation, deletion, or the server.
+ * 
+ * @description
+ * This method:
+ * - Validates that the `ids` field is provided as an array.
+ * - If validation fails, responds with a 422 status and the validation errors.
+ * - Attempts to delete the item(s) using the inherited `delete` method from the parent class.
+ * - Responds with a 200 status and the result of the delete operation.
+ * - If an error occurs during the process, responds with a 500 status and a generic "Server error" message.
+ */
 
 
     async delete(req, res) {

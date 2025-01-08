@@ -10,6 +10,23 @@ class SettingsController extends Controller {
   constructor() {
     super("Setting");
   }
+  /**
+ * Fetches and returns settings for a specified step.
+ *
+ * @async
+ * @function view
+ * @param {Object} req - The request object, containing the `step` query parameter.
+ * @param {Object} res - The response object, used to send the result or error response.
+ * @returns {Object} - An object containing the settings for the specified step.
+ * 
+ * @throws {Error} - If there is an issue fetching the data from the database.
+ * 
+ * @description
+ * This method:
+ * - Accepts a `step` query parameter to fetch settings from the `Setting` collection.
+ * - Returns the matching document, including the `step`, `config`, and `_id` fields.
+ */
+
   async view(req, res) {
     const { step } = req.query;
     try {
@@ -25,6 +42,27 @@ class SettingsController extends Controller {
       });
     }
   }
+
+/**
+ * Updates the project settings based on the provided input.
+ *
+ * @async
+ * @function updateProject
+ * @param {Object} req - The request object containing the project settings to be updated.
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the update operation.
+ * 
+ * @throws {Error} - If there is an issue with validation or updating the project.
+ * 
+ * @description
+ * This method:
+ * - Fetches the maximum number of stalls and urinal screens from the `MasterSetting` collection.
+ * - Validates the input data for the number of stalls, urinal screens, and material installation quote.
+ * - If validation passes, it updates the project settings and responds with the result.
+ * - If validation fails, it responds with the validation errors.
+ * - If an error occurs during the update process, it responds with a 500 status and an error message.
+ */
+
   async updateProject(req, res) {
     const maximum_number_of_stalls = await MasterSetting.findOne(
       { key: 'maximum_number_of_stalls' },
@@ -77,6 +115,25 @@ class SettingsController extends Controller {
     }
   }
 
+/**
+ * Updates the layout settings based on the provided input.
+ *
+ * @async
+ * @function updateLayout
+ * @param {Object} req - The request object containing the layout settings to be updated.
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the update operation.
+ * 
+ * @throws {Error} - If there is an issue with validation or updating the layout settings.
+ * 
+ * @description
+ * This method:
+ * - Validates the input data for the layout configuration, including the layouts array and the visibility of the handicap-accessible stall.
+ * - If validation passes, it updates the layout settings and responds with the result.
+ * - If validation fails, it responds with a 422 status and the validation errors.
+ * - If an error occurs during the update process, it responds with a 500 status and an error message.
+ */
+
   async updateLayout(req, res) {
     // Validate the input data
     const v = new Validator(req.body, {
@@ -117,6 +174,25 @@ class SettingsController extends Controller {
       }
     }
   }
+
+/**
+ * Updates the measurement settings based on the provided input.
+ *
+ * @async
+ * @function updateMeasurement
+ * @param {Object} req - The request object containing the measurement settings to be updated.
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the update operation.
+ * 
+ * @throws {Error} - If there is an issue with validation or updating the measurement settings.
+ * 
+ * @description
+ * This method:
+ * - Validates the input data for the measurement configuration, including stall dimensions, door openings, swings, and room number limits.
+ * - If validation passes, it updates the measurement settings and responds with the result.
+ * - If validation fails, it responds with a 422 status and the validation errors.
+ * - If an error occurs during the update process, it responds with a 500 status and an error message.
+ */
 
   async updateMeasurement(req, res) {
     // Validate the input data
@@ -200,6 +276,25 @@ class SettingsController extends Controller {
     }
   }
 
+/**
+ * Updates the color settings based on the provided input.
+ *
+ * @async
+ * @function updateColor
+ * @param {Object} req - The request object containing the color settings to be updated.
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the update operation.
+ * 
+ * @throws {Error} - If there is an issue with validation or updating the color settings.
+ * 
+ * @description
+ * This method:
+ * - Validates the input data for the color configuration, ensuring that the colors field is provided as an array.
+ * - If validation passes, it updates the color settings and responds with the result.
+ * - If validation fails, it responds with a 422 status and the validation errors.
+ * - If an error occurs during the update process, it responds with a 500 status and an error message.
+ */
+
   async updateColor(req, res) {
     // Validate the input data
     const v = new Validator(req.body, {
@@ -234,6 +329,27 @@ class SettingsController extends Controller {
       }
     }
   }
+
+/**
+ * Updates the quotation builder settings based on the provided input.
+ *
+ * @async
+ * @function updateQuotationBuilder
+ * @param {Object} req - The request object containing the type and config for updating the quotation builder.
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the update operation or error response.
+ * 
+ * @throws {Error} - If there is an issue with validation or updating the quotation builder settings.
+ * 
+ * @description
+ * This method:
+ * - Validates the input data based on the type and its associated configuration.
+ * - Dynamically adds validation rules for the specific configuration fields based on the provided type.
+ * - If validation fails, responds with a 422 status and detailed error messages.
+ * - If validation passes, updates the quotation builder configuration in the database and logs the change if applicable.
+ * - If an error occurs during the update process, responds with a 500 status and an error message.
+ * - If the specified type is not recognized, responds with a 422 status and an error message.
+ */
 
   async updateQuotationBuilder(req, res) {
     // Extract type and result from request body
@@ -355,6 +471,26 @@ class SettingsController extends Controller {
       return;
     }
   }
+
+/**
+ * Updates the ADA price in the quotation builder settings.
+ *
+ * @async
+ * @function updateQuotationBuilderADAprice
+ * @param {Object} req - The request object containing the ADA price to update.
+ * @param {Object} res - The response object used to send the result or error response.
+ * @returns {Object} - The result of the update operation or error response.
+ * 
+ * @throws {Error} - If there is an issue with validation or updating the ADA price in the quotation builder.
+ * 
+ * @description
+ * This method:
+ * - Validates the input data, ensuring that ADA price is a numeric value and does not contain spaces.
+ * - If validation fails, responds with a 422 status and detailed error messages.
+ * - If validation passes, updates the ADA price in the quotation builder configuration in the database and logs the change if applicable.
+ * - If an error occurs during the update process, responds with a 500 status and an error message.
+ * - If the specified source is not found, responds with a 404 status and an error message.
+ */
 
   async updateQuotationBuilderADAprice(req, res) {
     // Validate the input data
