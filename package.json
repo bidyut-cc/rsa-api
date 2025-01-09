@@ -33,6 +33,7 @@
     "node-input-validator": "^4.5.1",
     "nodemailer": "^6.9.13",
     "nodemailer-express-handlebars": "^6.1.2",
+    "nodemailer-sendgrid-transport": "^0.2.0",
     "nodemon": "^3.1.0",
     "pdfmake": "^0.1.37",
     "pluralize": "^8.0.0",
