@@ -681,38 +681,38 @@ class FrontendController {
   </table>`; 
 
 
-      const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        console.error("Generated PDF buffer is empty or undefined.");
-        return res
-          .status(500)
-          .json({ status: false, message: "Failed to generate PDF." });
-      }
-      var email_verification_template = await Emailtemplate.findOne({
-        code: "QUOTATION",
-    }).exec();
-    var template = email_verification_template.template;
-    let body = template.replace("{{name}}", `${req.body.first_name +' '+req.body.last_name}`);
-    if (email_verification_template) {
-      let invoice_emails=[req.body.email];
-        // Email attachments
-        const attachments = [
-          {
-            content: Buffer.from(pdfBuffer), // Directly use the buffer
-            filename: 'Quotation.pdf',            // Set file name
-            type: 'application/pdf',              // Set MIME type
-            disposition: 'attachment',            // Disposition type
-          },
-        ];
-        await email_helper.sendEmail({
-          receivers: invoice_emails,
-          subject: email_verification_template.subject,
-          context: { body_content: body },
-        },attachments);
+    //   const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
+    //   if (!pdfBuffer || pdfBuffer.length === 0) {
+    //     console.error("Generated PDF buffer is empty or undefined.");
+    //     return res
+    //       .status(500)
+    //       .json({ status: false, message: "Failed to generate PDF." });
+    //   }
+    //   var email_verification_template = await Emailtemplate.findOne({
+    //     code: "QUOTATION",
+    // }).exec();
+    // var template = email_verification_template.template;
+    // let body = template.replace("{{name}}", `${req.body.first_name +' '+req.body.last_name}`);
+    // if (email_verification_template) {
+    //   let invoice_emails=[req.body.email];
+    //     // Email attachments
+    //     const attachments = [
+    //       {
+    //         content: Buffer.from(pdfBuffer), // Directly use the buffer
+    //         filename: `Quotation-${quotation.quotation_no}.pdf`,            // Set file name
+    //         type: 'application/pdf',              // Set MIME type
+    //         disposition: 'attachment',            // Disposition type
+    //       },
+    //     ];
+    //     await email_helper.sendEmail({
+    //       receivers: invoice_emails,
+    //       subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
+    //       context: { body_content: body },
+    //     },attachments);
        
-    } else {
+    // } else {
        
-    }
+    // }
     //   let ticketData = {}
     // try {
     //   const uploadToken = await this.uploadAttachment(Buffer.from(pdfBuffer, 'base64'),'quotation.pdf');
@@ -759,36 +759,36 @@ class FrontendController {
     //   console.error("Error creating ticket:", error.message);
     //   // Continue without breaking the process
     // }
-  const contactData = {
-    first_name : req.body.first_name,
-    last_name : req.body.last_name,
-    email : req.body.email,
-    phone : req.body.phone_number
-  }
+  // const contactData = {
+  //   first_name : req.body.first_name,
+  //   last_name : req.body.last_name,
+  //   email : req.body.email,
+  //   phone : req.body.phone_number
+  // }
 
-  const contact_id = await this.checkEmailAndCreateContact(contactData);
+  // const contact_id = await this.checkEmailAndCreateContact(contactData);
 
-  const dealData = {
-    "data": {
-      "name": req.body.first_name +' '+req.body.last_name ,
-      "value": await this.getSmallestOuterPrice(materials),
-      "hot": true,
-      "contact_id": contact_id,
-      "stage_id":36354340,
-      "tags": [
-        "important"
-      ],
-      "custom_fields": {
-        "Document URL": `https://rsa-development.vercel.app/${quotation._id}`,
-        "Notes": "this is for test.please ignore it."
-      }
-    },
-    "meta": {
-      "type": "deal"
-    }
-  }
-  const deal = await this.createDeal(dealData);
-  quotation.zendesk_ticket_id = deal.id;
+  // const dealData = {
+  //   "data": {
+  //     "name": req.body.first_name +' '+req.body.last_name ,
+  //     "value": await this.getSmallestOuterPrice(materials),
+  //     "hot": true,
+  //     "contact_id": contact_id,
+  //     "stage_id":36354340,
+  //     "tags": [
+  //       "important"
+  //     ],
+  //     "custom_fields": {
+  //       "Document URL": `https://rsa-development.vercel.app/${quotation._id}`,
+  //       "Notes": "this is for test.please ignore it."
+  //     }
+  //   },
+  //   "meta": {
+  //     "type": "deal"
+  //   }
+  // }
+  // const deal = await this.createDeal(dealData);
+  // quotation.zendesk_ticket_id = deal.id;
    await quotation.save();
   
       res.status(200).json({
@@ -828,7 +828,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium-browser',
+     // executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -1355,11 +1355,13 @@ async order(req, res){
 
           // Save the updated order
           await existingOrder.save();
+          console.log(existingOrder.quotation_id);
           const existingQuotation = await Quotation.findOne({ _id: existingOrder.quotation_id });
           existingQuotation.is_converted_to_deal = true;
+          const dealData = await this.updateDeal(existingQuotation.zendesk_ticket_id);
           // Save the updated quotation
           await existingQuotation.save();
-
+         
            res.status(200).json({
             success: true,
             message: 'Order status updated successfully',
@@ -1368,6 +1370,7 @@ async order(req, res){
               order_id: existingOrder.id,
               payment_status: existingOrder.payment_status,
               order_status: existingOrder.order_status,
+              dealData:dealData
             },
           });
           return;
@@ -1956,6 +1959,36 @@ async downloadPDF(req, res) {
     }
   }
 }
+
+async updateDeal(id) {
+  console.log(id);
+  try {
+      const dealResponse = await axios.put(
+        `${process.env.ZENDESK_SELL_API_URL}/deals/${id}`,// Use the provided URL structure
+          {
+              data: {
+                  stage_id: 36354341, // Replace with the desired stage ID
+              },
+          },
+          {
+              headers: {
+                  Authorization: `Bearer ${process.env.ZENDESK_SELL_API_TOKEN}`,
+                  'Content-Type': 'application/json',
+              },
+          }
+      );
+
+      console.log(`Deal updated successfully with ID: ${dealResponse.data.data.id}`);
+      return dealResponse.data.data; // Return the updated deal data
+  } catch (error) {
+      console.error('Error in updateDeal:', error.response?.data || error.message);
+      throw new Error(
+          error.response?.data?.error || 'Failed to update deal'
+      );
+  }
+}
+
+
 
 
 }
