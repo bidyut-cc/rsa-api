@@ -414,7 +414,7 @@ class FrontendController {
                                   <h5 style="padding: 5px 20px 12px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 15px; margin-top: 5px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px; "/> ${room.stall.noOfStalls} Stalls</h5>
                                   <div style="padding: 0px 20px 15px 20px; margin-top: 0px; display: flex; flex-wrap: wrap; justify-content: space-between;">
                                       ${room?.stall?.stallConfig?.map((stall, stallIndex) =>`
-                                      <p style="margin-top: 0px; font-size: 13px; width:48%; margin-bottom: 0; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"; <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"; <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
+                                      <p style="margin-top: 0px; font-size: 13px; width:48%; margin-bottom: 0; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"; <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"; <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
                                           .</p>
                                           `).join('')}        
                                       <p style="display: flex; align-items: center; font-size: 14px; width:100%; line-height: 1;"><img src="${process.env.URI}/uploads/images/layout.png" alt="pic" style="width: 15px; margin-right:10px;"/><span style="color:#000; font-weight: 500; font-weight: 700; line-height: 1;color:#0061a6;">Layout </span>- ${room.stall?.layout?.layoutDirection}</p>
@@ -740,41 +740,40 @@ class FrontendController {
     //   console.error("Error creating ticket:", error.message);
     //   // Continue without breaking the process
     // }
+  const contactData = {
+    first_name : req.body.first_name,
+    last_name : req.body.last_name,
+    email : req.body.email,
+    phone : req.body.phone_number
+  }
 
-  // const contactData = {
-  //   first_name : req.body.first_name,
-  //   last_name : req.body.last_name,
-  //   email : req.body.email,
-  //   phone : req.body.phone_number
-  // }
+  const contact_id = await this.checkEmailAndCreateContact(contactData);
 
-  // const contact_id = await this.checkEmailAndCreateContact(contactData);
+  const materialDetailsString = materials.map(material => {
+    return `${material.name}: $${material.price}`;
+  }).join('\n'); // Use newline character for each item
 
-  // const materialDetailsString = materials.map(material => {
-  //   return `${material.name}: $${material.price}`;
-  // }).join('\n'); // Use newline character for each item
-
-  // const dealData = {
-  //   "data": {
-  //     "name": req.body.first_name +' '+req.body.last_name ,
-  //     "value": await this.getSmallestOuterPrice(materials),
-  //     "hot": true,
-  //     "contact_id": contact_id,
-  //     "stage_id":Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
-  //     "tags": [
-  //       "important"
-  //     ],
-  //     "custom_fields": {
-  //       "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
-  //      // "Notes": "this is for test.please ignore it.",
-  //       "Room Details": await this.formatAllRoomsData(req.body.rooms),
-  //       "Material Details": materialDetailsString,
-  //     }
-  //   },
-  //   "meta": {
-  //     "type": "deal"
-  //   }
-  // }
+  const dealData = {
+    "data": {
+      "name": req.body.first_name +' '+req.body.last_name ,
+      "value": await this.getSmallestOuterPrice(materials),
+      "hot": true,
+      "contact_id": contact_id,
+      "stage_id":Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
+      "tags": [
+        "important"
+      ],
+      "custom_fields": {
+        "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
+       // "Notes": "this is for test.please ignore it.",
+        "Room Details": await this.formatAllRoomsData(req.body.rooms),
+        "Material Details": materialDetailsString,
+      }
+    },
+    "meta": {
+      "type": "deal"
+    }
+  }
   // const deal = await this.createDeal(dealData);
   // quotation.zendesk_ticket_id = deal.id;
 
@@ -1685,7 +1684,7 @@ async downloadPDF(req, res) {
                                   <h5 style="padding: 5px 20px 12px; display: flex; align-items: center; margin-bottom: 0px; font-weight: 500; font-size: 15px; margin-top: 5px;"><img src="${process.env.URI}/uploads/images/home.png" alt="pic" style="margin-right: 10px; width: 15px; "/> ${room.stall.noOfStalls} Stalls</h5>
                                   <div style="padding: 0px 20px 15px 20px; margin-top: 0px; display: flex; flex-wrap: wrap; justify-content: space-between;">
                                       ${room?.stall?.stallConfig?.map((stall, stallIndex) =>`
-                                      <p style="margin-top: 0px; font-size: 13px; width:48%; margin-bottom: 0; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"; <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"; <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
+                                      <p style="margin-top: 0px; font-size: 13px; width:48%; margin-bottom: 0; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"; <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"; <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
                                           .</p>
                                           `).join('')}        
                                       <p style="display: flex; align-items: center; font-size: 14px; width:100%; line-height: 1;"><img src="${process.env.URI}/uploads/images/layout.png" alt="pic" style="width: 15px; margin-right:10px;"/><span style="color:#000; font-weight: 500; font-weight: 700; line-height: 1;color:#0061a6;">Layout </span>- ${room.stall?.layout?.layoutDirection}</p>
@@ -2010,7 +2009,7 @@ async formatRoomData(roomData) {
   const stallsDetails = stallConfig
     .map(
       (stall, index) =>
-        `Stall ${index + 1} - Width: ${stall.stallWidth}"; Door: ${stall.doorOpening}"; Door Swing: ${stall.doorSwing.name}`
+        `Stall ${index + 1}${stall?.type ? ' (ADA)' : ''} - Width: ${stall.stallWidth}"; Door: ${stall.doorOpening}"; Door Swing: ${stall.doorSwing.name}`
     )
     .join("\n\n");
 
