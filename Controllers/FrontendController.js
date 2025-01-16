@@ -740,40 +740,40 @@ class FrontendController {
     //   console.error("Error creating ticket:", error.message);
     //   // Continue without breaking the process
     // }
-  const contactData = {
-    first_name : req.body.first_name,
-    last_name : req.body.last_name,
-    email : req.body.email,
-    phone : req.body.phone_number
-  }
+  // const contactData = {
+  //   first_name : req.body.first_name,
+  //   last_name : req.body.last_name,
+  //   email : req.body.email,
+  //   phone : req.body.phone_number
+  // }
 
-  const contact_id = await this.checkEmailAndCreateContact(contactData);
+  // const contact_id = await this.checkEmailAndCreateContact(contactData);
 
-  const materialDetailsString = materials.map(material => {
-    return `${material.name}: $${material.price}`;
-  }).join('\n'); // Use newline character for each item
+  // const materialDetailsString = materials.map(material => {
+  //   return `${material.name}: $${material.price}`;
+  // }).join('\n'); // Use newline character for each item
 
-  const dealData = {
-    "data": {
-      "name": req.body.first_name +' '+req.body.last_name ,
-      "value": await this.getSmallestOuterPrice(materials),
-      "hot": true,
-      "contact_id": contact_id,
-      "stage_id":Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
-      "tags": [
-        "important"
-      ],
-      "custom_fields": {
-        "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
-       // "Notes": "this is for test.please ignore it.",
-        "Room Details": await this.formatAllRoomsData(req.body.rooms),
-        "Material Details": materialDetailsString,
-      }
-    },
-    "meta": {
-      "type": "deal"
-    }
-  }
+  // const dealData = {
+  //   "data": {
+  //     "name": req.body.first_name +' '+req.body.last_name ,
+  //     "value": await this.getSmallestOuterPrice(materials),
+  //     "hot": true,
+  //     "contact_id": contact_id,
+  //     "stage_id":Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
+  //     "tags": [
+  //       "important"
+  //     ],
+  //     "custom_fields": {
+  //       "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
+  //      // "Notes": "this is for test.please ignore it.",
+  //       "Room Details": await this.formatAllRoomsData(req.body.rooms),
+  //       "Material Details": materialDetailsString,
+  //     }
+  //   },
+  //   "meta": {
+  //     "type": "deal"
+  //   }
+  // }
   // const deal = await this.createDeal(dealData);
   // quotation.zendesk_ticket_id = deal.id;
 
