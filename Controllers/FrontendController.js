@@ -4,12 +4,12 @@ const { Validator } = require("node-input-validator");
 const email_helper = require("../Helpers/Sendgrid.js");
 const puppeteer = require("puppeteer");
 const moment = require('moment');
-const MasterSettingsController = require('./MasterSettingsController');
+const MasterSettingsController = require('./MasterSettingsController.js');
 const Quotation = require("../Models/Quotation.js");
 const mongoose = require('mongoose');
 const { default: axios } = require("axios");
 const Order = require("../Models/Order.js");
-const Emailtemplate = require('../Models/Emailtemplate');
+const Emailtemplate = require('../Models/Emailtemplate.js');
 
 class FrontendController {
   
@@ -427,7 +427,7 @@ class FrontendController {
                       <tr>
                           <td colspan="2" width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 13px; text-align: center; width:95%;  min-height: 140px; display: flex; align-items: center; justify-content: center;">
-                                  <img src="${room.image_2D}" alt="pic" style="width:auto;height:470px;max-width:100%; margin: 0 auto;"/>
+                                  <img src="${room.image_2D}" alt="pic" style="width:auto;height:420px;max-width:100%; margin: 0 auto;"/>
                               </div>
                               
                           </td>
@@ -510,7 +510,7 @@ class FrontendController {
                           <tr>
                           <td colspan="2"  width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 3px; text-align: center; width:97%;  ">
-                                  <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:430px;max-width:100%;transform: scale(1) ;"/>
+                                  <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:420px;max-width:100%;transform: scale(1) ;"/>
                               </div>
                               
                           </td>
@@ -693,26 +693,7 @@ class FrontendController {
     // }).exec();
     // var template = email_verification_template.template;
     // let body = template.replace("{{name}}", `${req.body.first_name +' '+req.body.last_name}`);
-    // if (email_verification_template) {
-    //   let invoice_emails=[req.body.email];
-    //     // Email attachments
-    //     const attachments = [
-    //       {
-    //         content: Buffer.from(pdfBuffer), // Directly use the buffer
-    //         filename: `Quotation-${quotation.quotation_no}.pdf`,            // Set file name
-    //         type: 'application/pdf',              // Set MIME type
-    //         disposition: 'attachment',            // Disposition type
-    //       },
-    //     ];
-    //     await email_helper.sendEmail({
-    //       receivers: invoice_emails,
-    //       subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
-    //       context: { body_content: body },
-    //     },attachments);
-       
-    // } else {
-       
-    // }
+  
     //   let ticketData = {}
     // try {
     //   const uploadToken = await this.uploadAttachment(Buffer.from(pdfBuffer, 'base64'),'quotation.pdf');
@@ -759,6 +740,7 @@ class FrontendController {
     //   console.error("Error creating ticket:", error.message);
     //   // Continue without breaking the process
     // }
+
   // const contactData = {
   //   first_name : req.body.first_name,
   //   last_name : req.body.last_name,
@@ -768,19 +750,25 @@ class FrontendController {
 
   // const contact_id = await this.checkEmailAndCreateContact(contactData);
 
+  // const materialDetailsString = materials.map(material => {
+  //   return `${material.name}: $${material.price}`;
+  // }).join('\n'); // Use newline character for each item
+
   // const dealData = {
   //   "data": {
   //     "name": req.body.first_name +' '+req.body.last_name ,
   //     "value": await this.getSmallestOuterPrice(materials),
   //     "hot": true,
   //     "contact_id": contact_id,
-  //     "stage_id":36354340,
+  //     "stage_id":Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
   //     "tags": [
   //       "important"
   //     ],
   //     "custom_fields": {
-  //       "Document URL": `https://rsa-development.vercel.app/${quotation._id}`,
-  //       "Notes": "this is for test.please ignore it."
+  //       "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
+  //      // "Notes": "this is for test.please ignore it.",
+  //       "Room Details": await this.formatAllRoomsData(req.body.rooms),
+  //       "Material Details": materialDetailsString,
   //     }
   //   },
   //   "meta": {
@@ -789,6 +777,25 @@ class FrontendController {
   // }
   // const deal = await this.createDeal(dealData);
   // quotation.zendesk_ticket_id = deal.id;
+
+  // if (email_verification_template) {
+  //   let emails=[req.body.email,process.env.ADMIN_EMAIL];
+  //     // Email attachments
+  //     const attachments = [
+  //       {
+  //         content: Buffer.from(pdfBuffer), // Directly use the buffer
+  //         filename: `Quotation-${quotation.quotation_no}.pdf`,            // Set file name
+  //         type: 'application/pdf',              // Set MIME type
+  //         disposition: 'attachment',            // Disposition type
+  //       },
+  //     ];
+  //     await email_helper.sendEmail({
+  //       receivers: emails,
+  //       subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
+  //       context: { body_content: body },
+  //     },attachments);
+     
+  // } 
    await quotation.save();
   
       res.status(200).json({
@@ -828,7 +835,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-     // executablePath: '/usr/bin/chromium-browser',
+      executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -1067,14 +1074,14 @@ class FrontendController {
         "line_items": [
           {
             "quantity": 1,
-            "product_id": product_id,
+            "product_id": 111,
             "list_price": materials.price,
            // "name": "Restroom Stall"
           }
         ],
-        "redirect_urls": {
-          "return_url": process.env.BIGCOMMERCE_RETURN_URL
-      }
+      //   "redirect_urls": {
+      //     "return_url": process.env.BIGCOMMERCE_RETURN_URL
+      // }
       }
       const bigCommerceApiUrl = `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v3/carts?include=redirect_urls`;
       const bigCommerceHeaders = {
@@ -1533,7 +1540,7 @@ async downloadPDF(req, res) {
     try {
       const quotation = await Quotation.findOne(
         { _id: id },
-        { submittedData: 1, roomData: 1, materials:1, _id: 1 }
+        { submittedData: 1, roomData: 1, materials:1, _id: 1,quotation_no:1 }
       );
       const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
       <tr>
@@ -1551,7 +1558,7 @@ async downloadPDF(req, res) {
                    <tr>
                       <td colspan="2">
                            <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
-                           <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
+                           <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment(quotation.createdAt).format('MM/DD/YY')} </p>
                       </td>
                    </tr>
               </table>
@@ -1649,7 +1656,7 @@ async downloadPDF(req, res) {
                        <tr>
                           <td colspan="2">
                                <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
-                               <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
+                               <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment(quotation.createdAt).format('MM/DD/YY')} </p>
                           </td>
                        </tr>
                   </table>
@@ -1691,7 +1698,7 @@ async downloadPDF(req, res) {
                       <tr>
                           <td colspan="2" width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 13px; text-align: center; width:95%;  min-height: 140px; display: flex; align-items: center; justify-content: center;">
-                                  <img src="${room.image_2D}" alt="pic" style="width:auto;height:470px;max-width:100%; margin: 0 auto;"/>
+                                  <img src="${room.image_2D}" alt="pic" style="width:auto;height:420px;max-width:100%; margin: 0 auto;"/>
                               </div>
                               
                           </td>
@@ -1737,7 +1744,7 @@ async downloadPDF(req, res) {
                    <tr>
                       <td colspan="2">
                            <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
-                           <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
+                           <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment(quotation.createdAt).format('MM/DD/YY')} </p>
                       </td>
                    </tr>
               </table>
@@ -1774,7 +1781,7 @@ async downloadPDF(req, res) {
                           <tr>
                           <td colspan="2"  width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                               <div style=" padding: 3px; text-align: center; width:97%;  ">
-                                  <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:430px;max-width:100%;transform: scale(1) ;"/>
+                                  <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:420px;max-width:100%;transform: scale(1) ;"/>
                               </div>
                               
                           </td>
@@ -1961,13 +1968,12 @@ async downloadPDF(req, res) {
 }
 
 async updateDeal(id) {
-  console.log(id);
   try {
       const dealResponse = await axios.put(
         `${process.env.ZENDESK_SELL_API_URL}/deals/${id}`,// Use the provided URL structure
           {
               data: {
-                  stage_id: 36354341, // Replace with the desired stage ID
+                  stage_id: Number(process.env.ZENDESK_DEAL_FINAL_STAGE_ID), // Replace with the desired stage ID
               },
           },
           {
@@ -1988,7 +1994,55 @@ async updateDeal(id) {
   }
 }
 
+async  formatAllRoomsData(roomsData) {
+  const formattedRooms = await Promise.all(
+    roomsData.map(async (room) => this.formatRoomData(room))
+  );
+  return formattedRooms.join("\n\n");
+}
 
+
+async formatRoomData(roomData) {
+  const { id, title, stall, urinalScreen, hasUrinalScreens } = roomData;
+  const { noOfStalls, stallConfig, layout } = stall;
+
+  // Format stall details
+  const stallsDetails = stallConfig
+    .map(
+      (stall, index) =>
+        `Stall ${index + 1} - Width: ${stall.stallWidth}"; Door: ${stall.doorOpening}"; Door Swing: ${stall.doorSwing.name}`
+    )
+    .join("\n\n");
+
+  // Format layout direction
+  const layoutDirection =
+    stall.type === "IC"
+      ? "In Corner"
+      : stall.type === "BW"
+      ? "Between Wall"
+      : stall.type === "ALIC"
+      ? "Alcove Corner"
+      : stall.type === "ALBW"
+      ? "Alcove Between Wall"
+      : "N/A";
+
+  // Format urinal screen details if hasUrinalScreens is true
+  const urinalDetails =
+    hasUrinalScreens && urinalScreen
+      ? `\nUrinal Screens: ${urinalScreen.noOfUrinalScreens}\nScreen Depth: ${urinalScreen.urinalScreenConfig[0]?.screenDepth || "N/A"}`
+      : "";
+
+  // Final formatted string
+  return `
+Room ${id}
+Room Name: #${id}. ${title}
+Stalls Details : 
+Total : ${noOfStalls} Stalls
+${stallsDetails}
+
+Layout- ${layoutDirection}${urinalDetails}
+`;
+}
 
 
 }

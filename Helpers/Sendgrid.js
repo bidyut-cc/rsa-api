@@ -11,7 +11,7 @@ class Sendmail {
     constructor() {
         this.transporter = nodemailer.createTransport(sgTransport({
             auth: {
-                api_key: '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'
+                api_key: process.env.SENDGRID_API_TOKEN,
             }
         }));
         this.transporter.use(
