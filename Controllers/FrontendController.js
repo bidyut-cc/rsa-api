@@ -681,7 +681,7 @@ class FrontendController {
       </tr>
   </table>`; 
 
-
+ 
     //   const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
     //   if (!pdfBuffer || pdfBuffer.length === 0) {
     //     console.error("Generated PDF buffer is empty or undefined.");

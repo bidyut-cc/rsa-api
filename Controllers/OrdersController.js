@@ -80,7 +80,7 @@ class OrdersController extends Controller {
           per_page: limit,
           trash: trash,
       };
-  }
+  } 
   
 /**
  * Fetches and returns various charts data for orders and leads.

@@ -25,7 +25,7 @@ var BigcommerceOrderResponse = mongoose.Schema({
         default: () => Date.now(), 
     },
     
-});
+}); 
 BigcommerceOrderResponse.set("toObject", { getters: true });
 BigcommerceOrderResponse.set("toJSON", { getters: true });
 
