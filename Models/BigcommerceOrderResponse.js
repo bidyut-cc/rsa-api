@@ -9,7 +9,7 @@ var BigcommerceOrderResponse = mongoose.Schema({
     cart_id: {
         type: String,
         required: false,
-    },
+    }, 
     response: {
         type: Object,
         required: true,
