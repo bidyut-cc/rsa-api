@@ -2,7 +2,7 @@ const Order = require("../Models/Order.js");
 const Quotation = require("../Models/Quotation.js");
 const Controller = require("./Controller.js");
 const moment = require('moment');
-
+const _ = require("lodash");
 
 class OrdersController extends Controller {
     constructor() {
@@ -10,6 +10,77 @@ class OrdersController extends Controller {
         // this.monthtyOrder = this.monthtyOrder.bind(this);
         // this.fillMissingMonths = this.fillMissingMonths.bind(this);
     }
+
+    async getListQuery(req) {
+      var trash = req.query.trash || false;
+      var limit = req.query.show || 10;
+      var page = req.query.page || 1;
+      var offset = (parseInt(page) - 1) * parseInt(limit);
+      var search = req.query.search || "";
+      var sort_field = req.query.sort || "_id";
+      var sort_order = req.query.sort_order || "desc";
+      var where_clause = req.query.where_clause
+          ? JSON.parse(req.query.where_clause)
+          : {
+                where_fields: [],
+                where_values: [],
+            };
+      sort_order = sort_order == "asc" ? 1 : -1;
+      var fields = this.getModelObj().schema.customFields;
+      let select_fields = Object.keys(fields);
+      let search_fields = select_fields.filter((item) => {
+          if (fields[item]["searchable"]) return item;
+      });
+      var sort_order_obj = { [sort_field]: sort_order };
+      let search_query = {};
+      if (search.length > 0) {
+          var search_arr = [];
+          for (var field of search_fields) {
+              search_arr.push({
+                  [field]: {
+                      $regex: search,
+                      $options: "i",
+                  },
+              });
+          }
+          search_query = { $or: search_arr };
+      }
+
+      let find_query = {};
+      for (
+          var field_key = 0;
+          field_key < where_clause.where_fields.length;
+          field_key++
+      ) {
+          find_query[where_clause.where_fields[field_key]] =
+              where_clause.where_values[field_key];
+      }
+      // Add condition for order_id not null and not blank
+    find_query["order_id"] = { $nin: [null, ""] };
+      if (!_.isEmpty(find_query)) {
+          if (!_.isEmpty(search_query)) {
+              var new_search_query = {
+                  $and: [find_query, search_query],
+              };
+          } else {
+              var new_search_query = {
+                  $and: [find_query],
+              };
+          }
+
+          search_query = new_search_query;
+      }
+      return {
+          search: search_query,
+          select: select_fields.join(" "),
+          limit: parseInt(limit),
+          skip: parseInt(offset),
+          sort: sort_order_obj,
+          current_page: page,
+          per_page: limit,
+          trash: trash,
+      };
+  }
   
 /**
  * Fetches and returns various charts data for orders and leads.
