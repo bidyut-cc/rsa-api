@@ -14,9 +14,8 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log('Connected to MongoDB successfully');
     const order_cron_time = '0 * * * *';
-    const startDate = moment().subtract(1, 'hours').subtract(1, 'minutes').format("MM-DD-YYYY HH:mm:ss");
-    const endDate = moment().format("MM-DD-YYYY HH:mm:ss");
-
+    const startDate = moment().subtract(1, 'hours').subtract(1, 'minutes').toDate();
+    const endDate = moment().toDate();
     // Define Invoice Mail Cron
     cron.schedule(order_cron_time, async () => {
       try {
@@ -24,7 +23,6 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
           createdAt: { $gte: startDate, $lte: endDate },
           order_id: { $ne: null }
         }).select('order_id cart_id quotation_id');
-
         if (orders.length > 0) {
           console.log(`Found ${orders.length} orders to process.`);
 
