@@ -681,18 +681,18 @@ class FrontendController {
   </table>`; 
 
 
-    //   const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
-    //   if (!pdfBuffer || pdfBuffer.length === 0) {
-    //     console.error("Generated PDF buffer is empty or undefined.");
-    //     return res
-    //       .status(500)
-    //       .json({ status: false, message: "Failed to generate PDF." });
-    //   }
-    //   var email_verification_template = await Emailtemplate.findOne({
-    //     code: "QUOTATION",
-    // }).exec();
-    // var template = email_verification_template.template;
-    // let body = template.replace("{{name}}", `${req.body.first_name +' '+req.body.last_name}`);
+      const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        console.error("Generated PDF buffer is empty or undefined.");
+        return res
+          .status(500)
+          .json({ status: false, message: "Failed to generate PDF." });
+      }
+      var email_verification_template = await Emailtemplate.findOne({
+        code: "QUOTATION",
+    }).exec();
+    var template = email_verification_template.template;
+    let body = template.replace("{{name}}", `${req.body.first_name +' '+req.body.last_name}`);
   
     //   let ticketData = {}
     // try {
@@ -740,61 +740,61 @@ class FrontendController {
     //   console.error("Error creating ticket:", error.message);
     //   // Continue without breaking the process
     // }
-  // const contactData = {
-  //   first_name : req.body.first_name,
-  //   last_name : req.body.last_name,
-  //   email : req.body.email,
-  //   phone : req.body.phone_number
-  // }
+  const contactData = {
+    first_name : req.body.first_name,
+    last_name : req.body.last_name,
+    email : req.body.email,
+    phone : req.body.phone_number
+  }
 
-  // const contact_id = await this.checkEmailAndCreateContact(contactData);
+  const contact_id = await this.checkEmailAndCreateContact(contactData);
 
-  // const materialDetailsString = materials.map(material => {
-  //   return `${material.name}: $${material.price}`;
-  // }).join('\n'); // Use newline character for each item
+  const materialDetailsString = materials.map(material => {
+    return `${material.name}: $${material.price}`;
+  }).join('\n'); // Use newline character for each item
 
-  // const dealData = {
-  //   "data": {
-  //     "name": req.body.first_name +' '+req.body.last_name ,
-  //     "value": await this.getSmallestOuterPrice(materials),
-  //     "hot": true,
-  //     "contact_id": contact_id,
-  //     "stage_id":Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
-  //     "tags": [
-  //       "important"
-  //     ],
-  //     "custom_fields": {
-  //       "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
-  //      // "Notes": "this is for test.please ignore it.",
-  //       "Room Details": await this.formatAllRoomsData(req.body.rooms),
-  //       "Material Details": materialDetailsString,
-  //     }
-  //   },
-  //   "meta": {
-  //     "type": "deal"
-  //   }
-  // }
-  // const deal = await this.createDeal(dealData);
-  // quotation.zendesk_ticket_id = deal.id;
+  const dealData = {
+    "data": {
+      "name": req.body.first_name +' '+req.body.last_name ,
+      "value": await this.getSmallestOuterPrice(materials),
+      "hot": true,
+      "contact_id": contact_id,
+      "stage_id":Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
+      "tags": [
+        "important"
+      ],
+      "custom_fields": {
+        "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
+       // "Notes": "this is for test.please ignore it.",
+        "Room Details": await this.formatAllRoomsData(req.body.rooms),
+        "Material Details": materialDetailsString,
+      }
+    },
+    "meta": {
+      "type": "deal"
+    }
+  }
+  const deal = await this.createDeal(dealData);
+  quotation.zendesk_ticket_id = deal.id;
 
-  // if (email_verification_template) {
-  //   let emails=[req.body.email,process.env.ADMIN_EMAIL];
-  //     // Email attachments
-  //     const attachments = [
-  //       {
-  //         content: Buffer.from(pdfBuffer), // Directly use the buffer
-  //         filename: `Quotation-${quotation.quotation_no}.pdf`,            // Set file name
-  //         type: 'application/pdf',              // Set MIME type
-  //         disposition: 'attachment',            // Disposition type
-  //       },
-  //     ];
-  //     await email_helper.sendEmail({
-  //       receivers: emails,
-  //       subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
-  //       context: { body_content: body },
-  //     },attachments);
+  if (email_verification_template) {
+    let emails=[req.body.email,process.env.ADMIN_EMAIL];
+      // Email attachments
+      const attachments = [
+        {
+          content: Buffer.from(pdfBuffer), // Directly use the buffer
+          filename: `Quotation-${quotation.quotation_no}.pdf`,            // Set file name
+          type: 'application/pdf',              // Set MIME type
+          disposition: 'attachment',            // Disposition type
+        },
+      ];
+      await email_helper.sendEmail({
+        receivers: emails,
+        subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
+        context: { body_content: body },
+      },attachments);
      
-  // } 
+  } 
    await quotation.save();
   
       res.status(200).json({
@@ -1073,7 +1073,7 @@ class FrontendController {
         "line_items": [
           {
             "quantity": 1,
-            "product_id": 111,
+            "product_id": product_id,
             "list_price": materials.price,
            // "name": "Restroom Stall"
           }
