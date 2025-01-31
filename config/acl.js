@@ -69,6 +69,11 @@ module.exports = {
             group: [ "list","view","charts"],
             owner: [ "list","view","charts"],
         },
+        colors: {
+            all: [ "list","view","update"],
+            group: [ "list","view","update"],
+            owner: [ "list","view","update"],
+        },
         
     },
     super_admin: {
@@ -135,6 +140,11 @@ module.exports = {
             all: [ "list","view","charts"],
             group: [ "list","view","charts"],
             owner: [ "list","view","charts"],
+        },
+        colors: {
+            all: [ "list","view","update"],
+            group: [ "list","view","update"],
+            owner: [ "list","view","update"],
         },
     },
     sales_agent: {
