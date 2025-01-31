@@ -11,6 +11,8 @@ const { default: axios } = require("axios");
 const Order = require("../Models/Order.js");
 const Emailtemplate = require('../Models/Emailtemplate.js');
 const BigcommerceOrderResponse = require("../Models/BigcommerceOrderResponse.js");
+const fs = require('fs');
+const path = require('path');
 
 class FrontendController {
   
@@ -163,6 +165,7 @@ class FrontendController {
 
   async quotationCreate(req, res) {
     const v = new Validator(req.body, {
+      project_name: "required",
       first_name: "required",
       last_name: "required",
       email: "required",
@@ -264,6 +267,7 @@ class FrontendController {
       let zendesk_ticket_id = '';
       let quotation = new Quotation;
       quotation.quotation_no = Date.now();
+      quotation.project_name = req.body.project_name;
       quotation.first_name = req.body.first_name;
       quotation.last_name = req.body.last_name;
       quotation.email = req.body.email;
@@ -272,7 +276,7 @@ class FrontendController {
       quotation.roomData = results;
       quotation.materials = materials;
  
-      const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
+      const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/rsa.png');background-repeat: no-repeat;background-size: 95% auto;background-position: center center;">
       <tr>
           <td style="padding: 10px; text-align: left;">
                <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" style="width:150px">
@@ -283,12 +287,12 @@ class FrontendController {
          </td>
       </tr>
       <tr>
-          <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #edf5fb; border-radius: 30px; vertical-align: bottom;">
+          <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover; border-radius: 30px; vertical-align: bottom;border: 1px solid #3d58a4;">
               <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
                    <tr>
                       <td colspan="2">
-                           <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
-                           <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
+                           <h4 style="color:#fff; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
+                           <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Date: ${moment().format('MM/DD/YY')} </p>
                       </td>
                    </tr>
               </table>
@@ -296,11 +300,11 @@ class FrontendController {
          
       </tr>
       <tr>
-          <td colspan="2" style="text-align: center; margin-top: 0px;">
+          <td colspan="2" style="text-align: center; margin-top: 0px; ">
               <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 10px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 10px;">Review the Prices for your Rooms</h4>
               <div style="display: flex; align-items: center; justify-content:center; position: relative;">
                 <p style="font-size: 12px; line-height: 1.2; color:#000; font-weight: 400;">Prices and delivery times are subject to review by RSA. Add sales tax if applicable.</p>
-                <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}&abandoned=1" style="color:#000; font-size: 15px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; border-radius: 5px; padding: 6px 20px; text-decoration: none; margin-left: 0px; position: absolute; right: 0;">Buy</a>
+                <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}&abandoned=1" style="color:#000; font-size: 15px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; border-radius: 5px; padding: 6px 8px; text-decoration: none; margin-left: 0px; position: absolute; right: 0;">Return to Quote</a>
               </div>
               
           </td>
@@ -311,20 +315,20 @@ class FrontendController {
               <div class="table_box" style="margin-top: 5px;">
                   <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;  flex-wrap: wrap; box-sizing: border-box; gap: 20px;">
                       ${materials.map(material => `
-                      <div style="padding: 10px 20px 20px; text-align:left; border: 1px solid #3d58a4; border-radius: 15px;  width:48%; box-sizing: border-box;">
+                      <div style="padding: 10px 20px 20px; text-align:left; border: 1px solid #3d58a4; border-radius: 15px;  width:48%; box-sizing: border-box;print-color-adjust: exact;  -webkit-print-color-adjust: exact;background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;">
                           <div width="100%"  >
                               <div style="display: flex; align-items: center;">
                                <div  style="width: 25% !important; margin-bottom: 0px;">
                                    <img src="${material.src}" alt="pic" style="width:100%"/>
                                </div>
-                               <div  style="width: 75% !important; padding: 0px 20px 10px; margin-bottom: 0px !important;">
-                                   <h4 style="color:#3d58a4; font-size: 16px; font-weight: 500; margin-bottom: 10px; margin-top: 5px;">${material.name}</h4>
-                                   <h5 style="font-size: 22px; font-weight: 700; margin-top: 10px; margin-bottom: 5px;">$${material.price}</h5>
+                               <div  style="width: 75% !important; padding: 0px 20px 10px; margin-bottom: 0px !important;color:#fff;">
+                                   <h4 style="color:#fff; font-size: 16px; font-weight: 500; margin-bottom: 10px; margin-top: 5px;">${material.name}</h4>
+                                   <h5 style="font-size: 22px; font-weight: 700; margin-top: 10px; margin-bottom: 5px;">$${Number(material.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h5>
                             
                                    <h6 style="font-size: 16px; font-weight: 700; margin-top: 5px; margin-bottom: 10px;">3 years warranty</h6>
                                    <h6 style="margin-top: 10px; margin-bottom: 5px; display: flex; align-items: center;">
                                     ${results.map(room_data => `
-                                    <span style="color:#0061a6; margin-right:10px; font-weight: 400; ">Room ${room_data.roomId}: <strong style="color:#000; display: block;">${room_data.full_type_name}</strong>
+                                    <span style="color:#0061a6; margin-right:10px; font-weight: 400; ">Room ${room_data.roomId}: <strong style="color:#fff; display: block;">${room_data.full_type_name}</strong>
                                     </span>
                                     `).join('')}
                                     </h6>
@@ -336,9 +340,9 @@ class FrontendController {
                               <div>
                                  
                                       
-                                           <div style="width:100%; display: flex; align-items: center; gap:0px">
+                                           <div style="width:100%; display: flex; align-items: center; gap:0px;">
                                               <div style="text-align: right; width: 100%;">
-                                                  <a href="${process.env.QUOTATION_PAYMENT_URL}?id=${quotation._id}&material_id=${material.id}&color=3d58a4" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #cbd5e1; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
+                                                  <a href="${process.env.QUOTATION_PAYMENT_URL}?id=${quotation._id}&material_id=${material.id}&color=3d58a4" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #f9f90e; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #f9f90e;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Amazon</a>
                                               </div>
                                               <!-- <div  style="text-align: right; width: 50%;">
                                                   <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation._id}" style="text-decoration: none; color:#000; padding: 8px 10px; border:1px solid #cbd5e1; border-radius: 10px; width: 80%; display: block; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; margin-left: auto;"><img src="${process.env.URI}/uploads/images/color.png" alt="pc" style="width:20px; margin-right: 5px;"/> Colours</a>
@@ -352,16 +356,17 @@ class FrontendController {
                           </div>
                        </div>
                        `).join('')}
-                       <div style="padding: 10px 40px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px; print-color-adjust: exact;  -webkit-print-color-adjust: exact;  background: #eef5fa; width:48%; box-sizing: border-box; min-height: 200px;" >
+                       <div style="padding: 10px 40px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px;  print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;width:48%; box-sizing: border-box; min-height: 200px;" >
                           <img src="${process.env.URI}/uploads/images/on.png" alt="alt" style="width:30px"/>
-                          <p style="color:#000; font-size: 14px; line-height: 1.3; text-align: left; padding: 0px 30px; margin-top: 5px;">All doors, panels, pilaster, screws, brackets, and
+                          <p style="color:#fff; font-size: 14px; line-height: 1.3; text-align: left; padding: 0px 30px; margin-top: 5px;font-weight: 700;">All doors, panels, pilaster, screws, brackets, and
                               anchors for a typical install are included.</p>
-                          <p style="color:#000; font-size: 14px; line-height: 1.3; text-align: left; padding: 0px 30px;">Delivery from our local terminal to anywhere within
+                          <p style="color:#fff; font-size: 14px; line-height: 1.3; text-align: left; padding: 0px 30px;">Delivery from our local terminal to anywhere within
                               your specified zip code are also included. Please add
                               sales tax if applicable.</p>
                        </div> 
                   </div>
               </div>
+              <div style="text-align: right;color:#000; font-size: 15px; line-height: 18px; font-family: Verdana, Geneva, Tahoma, sans-serif; padding: 6px 8px;">Color: <span>No color selected</span></div>
              
           </td>
           
@@ -381,12 +386,12 @@ class FrontendController {
              </td>
           </tr>
           <tr>
-              <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #edf5fb; border-radius: 30px; vertical-align: bottom;">
+              <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover; border-radius: 30px; vertical-align: bottom;border: 1px solid #3d58a4;">
                   <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
                        <tr>
                           <td colspan="2">
-                               <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
-                               <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
+                               <h4 style="color:#fff; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
+                               <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Date: ${moment().format('MM/DD/YY')} </p>
                           </td>
                        </tr>
                   </table>
@@ -440,9 +445,9 @@ class FrontendController {
                       </tr>
                       <tr>
                           <td width="50%" style="width: 50%;">
-                              <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #eef5fa; padding:10px 20px; border-radius: 10px; margin-top: 0px; ">
+                              <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover; padding:10px 20px; border-radius: 10px; margin-top: 0px; ">
                               <span><img src="${process.env.URI}/uploads/images/on.png" alt="pic" style="margin-right: 10px; width:40px"/></span>
-                              <p style="font-size: 15px; margin: 0px;">Stall widths are to the centerline. Stall depths are to
+                              <p style="font-size: 15px; margin: 0px;color:#fff">Stall widths are to the centerline. Stall depths are to
                                   the face. Alcove depths are wall to wall. This layout is
                                   included in the price.</p>
                               </div>
@@ -469,12 +474,12 @@ class FrontendController {
              </td>
           </tr>
           <tr>
-          <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #edf5fb; border-radius: 30px; vertical-align: bottom;">
+          <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;border-radius: 30px; vertical-align: bottom;border: 1px solid #3d58a4;">
               <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
                    <tr>
                       <td colspan="2">
-                           <h4 style="color:#0061a6; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
-                           <p style="margin-top: 5px; margin-bottom: 0px;">Date: ${moment().format('MM/DD/YY')} </p>
+                           <h4 style="color:#fff; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation.quotation_no}</h4>
+                           <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Date: ${moment().format('MM/DD/YY')} </p>
                       </td>
                    </tr>
               </table>
@@ -523,9 +528,9 @@ class FrontendController {
                       </tr>
                       <tr>
                           <td width="50%" style="width: 50%;">
-                              <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #eef5fa; padding:10px 20px; border-radius: 10px; margin-top: 0px;">
+                              <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;padding:10px 20px; border-radius: 10px; margin-top: 0px;">
                               <span><img src="${process.env.URI}/uploads/images/on.png" alt="pic" style="margin-right: 10px; width:40px"/></span>
-                              <p style="font-size: 15px; margin: 0px;">Stall widths are to the centerline. Stall depths are to
+                              <p style="font-size: 15px; margin: 0px;color:#fff">Stall widths are to the centerline. Stall depths are to
                                   the face. Alcove depths are wall to wall. This layout is
                                   included in the price.</p>
                               </div>
@@ -543,15 +548,31 @@ class FrontendController {
   ` : ''}
   `).join('')}
   <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 20px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
+    <tr>
+        <td colspan="2" style="width:100%; text-align: center;  border-radius: 12px; padding: 10px; ">
+            <img src="${process.env.URI}/uploads/images/Logo.png" alt="alt" style="width:150px" />
+        </td>
+    </tr>
+
+
+    <tr>
+        <td colspan="2" style="text-align: center;">
+            <a style="margin-top: 200px;display: block;width: 100%;" href="https://www.youtube.com/watch?v=9gSqLqj7oqU&t=16s&ab_channel=JimSouthard" target="_blank">
+                <img src="${process.env.URI}/uploads/images/youtube-video.png" alt="logo" style="width:100%">
+            </a>
+        </td>
+    </tr>
+</table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 20px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/rsa.png');background-repeat: no-repeat;background-size:95% auto;background-position: center center;">
       <tr>
           <td colspan="2" style="width:100%; text-align: center;  border-radius: 12px; padding: 10px; ">
               <img src="${process.env.URI}/uploads/images/Logo.png" alt="alt" style="width:150px" />
           </td>
       </tr>
       <tr>
-          <td colspan="2" style="width:100%; text-align: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background: #eef5fa; border-radius: 12px; padding: 10px 25px;">
+          <td colspan="2" style="width:100%; text-align: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover; border-radius: 12px; padding: 10px 25px;border: 1px solid #3d58a4;">
               <img src="${process.env.URI}/uploads/images/clap.png" alt="alt" style="width: 50px;"/>
-              <h4 style="font-size: 22px; color:#285fa1; font-weight: 900; margin-top: 10px; margin-bottom: 0px;">Thank You for Choosing Us!</h4>
+              <h4 style="font-size: 22px; color:#fff; font-weight: 900; margin-top: 10px; margin-bottom: 0px;">Thank You for Choosing Us!</h4>
           </td>
       </tr>
       <tr>
@@ -789,13 +810,26 @@ class FrontendController {
           disposition: 'attachment',            // Disposition type
         },
       ];
+      if (results.length > 0) {
+        const samplePDFData= await Setting.findOne(
+          { step: 'material_installation_quote' },
+          { step: 1, config: 1, _id: 1 }
+        );
+        const samplePdfPath = path.join(__dirname, '../public', 'api', 'uploads','pdf', samplePDFData.config.file.filename);
+        attachments.push({
+          content: fs.readFileSync(samplePdfPath), // Sample PDF file
+          filename: 'Sample-Quotation.pdf', // File name for the sample PDF
+          type: 'application/pdf', // MIME type
+          disposition: 'attachment', // Disposition type
+        });
+      }
       await email_helper.sendEmail({
         receivers: emails,
         subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
         context: { body_content: body },
       },attachments);
      
-  } 
+  }
    await quotation.save();
   
       res.status(200).json({
@@ -835,7 +869,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium-browser',
+    //  executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',

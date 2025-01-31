@@ -10,3 +10,4 @@ exports.Setting = require("./Setting");
 exports.MasterSetting = require("./MasterSetting");
 exports.Quotation = require("./Quotation");
 exports.Order = require("./Order");
+exports.Color = require("./Color");

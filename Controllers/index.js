@@ -11,3 +11,4 @@ exports.MasterSettingsController = require("./MasterSettingsController");
 exports.QuotationsController = require("./QuotationsController");
 exports.OrdersController = require("./OrdersController");
 exports.ChangelogsController = require("./ChangelogsController");
+exports.ColorsController = require("./ColorsController");

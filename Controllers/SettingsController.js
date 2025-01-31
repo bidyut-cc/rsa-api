@@ -5,6 +5,7 @@ const { Validator } = require("node-input-validator");
 const _ = require("lodash");
 const AccountLog = require("../Helpers/AccountLog.js");
 const MasterSetting = require("../Models/MasterSetting.js");
+const file_uploader = require("../Helpers/Uploader");
 
 class SettingsController extends Controller {
   constructor() {
@@ -555,6 +556,54 @@ class SettingsController extends Controller {
         });
       }
     }
+  }
+
+  async updateMaterialInstallationQuote(req, res){
+ // Setup validation rules
+ const v = new Validator(req.files, {
+  file: 'required|mime:pdf', // 'required' ensures the file is uploaded, 'fileType:pdf' ensures the file is a PDF
+});
+
+// Validate the request
+const matched = await v.check();
+
+// If validation fails, return the error message
+if (!matched) {
+   res.status(400).json({
+    status: false,
+    message: v.errors, // returns the validation errors
+  });
+  return;
+} else {
+  try {
+    if (!_.isEmpty(req.files)) {
+    }
+    const uploaded_file = await file_uploader.upload(req.files, 'pdf');
+    if (!uploaded_file.status) {
+      return res.status(200).json({
+        status: false,
+        message: uploaded_file.trace,
+      });
+    }
+
+    
+    const config = {
+      file: uploaded_file.files.file,
+    };
+    req.body.config = config;
+    // Attempt to update the label using the inherited update method
+    const result = await super.update(req);
+
+    // Respond with a 200 status and the result
+    res.status(200).json(result);
+  } catch (error) {
+    // If an error occurs, respond with a 500 status and an error message
+    res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
+}
   }
 }
 

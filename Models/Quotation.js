@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const _ = require("lodash");
 var mongoose_delete = require("mongoose-delete");
 var QuotationSchema = mongoose.Schema({
+    project_name: {
+        type: String,
+        required: true,
+    },
     quotation_no: {
         type: String,
         required: true,
@@ -64,7 +68,7 @@ QuotationSchema.changeLog = true;
 
 QuotationSchema.plugin(mongoose_delete);
 QuotationSchema.plugin(mongoose_delete, { overrideMethods: "all" });
-QuotationSchema.fillable = ["quotation_no","first_name","last_name","email","phone_number","submittedData","roomData","materials"];
+QuotationSchema.fillable = ["project_name","quotation_no","first_name","last_name","email","phone_number","submittedData","roomData","materials"];
 
 QuotationSchema.customFields = {
     _id: {
@@ -80,6 +84,19 @@ QuotationSchema.customFields = {
         value: "",
         width: "50",
         searchable: false,
+    },
+    project_name: {
+        field_name: "project_name",
+        db_name: "project_name",
+        type: "text",
+        placeholder: "project_name",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
     },
     quotation_no: {
         field_name: "quotation_no",
