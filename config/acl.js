@@ -50,9 +50,9 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
-            group: ["view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
-            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
         },
         masterSettings: {
             all: [ "view","materialView"],
@@ -122,9 +122,9 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
-            group: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
-            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
         },
         masterSettings: {
             all: [ "view","materialView"],

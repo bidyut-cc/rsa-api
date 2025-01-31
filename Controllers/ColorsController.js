@@ -124,90 +124,112 @@ class ColorsController extends Controller {
   //     }
   // }
 
-  async update(req) {
-    const materialId = req.body.material_id;
-
-    // Convert colors into an array of objects
-    const colors = Object.keys(req.body)
-      .filter((key) => key.startsWith("colors["))
-      .reduce((acc, key) => {
-        const match = key.match(/colors\[(\d+)]\[(\w+)]/);
-        if (match) {
-          const index = match[1];
-          const field = match[2];
-          acc[index] = acc[index] || {};
-          acc[index][field] = req.body[key];
-        }
-        return acc;
-      }, []);
-      // Convert textures into an array of objects
-      let textures = Object.keys(req.body)
-      .filter((key) => key.startsWith("textures["))
-      .reduce((acc, key) => {
-        const match = key.match(/textures\[(\d+)](?:\[images]\[(\d+)]\[(\w+)])?/);
-        if (match) {
-          const textureIndex = match[1];
-          const imageIndex = match[2];
-          const field = match[3];
-
-          acc[textureIndex] = acc[textureIndex] || { name: "", images: [] };
-
-          if (!imageIndex) {
-            acc[textureIndex].name = req.body[key];
-          } else {
-            acc[textureIndex].images[imageIndex] =
-              acc[textureIndex].images[imageIndex] || {};
-
-            if (field) {
-              acc[textureIndex].images[imageIndex][field] = req.body[key];
-            }
-          }
-        }
-        return acc;
-      }, []);
-
-    // Process binary images in textures
-    textures = await Promise.all(
-      textures.map(async (texture, index) => {
-        if (!texture.images) texture.images = [];
-
-        for (let i = 0; i < texture.images.length; i++) {
-          console.log(texture);
-          const imgKey = `textures[${index}][images][${i}]`;
-        //  console.log(imgKey)
-          const img = req.files?.[imgKey];
-         // console.log(req.files);
-          if (img) {
-            // Upload the binary image
-            const uploadedFile = await file_uploader.upload(
-              { image: img },
-              "textures"
-            );
-
-            // Replace the empty object with uploaded file details
-            texture.images[i] = {
-              filename: uploadedFile.filename,
-              mimetype: uploadedFile.mimetype,
-            };
-          }
-        }
-
-        return texture;
-      })
-    );
-      const result = {
-        material_id: materialId,
-        colors: colors.filter(Boolean),
-        textures: textures.filter(Boolean),
-      };
-      // let obj = await eval("Models." + this.model_name).findById(req.params.id);
-      // if (!obj) {
-      //     return { status: false, message: "Record not found!" };
-      // }
-      // obj.colors = result.colors;
+  async update(req,res) {
+    try {
+      // console.log("Received Form Data:", req.body);
+      // console.log("Received Files:", req.files);
+            let obj = await eval("Models." + this.model_name).findById(req.params.id);
   
-      return { success: true, data: result };
-
+      if (!obj) {
+          return { status: false, message: "Record not found!" };
+      }
+  
+      if (!req.body["material_id"]) {
+        return res.status(400).json({ message: "Material ID is required" });
+      }
+  
+      // Reconstruct colors array
+      let colors = [];
+      Object.keys(req.body).forEach((key) => {
+        const match = key.match(/^colors\[(\d+)\]\[(\w+)\]$/);
+        if (match) {
+          const index = parseInt(match[1], 10);
+          const field = match[2];
+  
+          if (!colors[index]) {
+            colors[index] = {};
+          }
+          colors[index][field] = req.body[key];
+        }
+      });
+      let textures = [];
+      // Reconstruct textures array
+      Object.keys(req.body).forEach((key) => {
+        let matchName = key.match(/^textures\[(\d+)\]\[name\]$/);
+        let matchImage = key.match(/^textures\[(\d+)\]\[images\]\[(\d+)\]\[(\w+)\]$/);
+      
+        if (matchName) {
+          const index = parseInt(matchName[1], 10);
+          
+          if (!textures[index]) {
+            textures[index] = { name: "", images: [] };
+          }
+      
+          // ✅ Assign the texture name
+          textures[index].name = req.body[key];
+        }
+      
+        if (matchImage) {
+          const textureIndex = parseInt(matchImage[1], 10);
+          const imageIndex = parseInt(matchImage[2], 10);
+          const field = matchImage[3];
+      
+          if (!textures[textureIndex]) {
+            textures[textureIndex] = { name: "", images: [] };
+          }
+      
+          if (!textures[textureIndex].images[imageIndex]) {
+            textures[textureIndex].images[imageIndex] = {};
+          }
+      
+          // ✅ Assign image filename & mimetype correctly
+          textures[textureIndex].images[imageIndex][field] = req.body[key];
+        }
+      });
+  
+      // Process file uploads for textures
+      if (req.files) {
+        await Promise.all(
+          Object.keys(req.files).map(async (key) => {
+            const match = key.match(/^textures\[(\d+)\]\[images\]\[(\d+)\]$/);
+            if (match) {
+              const textureIndex = parseInt(match[1], 10);
+              const imageIndex = parseInt(match[2], 10);
+              const file = req.files[key];
+      
+              if (!textures[textureIndex]) {
+                textures[textureIndex] = { name: "", images: [] };
+              }
+      
+              // ✅ Upload file & get the uploaded image URL/path
+              const uploaded_file = await file_uploader.upload({ image: file }, "textures");
+              // ✅ Assign uploaded image details
+              
+              if (!uploaded_file.status) {
+                res.status(200).json({
+                    status: false,
+                    message: uploaded_file.trace,
+                });
+            }
+            textures[textureIndex].images[imageIndex] = uploaded_file.files.image;
+            }
+          })
+        );
+      }
+  
+      obj.material_id = req.body.material_id;
+      obj.colors = colors;
+      obj.textures = textures;
+      await obj.save();
+          return {
+              status: true,
+              message: "Updated Successfully.",
+              object: obj,
+          };
+    } catch (error) {
+      console.error("Error processing request:", error);
+      res.status(500).json({ message: "Server error" });
+    }
 }
 
 
