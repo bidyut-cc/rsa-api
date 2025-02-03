@@ -577,16 +577,13 @@ if (!matched) {
 } else {
   try {
     if (!_.isEmpty(req.files)) {
-    }
-    const uploaded_file = await file_uploader.upload(req.files, 'pdf');
+      const uploaded_file = await file_uploader.upload(req.files, 'pdf');
     if (!uploaded_file.status) {
       return res.status(200).json({
         status: false,
         message: uploaded_file.trace,
       });
     }
-
-    
     const config = {
       file: uploaded_file.files.file,
     };
@@ -596,6 +593,7 @@ if (!matched) {
 
     // Respond with a 200 status and the result
     res.status(200).json(result);
+    }
   } catch (error) {
     // If an error occurs, respond with a 500 status and an error message
     res.status(500).json({
