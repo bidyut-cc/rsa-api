@@ -55,9 +55,9 @@ module.exports = {
             owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
         },
         masterSettings: {
-            all: [ "view","materialView"],
-            group: ["view","materialView"],
-            owner: ["view","materialView"],
+            all: [ "view","materialView","updateMaterialDescription"],
+            group: ["view","materialView","updateMaterialDescription"],
+            owner: ["view","materialView","updateMaterialDescription"],
         },
         quotations: {
             all: [ "list","view","generateQuotationPDF"],
@@ -127,9 +127,9 @@ module.exports = {
             owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
         },
         masterSettings: {
-            all: [ "view","materialView"],
-            group: ["view","materialView"],
-            owner: ["view","materialView"],
+            all: [ "view","materialView","updateMaterialDescription"],
+            group: ["view","materialView","updateMaterialDescription"],
+            owner: ["view","materialView","updateMaterialDescription"],
         },
         quotations: {
             all: [ "list","view","generateQuotationPDF"],
