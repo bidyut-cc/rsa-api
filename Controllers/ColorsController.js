@@ -4,6 +4,8 @@ const Models = require("../Models");
 const AccountLog = require("../Helpers/AccountLog.js");
 const file_uploader = require("../Helpers/Uploader");
 const _ = require("lodash");
+const Changelog = require("../Models/Changelog.js");
+const Color = require("../Models/Color.js");
 
 class ColorsController extends Controller {
     constructor() {
@@ -137,6 +139,8 @@ class ColorsController extends Controller {
       if (!req.body["material_id"]) {
         return res.status(400).json({ message: "Material ID is required" });
       }
+
+      const previousData = obj.toObject();
   
       // Reconstruct colors array
       let colors = [];
@@ -188,39 +192,89 @@ class ColorsController extends Controller {
       });
   
       // Process file uploads for textures
-      if (req.files) {
-        await Promise.all(
-          Object.keys(req.files).map(async (key) => {
-            const match = key.match(/^textures\[(\d+)\]\[images\]\[(\d+)\]$/);
-            if (match) {
-              const textureIndex = parseInt(match[1], 10);
-              const imageIndex = parseInt(match[2], 10);
-              const file = req.files[key];
+      // if (req.files) {
+      //   await Promise.all(
+      //     Object.keys(req.files).map(async (key) => {
+      //       const match = key.match(/^textures\[(\d+)\]\[images\]\[(\d+)\]$/);
+      //       if (match) {
+      //         const textureIndex = parseInt(match[1], 10);
+      //         const imageIndex = parseInt(match[2], 10);
+      //         const file = req.files[key];
       
-              if (!textures[textureIndex]) {
-                textures[textureIndex] = { name: "", images: [] };
-              }
+      //         if (!textures[textureIndex]) {
+      //           textures[textureIndex] = { name: "", images: [] };
+      //         }
       
-              // ✅ Upload file & get the uploaded image URL/path
-              const uploaded_file = await file_uploader.upload({ image: file }, "textures");
-              // ✅ Assign uploaded image details
+      //         // ✅ Upload file & get the uploaded image URL/path
+      //         const uploaded_file = await file_uploader.upload({ image: file }, "textures");
+      //         // ✅ Assign uploaded image details
               
-              if (!uploaded_file.status) {
-                res.status(200).json({
-                    status: false,
-                    message: uploaded_file.trace,
-                });
+      //         if (!uploaded_file.status) {
+      //           res.status(200).json({
+      //               status: false,
+      //               message: uploaded_file.trace,
+      //           });
+      //       }
+      //       console.log(JSON.stringify(uploaded_file.files.image, null, 2));
+      //       textures[textureIndex].images[imageIndex] = uploaded_file.files.image;
+          
+      //       }
+      //     })
+      //   );
+      // }
+      if (req.files) {
+        for (const key of Object.keys(req.files)) {
+          const match = key.match(/^textures\[(\d+)\]\[images\]\[(\d+)\]$/);
+          if (match) {
+            const textureIndex = parseInt(match[1], 10);
+            const imageIndex = parseInt(match[2], 10);
+            const file = req.files[key];
+      
+            if (!textures[textureIndex]) {
+              textures[textureIndex] = { name: "", images: [] };
             }
-            textures[textureIndex].images[imageIndex] = uploaded_file.files.image;
+      
+            console.log("Uploading File:", file.name);
+            const uploaded_file = await file_uploader.upload({ image: file }, "textures");
+      
+            if (!uploaded_file.status) {
+              return res.status(400).json({
+                status: false,
+                message: uploaded_file.trace,
+              });
             }
-          })
-        );
+            
+            // Store uploaded file details properly
+            textures[textureIndex].images[imageIndex] = uploaded_file.files.image
+        }
       }
-  
+    }
+      
+     
       obj.material_id = req.body.material_id;
       obj.colors = colors;
       obj.textures = textures;
       await obj.save();
+      const currentData = obj.toObject();
+      // Log the update
+      if (Color.schema.changeLog) {
+          const log = new Changelog({
+              event: "updated",
+              modelName: this.model_name,
+              modelId: obj._id,
+              user: {
+                _id: req.user._id,
+                username: req.user.username,
+                first_name: req.user.first_name,
+                last_name: req.user.last_name,
+              }, 
+              previousData: previousData, // Before update
+              currentData: currentData, // After update
+              message: `${this.model_name} & Textures setting updated successfully`,
+          });
+
+          await log.save();
+      }
           return {
               status: true,
               message: "Updated Successfully.",
