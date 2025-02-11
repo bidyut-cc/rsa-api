@@ -1,3 +1,4 @@
+const Changelog = require("../Models/Changelog.js");
 const MasterSetting = require("../Models/MasterSetting.js");
 const Controller = require("./Controller.js");
 
@@ -92,23 +93,64 @@ class MasterSettingsController extends Controller {
 
   async updateMaterialDescription(req, res) {
     try {
-      const { key, value } = req.body;
-      console.log(key);
-      // Attempt to update the label using the inherited update method
-      const result = await MasterSetting.findOne({ key: "materials" });
-      result.value = value;
-      await result.save();
+        const { key, value } = req.body;
 
-      // Respond with a 200 status and the result
-      res.status(200).json(result);
+        // Find the MasterSetting record
+        const result = await MasterSetting.findOne({ key: "materials" });
+
+        if (!result) {
+             res.status(404).json({
+                status: false,
+                message: "Material setting not found",
+            });
+        }
+
+        // Check if change log is enabled
+        if (MasterSetting.schema.changeLog) {
+            // Create a deep copy of the previous data
+            const previousData = result.toObject(); 
+
+            // Update the field
+            result.value = value;
+
+            // Create and save the change log
+            const log = new Changelog({
+                event: "updated",
+                modelName: "MasterSetting",
+                modelId: result._id, 
+                user: {
+                  _id: req.user._id,
+                  username: req.user.username,
+                  first_name: req.user.first_name,
+                  last_name: req.user.last_name,
+                }, 
+                previousData: previousData, // Old data before update
+                currentData: result.toObject(), // New data after update
+                message: "updated Material Description.",
+            });
+
+            await log.save();
+        }
+
+        // Save the updated document
+        await result.save();
+
+        // Respond with a success message and updated result
+         res.status(200).json({
+            status: true,
+            message: "Material description updated successfully",
+            data: result,
+        });
     } catch (error) {
-      // If an error occurs, respond with a 500 status and an error message
-      res.status(500).json({
-        status: false,
-        message: error.message,
-      });
+        console.error("Error updating material description:", error);
+         res.status(500).json({
+            status: false,
+            message: "An error occurred while updating material description",
+            error: error.message,
+        });
     }
-  }
+}
+
 }
 
 module.exports = MasterSettingsController;
