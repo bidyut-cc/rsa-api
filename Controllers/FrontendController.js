@@ -282,7 +282,7 @@ class FrontendController {
         return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
     }, 0);
    
-      const htmlContent = await this.PDFhtml(quotation._id,quotation.quotation_no,quotation.createdAt,quotation.phone_number,materials,req.body.rooms,totalStalls,totalUrinalScreens);
+      const htmlContent = await this.QuotationPDFhtml(quotation._id,quotation.quotation_no,quotation.createdAt,quotation.phone_number,materials,req.body.rooms,totalStalls,totalUrinalScreens);
 
       //  const filePath = path.join(__dirname, `quotation.html`);
 
@@ -344,7 +344,7 @@ class FrontendController {
 }
 
   if (email_verification_template) {
-    let emails=[req.body.email,process.env.ADMIN_EMAIL];
+    let emails=[req.body.email,process.env.QUOTATION_EMAIL];
       // Email attachments
       const attachments = [
         {
@@ -851,7 +851,6 @@ async order(req, res){
 
           // Save the updated order
           await existingOrder.save();
-          console.log(existingOrder.quotation_id);
           const existingQuotation = await Quotation.findOne({ _id: existingOrder.quotation_id });
           existingQuotation.is_converted_to_deal = true;
 
@@ -862,6 +861,38 @@ async order(req, res){
           const dealData = await this.updateDeal(existingQuotation.zendesk_ticket_id,color);
           // Save the updated quotation
           await existingQuotation.save();
+          
+      
+          const matchedMaterials = existingQuotation.materials.filter(material => material.id === Number(existingOrder.material_id));
+            const htmlContent = await this.OrderPDFhtml(orderData.id,existingOrder.amount,color,existingQuotation.createdAt,matchedMaterials,existingQuotation.submittedData.rooms,existingOrder.billing_address);
+            // const filePath = path.join(__dirname, `order.html`);
+
+            // // Write the HTML content to a file
+            // fs.writeFileSync(filePath, htmlContent, 'utf8');
+            const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
+            var email_verification_template = await Emailtemplate.findOne({
+              code: "ORDER",
+          }).exec();
+          var template = email_verification_template.template;
+          let body = template.replace("{{name}}", `${existingOrder.first_name +' '+existingOrder.last_name}`);
+          if (email_verification_template) {
+            let emails=[existingQuotation.email,process.env.ORDER_EMAIL];
+              // Email attachments
+              const attachments = [
+                {
+                  content: Buffer.from(pdfBuffer), // Directly use the buffer
+                  filename: `Quotation-${existingQuotation.quotation_no}.pdf`,            // Set file name
+                  type: 'application/pdf',              // Set MIME type
+                  disposition: 'attachment',            // Disposition type
+                },
+              ];
+              await email_helper.sendEmail({
+                receivers: emails,
+                subject: `Restroom Stalls & All Quotation #${existingQuotation.quotation_no}`,
+                context: { body_content: body },
+              },attachments);
+             
+          }
          
            res.status(200).json({
             success: true,
@@ -1034,14 +1065,14 @@ async downloadPDF(req, res) {
     try {
       const quotation = await Quotation.findOne(
         { _id: id },
-        { submittedData: 1, roomData: 1, materials:1, _id: 1,quotation_no:1, phone_number:1 }
+        { submittedData: 1, roomData: 1, materials:1, _id: 1,quotation_no:1, phone_number:1, createdAt:1 }
       );
       const totalStalls = quotation.submittedData.rooms.reduce((sum, room) => sum + (room.stall?.noOfStalls || 0), 0);
 
     const totalUrinalScreens = quotation.submittedData.rooms.reduce((sum, room) => {
         return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
     }, 0);
-      const htmlContent = await this.PDFhtml(quotation._id,quotation.quotation_no,quotation.createdAt,quotation.phone_number,quotation.materials,quotation.submittedData.rooms,totalStalls,totalUrinalScreens);
+      const htmlContent = await this.QuotationPDFhtml(quotation._id,quotation.quotation_no,quotation.createdAt,quotation.phone_number,quotation.materials,quotation.submittedData.rooms,totalStalls,totalUrinalScreens);
       const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
       res.status(200).json({
         status: true,
@@ -1103,7 +1134,7 @@ async formatRoomData(roomData) {
   const stallsDetails = stallConfig
     .map(
       (stall, index) =>
-        `Stall ${index + 1}${stall?.type ? ' (ADA)' : ''} - Width: ${stall.stallWidth}"; Door: ${stall.doorOpening}"; Door Swing: ${stall.doorSwing.name}`
+        `Stall ${index + 1}${stall?.type ? ' (ADA)' : ''} - Width: ${stall.stallWidth}"  Door: ${stall.doorOpening}"  Door Swing: ${stall.doorSwing.name}`
     )
     .join("\n\n");
 
@@ -1137,7 +1168,7 @@ Layout- ${layoutDirection}${urinalDetails}
 `;
 }
 
-async PDFhtml(quotation_id,quotation_no,createdAt,phone_number,materials,rooms,totalStalls,totalUrinalScreens){
+async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,materials,rooms,totalStalls,totalUrinalScreens){
   const formattedPhone = await this.formatPhoneNumber(phone_number);
   const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif;print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/pdf_watermark_top.png');background-repeat: no-repeat;background-size:auto;background-position: left top;table-layout: fixed;"><tr><td><table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
   <tr>
@@ -1229,7 +1260,7 @@ async PDFhtml(quotation_id,quotation_no,createdAt,phone_number,materials,rooms,t
                    <div style="padding: 10px 40px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px;  print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;width:48%; box-sizing: border-box; min-height: 200px;" >
                       <p style="color:#fff; font-size:16px; line-height: 1.3; text-align: left; padding:0; margin-top: 5px;font-weight: 700;    margin-bottom: 10px;">What's included in my order?</p>
                       <ul style="color:#fff; font-size: 13px; line-height: 1.3; text-align: left; padding:0 0 0 15px;    margin: 0;">
-                        <li style="margin:0 0 4px 0;">Prices include Shipping Costs for all order components: doors, panels, pilasters, brackets, anchors, and screws.</li>
+                        <li style="margin:0 0 4px 0;">Prices include Shipping for all order components: doors, panels, pilasters, brackets, anchors, and screws.</li>
                         <li style="margin:0 0 4px 0;">Sales tax added at checkout.</li>
                         <li style="margin:0 0 4px 0;">Availability may change. </li>
                         <li style="margin:0 0 0 0;">Orders are subject to review by RSA.</li>
@@ -1285,8 +1316,8 @@ ${rooms.map((room, index) => `
                              <p style="display: flex; align-items: center; font-size: 15px; width:100%; line-height: 1;padding-left:20px;"><img src="${process.env.URI}/uploads/images/layout.png" alt="pic" style="width: 17px; margin-right:10px;"/><span style="color:#000; font-weight: 500; font-weight: 700; line-height: 1;color:#0061a6;">Layout </span>- ${room.stall?.layout?.layoutName}</p>
                               <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
                                   ${room?.stall?.stallConfig?.map((stall, stallIndex) =>`
-                                  <p style="margin-top: 0px; font-size: 12px; margin-bottom: 5px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"; <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"; <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
-                                      .</p>
+                                  <p style="margin-top: 0px; font-size: 12px; margin-bottom: 5px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"  <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"  <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
+                                      </p>
                                       `).join('')}
                               </div>
                               
@@ -1559,6 +1590,389 @@ ${room.hasUrinalScreens ? `
 return htmlContent;
 }
 
+async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_address){
+  const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif;print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/pdf_watermark_top.png');background-repeat: no-repeat;background-size:auto;background-position: left top;table-layout: fixed;"><tr><td><table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
+  <tr>
+      <td style="padding: 10px; text-align: left;">
+           <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" style="width:150px">
+      </td>
+      <td style="padding: 10px; text-align: right;">
+          <h3 style="margin-top: 5px;  margin-bottom: 5px;"><a href="tel:1-8448178255" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 25px; font-weight: 600;">1-844-81-STALL</a></h3>
+          <p style=" font-size:16px;      font-style: italic; margin-top: 5px; "><a href="mailto:service@restroomstallsandall.com" style="color:#000;">service@restroomstallsandall.com</a></p>
+     </td>
+  </tr>
+  <tr>
+      <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover; border-radius: 30px; vertical-align: bottom;border: 1px solid #3d58a4;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
+               <tr>
+                  <td colspan="2">
+                       <h4 style="color:#fff; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Order ID #${order_id}</h4>
+                       <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Date: ${moment(createdAt).format('MM/DD/YY')} </p>
+                  </td>
+               </tr>
+          </table>
+      </td>
+     
+  </tr>
+  <tr>
+      <td colspan="2" style="text-align: center; margin-top: 0px; ">
+          <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 30px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 20px;">Order Details</h4>
+          
+          
+      </td>
+      
+  </tr>
+  <tr>
+      <td colspan="2" width="100%" style="width: 100%;">
+          <div class="table_box" style="margin-top: 5px;">
+              <div style="display: flex; align-items: flex-start; width: 100%; justify-content: space-between;  flex-wrap: wrap; box-sizing: border-box; gap: 20px;">
+                  ${materials.map(material => `
+                  <div style="padding:40px 25px;min-height: 280px; text-align:left; border: 1px solid #3d58a4; border-radius: 15px;  width:48%; box-sizing: border-box;print-color-adjust: exact;  -webkit-print-color-adjust: exact;background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;">
+                      <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
+                               <h4 style="color:#fff; font-size: 18px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Material:</span> ${material.name}</h4>
+                               <h4 style="color:#fff; font-size: 18px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Color:</span> ${color}</h4>
+                               <h5 style="font-size:18px;  margin-top:0;margin-bottom:0;"><span style="    font-weight: 400;">Order Total:</span> $${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h5>
+                       </div>
+                   </div>
+                   `).join('')}
+                   <div style="padding: 40px 25px;min-height: 280px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px;  print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;width:48%; box-sizing: border-box;" >
+                      <p style="color:#fff; font-size:18px; line-height: 1.3; text-align: left; padding:0; margin-top: 0;font-weight: 700;    margin-bottom: 18px;">Contact Details:</p>
+                      <ul style="color:#fff; font-size: 14px; line-height: 1.3; text-align: left; padding:0 0 0 0;    margin: 0;    list-style-type: none;">
+                        <li style="margin:0 0 7px 0;">Name: ${billing_address.first_name} ${billing_address.last_name}</li>
+                        <li style="margin:0 0 7px 0;">Email: ${billing_address.email}</li>
+                        <li style="margin:0 0 7px 0;">City: ${billing_address.city}</li>
+                        <li style="margin:0 0 7px 0;">State: ${billing_address.state}</li>
+                        <li style="margin:0 0 7px 0;">Zip: ${billing_address.zip}</li>
+                        <li style="margin:0 0 7px 0;">Country: ${billing_address.country}</li>
+                      </ul>
+                   </div> 
+              </div>
+          </div>
+ 
+         
+      </td>
+      
+  </tr>
+  
+ 
+ </table>
+ ${rooms.map((room, index) => `
+ <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px; margin-top: 40px;">
+      <tr>
+          <td style="padding: 10px; text-align: left;">
+               <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" style="width:150px">
+          </td>
+          <td style="padding: 10px; text-align: right;">
+              <h3 style="margin-top: 5px;  margin-bottom: 5px;"><a href="tel:1-8448178255" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 25px; font-weight: 600;">1-844-81-STALL</a></h3>
+              <p style=" font-size:16px;      font-style: italic; margin-top: 5px; "><a href="mailto:service@restroomstallsandall.com" style="color:#000;">service@restroomstallsandall.com</a></p>
+         </td>
+      </tr>
+      <tr>
+          <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover; border-radius: 30px; vertical-align: bottom;border: 1px solid #3d58a4;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
+                   <tr>
+                      <td colspan="2">
+                           <h4 style="color:#fff; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Order ID #${order_id}</h4>
+                           <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Date: ${moment(createdAt).format('MM/DD/YY')} </p>
+                      </td>
+                   </tr>
+              </table>
+          </td>
+         
+      </tr>
+      <tr>
+          <td colspan="2" style="padding-left: 10px;">
+              <h5 style="color:#285fa1; font-size: 20px; line-height: 1; margin-top: 10px; margin-bottom: 0px;">Room: ${room.title}</h5>
+              
+          </td>
+      </tr>
+      <tr>
+          <td colspan="2" >
+              <table width="100%" cellpadding="0" cellspacing="20" style="table-layout: fixed;">
+                  <tr>
+                      <td width="100%" style="width: 100%; vertical-align: top;" colspan="2">
+                          <div style="border: 1px solid #e3e8ef;  border-radius: 10px; font-weight: 400; ">
+                              <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 7px 14px; margin-bottom: 0px; font-size: 15px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; margin-bottom: 0px;"> Stalls: ${room?.stall?.noOfStalls}</h4>
+                             <p style="display: flex; align-items: center; font-size: 15px; width:100%; line-height: 1;padding-left:20px;"><img src="${process.env.URI}/uploads/images/layout.png" alt="pic" style="width: 17px; margin-right:10px;"/><span style="color:#000; font-weight: 500; font-weight: 700; line-height: 1;color:#0061a6;">Layout </span>- ${room.stall?.layout?.layoutName}</p>
+                              <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
+                                  ${room?.stall?.stallConfig?.map((stall, stallIndex) =>`
+                                  <p style="margin-top: 0px; font-size: 12px; margin-bottom: 5px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"  <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"  <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
+                                      </p>
+                                      `).join('')}
+                              </div>
+                              
+                          </div>
+                          
+                      </td>
+                  </tr>
+                  <tr>
+                      <td colspan="2" width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
+                          <div style=" padding: 13px; text-align: center; width:95%;  min-height: 140px; display: flex; align-items: center; justify-content: center;">
+                              <img src="${room.image_2D}" alt="pic" style="width:auto;height:380px;max-width:100%; margin: 0 auto;"/>
+                          </div>
+                          
+                      </td>
+                      <!-- <td width="50%" style="width: 50%; border: 1px solid #e3e8ef; border-radius: 10px;">
+                          <div style=" padding: 13px; text-align: center; width:95%;  margin-top: 10px;">
+                              <img src="${room.image_3D}" alt="pic" style="width:100%; margin: 0 auto;"/>
+                          </div>
+                      </td> -->
+                  </tr>
+                  <tr>
+                      <td width="50%" style="width: 50%;">
+                          <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover; padding:10px 20px; border-radius: 10px; margin-top: 0px; ">
+                              <ul style="font-size: 14px; margin: 0px;color:#fff;padding:0 0 0 15px;">
+                              <li style="margin:0 0 3px 0;">All stall widths are to the centerline.</li>
+                              <li style="margin:0 0 3px 0;">All stall depths are to the face.</li>
+                              <li>All alcove depths are wall to wall.</li>
+                              </ul>
+                          </div>
+                      </td>
+                      <td width="50%" style="width: 50%;">
+                         <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need Something Bigger?</h5>
+                          <p style="margin-top: 5px;">No problem! Our Partition Experts will help you Customize your Layout.</p>
+                      </td>
+                  </tr>
+              </table>
+          </td>
+      </tr>
+ </table>
+ ${room.hasUrinalScreens ? `
+ <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
+      <tr>
+          <td style="padding: 10px; text-align: left;">
+               <img src="${process.env.URI}/uploads/images/Logo.png" alt="logo" style="width:150px">
+          </td>
+          <td style="padding: 10px; text-align: right;">
+              <h3 style="margin-top: 5px;  margin-bottom: 5px;"><a href="tel:1-8448178255" style="color:#0061a6; text-decoration:none;  font-style: italic; font-size: 25px; font-weight: 600;">1-844-81-STALL</a></h3>
+              <p style=" font-size:16px;      font-style: italic; margin-top: 5px;"><a href="mailto:service@restroomstallsandall.com" style="color:#000;">service@restroomstallsandall.com</a></p>
+         </td>
+      </tr>
+      <tr>
+      <td colspan="2" style="padding: 3px 30px; text-align: left; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;border-radius: 30px; vertical-align: bottom;border: 1px solid #3d58a4;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
+               <tr>
+                  <td colspan="2">
+                       <h4 style="color:#fff; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Order ID #${order_id}</h4>
+                       <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Date: ${moment(createdAt).format('MM/DD/YY')} </p>
+                  </td>
+               </tr>
+          </table>
+      </td>
+  </tr>
+      <tr>
+          <td colspan="2" style="padding-left: 0px;">
+              <h5 style="color:#285fa1; font-size: 20px; line-height: 1; margin-top: 10px; margin-bottom: 0px;">Room: ${room.title}</h5>
+              
+          </td>
+      </tr>
+      <tr>
+          <td colspan="2" style="padding-left: 0px;">
+              <table width="100%" cellpadding="0" cellspacing="30" style="table-layout: fixed;">
+                  <tr>
+                      <td width="100%" style="width: 100%; vertical-align: top;" colspan="2">
+                          <div style="border: 1px solid #e3e8ef;  border-radius: 10px; font-weight: 400; ">
+                              <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 7px 14px; margin-bottom: 0px; font-size: 15px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; margin-bottom: 0px;"> Privacy screens: ${room?.urinalScreen?.noOfUrinalScreens}</h4>
+                              <div style="padding: 15px 20px 15px 20px; margin-top: 0px;">
+                                  <p style="margin-top: 0px; font-size: 15px; margin-bottom: 4px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Screen Depth </span>- ${room.urinalScreen?.urinalScreenConfig[0]?.screenDepth}"</p>
+                              </div>
+                          </div>
+                          
+                      </td>
+                      </tr>
+                      <tr>
+                      <td colspan="2"  width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
+                          <div style=" padding: 3px; text-align: center; width:97%;  ">
+                              <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:420px;max-width:100%;transform: scale(1) ;"/>
+                          </div>
+                          
+                      </td>
+                      <!-- <td width="50%" style="width: 50%; border: 1px solid #e3e8ef; border-radius: 10px;">
+                          <div style=" padding: 3px; text-align: center; width:97%;  margin-top: 10px;">
+                              <img src="${room.urinalScreen?.urinal_3D}" alt="pic" style="width:100%; margin: 0 auto; transform: scale(1)"/>
+                          </div>
+                      </td> -->
+                  </tr>
+                  <tr>
+                      <td width="50%" style="width: 50%;">
+                          <div style="display: flex; align-items: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;padding:10px 20px; border-radius: 10px; margin-top: 0px;">
+                         <ul style="font-size: 14px; margin: 0px;color:#fff;padding:0 0 0 15px;">
+                              <li style="margin:0 0 3px 0;">All stall widths are to the centerline.</li>
+                              <li style="margin:0 0 3px 0;">All stall depths are to the face.</li>
+                              <li>All alcove depths are wall to wall.</li>
+                              </ul>
+                          </div>
+                      </td>
+                      <td width="50%" style="width: 50%;">
+                          <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need Something Bigger?</h5>
+                          <p style="margin-top: 4px;">No problem! Our Partition Experts will help you Customize your Layout.</p>
+                      </td>
+                  </tr>
+              </table>
+          </td>
+      </tr>
+ </table>
+ ` : ''}
+ `).join('')}
+ <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 20px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
+ <tr>
+    <td colspan="2" style="width:100%; padding: 10px; ">
+        <img src="${process.env.URI}/uploads/images/Logo.png" alt="alt" style="width:150px" />
+    </td>
+ </tr>
+ 
+ 
+ <tr>
+    <td colspan="2" style="text-align: center;">
+        <a style="margin-top: 200px;display: block;width: 100%;" href="https://youtu.be/9gSqLqj7oqU?si=yvZ8bwE0Qv2P-ZiM" target="_blank">
+            <img src="${process.env.URI}/uploads/images/youtube-video.png" alt="logo" style="width:100%">
+        </a>
+    </td>
+ </tr>
+ </table>
+ <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 20px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/pdf_watermark.png');background-repeat: no-repeat;background-size: auto 100%;background-position: right top;">
+  <tr>
+      <td colspan="2" style="width:100%; padding: 10px; ">
+          <img src="${process.env.URI}/uploads/images/Logo.png" alt="alt" style="width:150px" />
+      </td>
+  </tr>
+  <tr>
+      <td colspan="2" style="width:100%; text-align: center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover; border-radius: 12px; padding: 10px 25px;border: 1px solid #3d58a4;">
+          <h4 style="font-size: 22px; color:#fff; font-weight: 900; margin-top: 0; margin-bottom: 0px;">Thank You for Choosing Us!</h4>
+      </td>
+  </tr>
+  <tr>
+      <td colspan="2" style="width: 100%;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 0px; vertical-align: top;">
+              
+               <tr>
+                  <td style="width: 100%; display: flex; justify-content: center; align-items:center;">
+                      <table width="100%" cellpadding="0" cellspacing="10" style="margin-top: 10px; vertical-align: top; text-align: center; border: 1px solid #e3e8ef; padding: 10px;  width:100%; border-radius: 10px;">
+                          <tr>
+                              <td colspan="4" style="width: 100%;">
+                                  <h3 style="font-size: 21px; font-weight: 900; font-family:Verdana, Geneva, Tahoma, sans-serif; color:#285fa1; margin-bottom: 10px; margin-top: 0px;">Meet the Partition Experts</h3>
+                                  <h6 style="color:#285fa1; font-size: 18px; margin-top: 5px; font-weight: 400; margin-bottom: 10px;">The team behind making your dream ideas come true.</h6>
+                              </td>
+                           </tr>
+                          <tr>
+                              <td>
+                                  <div>
+                                      <img src="${process.env.URI}/uploads/images/Jim_Southard.png" alt="pic" style="margin-bottom: 10px;"/>
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Jim Southard</h4>
+ 
+                                  </div>
+                              </td>
+                              <td>
+                                  <div>
+                                      <img src="${process.env.URI}/uploads/images/Josh_Williams.png" alt="pic" style="margin-bottom: 10px;"/>
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Josh Williams
+                                      </h4>
+ 
+                                  </div>
+                              </td>
+                              <td>
+                                  <div>
+                                      <img src="${process.env.URI}/uploads/images/DJ_Bunn.png" alt="pic" style="margin-bottom: 10px;"/>
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">DJ Bunn</h4>
+ 
+                                  </div>
+                              </td>
+                              <td>
+                                  <div>
+                                      <img src="${process.env.URI}/uploads/images/Jennifer_Hollis.png" alt="pic" style="margin-bottom: 10px;"/>
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Jennifer Hollis</h4>
+ 
+                                  </div>
+                              </td>
+                          </tr>
+                          <tr>
+                              <td>
+                                  <div>
+                                      <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;"/>
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Jim Artman</h4>
+ 
+                                  </div>
+                              </td>
+                              <td>
+                                  <div>
+                                      <img src="${process.env.URI}/uploads/images/Megan_Schroeder.png" alt="pic" style="margin-bottom: 10px;"/>
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Megan Schroeder
+                                      </h4>
+ 
+                                  </div>
+                              </td>
+                              <td>
+                                  <div>
+                                      <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 10px;"/>
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Peyton Cape
+                                      </h4>
+ 
+                                  </div>
+                              </td>
+                              <td>
+                                  <div>
+                                      <img src="${process.env.URI}/uploads/images/Rob_Watkins.png" alt="pic" style="margin-bottom: 10px;"/>
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Rob Watkins
+                                      </h4>
+ 
+                                  </div>
+                              </td>
+                          </tr>
+                          <tr>
+                              <td colspan="4" style="width: 100%;">
+                                  <table width="100%" cellpadding="0" cellspacing="10" style="margin-top: 0px; vertical-align: top; text-align: center;">
+                                      <tr>
+                                          <td>
+                                              <div>
+                                                  <img src="${process.env.URI}/uploads/images/Tracy_Hanson.png" alt="pic" style="margin-bottom: 10px;"/>
+                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Tracy Hanson
+                                                  </h4>
+      
+                                              </div>
+                                          </td>
+                                          <td>
+                                              <div>
+                                                  <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;"/>
+                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">Travis Perdue
+                                                  </h4>
+      
+                                              </div>
+                                          </td>
+                                          <td>
+                                              <div>
+                                                  <img src="${process.env.URI}/uploads/images/CJ_Cooper.png" alt="pic" style="margin-bottom: 10px;"/>
+                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;">CJ Cooper
+                                                  </h4>
+      
+                                              </div>
+                                          </td>
+                                      </tr>
+                                  </table>
+                              </td>
+                             
+                              
+                          </tr>
+                      </table>
+                  </td>
+               </tr>
+          </table>
+      </td>
+      
+  </tr>
+  <tr>
+      <td colspan="2" style="text-align: center;">
+          <h5 style="color:#000; font-size: 20px; font-weight: 600; margin-bottom: 5px; margin-top: 10px;">Do you have questions?</h5>
+          <p style="color:#000; font-size: 18px; margin-top: 10px; margin-bottom: 10px;">Call us or email us and we'd be happy to assist you.</p>
+       <h4 style="display: flex; align-items: center; justify-content: center; margin-top: 10px; margin-bottom: 10px;"><a href="tel:1-8448178255" style="color:#285fa1; font-weight: 900; text-decoration: none; font-size: 24px; font-family:Verdana, Geneva, Tahoma, sans-serif; font-style:italic">1-844-81-STALL</a><a href="mailto:service@restroomstallsandall.com" style="font-size: 20px; color:#000; font-weight: 400; margin-left: 15px;">service@restroomstallsandall.com</a></h4>
+      </td>
+  </tr>
+ </table></td></tr></table>`; 
+ return htmlContent;
+ }
+
+
+
+
 
 async colorAndtextures(req, res) {
     try {
@@ -1597,6 +2011,8 @@ async formatPhoneNumber(number) {
   if (cleaned.length !== 10) return number; // Return original if not 10 digits
   return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
 }
+
+
 
 
 }
