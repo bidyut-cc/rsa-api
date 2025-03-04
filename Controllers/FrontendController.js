@@ -744,117 +744,13 @@ class FrontendController {
  */
 
 async order(req, res){
-  try {
-    const { type, id } = req.body.data;
+   
 
-    // Validate if type is 'order' and id exists
-    if (type === 'order' && id) {
-      // Fetch order details using BigCommerce API
-      const orderResponse = await axios.get(
-        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v2/orders/${id}`,
-        {
-          headers: {
-            'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN, // Use token from environment variables
-            'Accept': 'application/json',
-          },
-        }
-      );
-
-       const orderData = orderResponse.data;
-      let bigcommerceData = new BigcommerceOrderResponse;
-      bigcommerceData.order_id=id
-      bigcommerceData.cart_id=orderData?.cart_id
-      bigcommerceData.response=req.body
-      await bigcommerceData.save();
-
-      if (orderData && orderData.cart_id) {
-        // Check if order exists in your database
-        const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
-
-        if (existingOrder) {
-          // Update payment and order status
-          existingOrder.payment_status = await this.capitalizeWords(orderData.payment_status) || 'Pending';
-          existingOrder.order_status = await this.capitalizeWords(orderData.status) || 'Pending';
-          existingOrder.billing_address = orderData.billing_address || {};
-          existingOrder.order_id = orderData.id || null;
-          existingOrder.paymentDate = new Date(orderData.date_modified) || null;
-         
-
-          // // Save the updated order
-          // await existingOrder.save();
-          const existingQuotation = await Quotation.findOne({ _id: existingOrder.quotation_id });
-          existingQuotation.is_converted_to_deal = true;
-
-          let color = '';
-          if (existingOrder.material_id !== '4' && existingOrder.colors?.data?.length) { 
-            color = existingOrder.colors.data[0].name || ''; 
-          }
-          
-          // Save the updated quotation
-          await existingQuotation.save();
-      if(orderData.payment_status == 'captured' || orderData.payment_status == 'succeeded'){
-      //  const dealData = await this.updateDeal(existingQuotation.zendesk_ticket_id,color);
-          const matchedMaterials = existingQuotation.materials.filter(material => material.id === Number(existingOrder.material_id));
-            const htmlContent = await this.OrderPDFhtml(orderData.id,existingOrder.amount,color,existingQuotation.createdAt,matchedMaterials,existingQuotation.submittedData.rooms,existingOrder.billing_address);
-            // const filePath = path.join(__dirname, `order.html`);
-
-            // // Write the HTML content to a file
-            // fs.writeFileSync(filePath, htmlContent, 'utf8');
-            const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
-            var email_verification_template = await Emailtemplate.findOne({
-              code: "ORDER",
-          }).exec();
-          var template = email_verification_template.template;
-          let body = template.replace("{{name}}", `${existingOrder.first_name +' '+existingOrder.last_name}`);
-          if (email_verification_template) {
-            let emails=[existingQuotation.email,process.env.ORDER_EMAIL];
-              // Email attachments
-              const attachments = [
-                {
-                  content: Buffer.from(pdfBuffer), // Directly use the buffer
-                  filename: `Quotation-${existingQuotation.quotation_no}.pdf`,            // Set file name
-                  type: 'application/pdf',              // Set MIME type
-                  disposition: 'attachment',            // Disposition type
-                },
-              ];
-              // await email_helper.sendEmail({
-              //   receivers: emails,
-              //   subject: `Restroom Stalls & All Quotation #${existingQuotation.quotation_no}`,
-              //   context: { body_content: body },
-              // },attachments);
-              existingOrder.is_mail_send=true;
-          }
-        }
-             // Save the updated order
-             await existingOrder.save();
-           res.status(200).json({
-            success: true,
-            message: 'Order status updated successfully',
-            data: {
-              cart_id:orderData.cart_id,
-              order_id: existingOrder.id,
-              payment_status: existingOrder.payment_status,
-              order_status: existingOrder.order_status,
-              //dealData:dealData
-            },
-          });
-          return;
-        } else {
-          throw new Error('Order not found in the database');
-        }
-      } else {
-        throw new Error('Cart ID not found in order data');
-      }
-    } else {
-      throw new Error('Invalid webhook payload');
-    }
-  } catch (error) {
-    console.error('Error processing order:', error.message);
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
+    let bigcommerceData = new BigcommerceOrderResponse;
+    bigcommerceData.order_id=123
+    bigcommerceData.cart_id=12345
+    bigcommerceData.response=req.body
+    await bigcommerceData.save();
 }
 
 /**
