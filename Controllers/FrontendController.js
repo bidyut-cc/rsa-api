@@ -764,7 +764,7 @@ async order(req, res){
       let bigcommerceData = new BigcommerceOrderResponse;
       bigcommerceData.order_id=id
       bigcommerceData.cart_id=orderData?.cart_id
-      bigcommerceData.response=req.body
+      bigcommerceData.response=orderData
       await bigcommerceData.save();
 
       if (orderData && orderData.cart_id) {
