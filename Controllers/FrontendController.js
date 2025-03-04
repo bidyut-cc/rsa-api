@@ -15,6 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const Color = require("../Models/Color.js");
 const MasterSetting = require("../Models/MasterSetting.js");
+const agenda = require('../config/agendaConfig.js'); // Import the Agenda instance
 
 class FrontendController {
   
@@ -165,7 +166,7 @@ class FrontendController {
 
   async quotationCreate(req, res) {
     const v = new Validator(req.body, {
-      project_name: "required",
+    //  project_name: "required",
       first_name: "required",
       last_name: "required",
       email: "required",
@@ -221,25 +222,6 @@ class FrontendController {
       if (!masterSettings || masterSettings.length === 0) {
         throw new Error('No active materials found');
       }
-  
-    //   results.forEach(({ stalls }) => {
-    //     stalls.forEach(({ name, id, price }) => {
-    //       if (!priceByProduct[name]) {
-    //         priceByProduct[name] = { price: 0, id }; 
-    //       }
-    //       priceByProduct[name].price += price;
-    //     });
-    //   });
-  
-    //   const materials = Object.keys(priceByProduct).map((productName) => {
-    //     const matchingMaterial = masterSettings.find((material) => material.name === productName);
-    //     return {
-    //       id: priceByProduct[productName].id,
-    //       name: productName,
-    //       price: priceByProduct[productName].price.toFixed(2),
-    //       src: matchingMaterial ? matchingMaterial.src : null
-    //     };
-    //   });
 
       results.forEach(({ roomId, stalls }) => {
         stalls.forEach(({ name, id, price }) => {
@@ -259,7 +241,8 @@ class FrontendController {
         return {
           id: priceByProductAndRoom[productName].id,
           name: productName,
-          price: priceByProductAndRoom[productName].totalPrice.toFixed(2), // total aggregated price
+        //  price: priceByProductAndRoom[productName].totalPrice.toFixed(2), // total aggregated price
+          price: Math.round(priceByProductAndRoom[productName].totalPrice),
           src: matchingMaterial ? matchingMaterial.src : null,
           price_details: priceByProductAndRoom[productName].rooms, // detailed price per room
         };
@@ -275,107 +258,21 @@ class FrontendController {
       quotation.submittedData = req.body;
       quotation.roomData = results;
       quotation.materials = materials;
+      quotation.zendesk_ticket_id = zendesk_ticket_id;
+      quotation.is_mail_send = false;
+      quotation.is_deal_create = false;
 
-      const totalStalls = req.body.rooms.reduce((sum, room) => sum + (room.stall?.noOfStalls || 0), 0);
-
-    const totalUrinalScreens = req.body.rooms.reduce((sum, room) => {
-        return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
-    }, 0);
-   
-      const htmlContent = await this.QuotationPDFhtml(quotation._id,quotation.quotation_no,quotation.createdAt,quotation.phone_number,materials,req.body.rooms,totalStalls,totalUrinalScreens);
-
-      //  const filePath = path.join(__dirname, `quotation.html`);
-
-      //   // Write the HTML content to a file
-      //   fs.writeFileSync(filePath, htmlContent, 'utf8');
-  
-      const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        console.error("Generated PDF buffer is empty or undefined.");
-        return res
-          .status(500)
-          .json({ status: false, message: "Failed to generate PDF." });
-      }
-      var email_verification_template = await Emailtemplate.findOne({
-        code: "QUOTATION",
-    }).exec();
-    var template = email_verification_template.template;
-    let body = template.replace("{{name}}", `${req.body.first_name +' '+req.body.last_name}`);
-
-  const contactData = {
-    first_name : req.body.first_name,
-    last_name : req.body.last_name,
-    email : req.body.email,
-    phone : req.body.phone_number
-  }
-
-  if (!req.body.hasOwnProperty('isTest') || !req.body.isTest) {
-
-  const contact_id = await this.checkEmailAndCreateContact(contactData);
-
-  const materialDetailsString = materials.map(material => {
-    return `${material.name}: $${material.price}`;
-  }).join('\n'); // Use newline character for each item
-
-  const dealData = {
-    "data": {
-      "name": req.body.first_name +' '+req.body.last_name ,
-      "value": await this.getSmallestOuterPrice(materials),
-      "hot": true,
-      "contact_id": contact_id,
-      "stage_id":Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
-      "tags": [
-        "important"
-      ],
-      "custom_fields": {
-        "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
-       // "Notes": "this is for test.please ignore it.",
-        "Room Details": await this.formatAllRoomsData(req.body.rooms),
-        "Material Details": materialDetailsString,
-        "Color": "No color selected",
-      }
-    },
-    "meta": {
-      "type": "deal"
-    }
-  }
-  const deal = await this.createDeal(dealData);
-  quotation.zendesk_ticket_id = deal.id;
-}
-
-  if (email_verification_template) {
-    let emails=[req.body.email,process.env.QUOTATION_EMAIL];
-      // Email attachments
-      const attachments = [
-        {
-          content: Buffer.from(pdfBuffer), // Directly use the buffer
-          filename: `Quotation-${quotation.quotation_no}.pdf`,            // Set file name
-          type: 'application/pdf',              // Set MIME type
-          disposition: 'attachment',            // Disposition type
-        },
-      ];
-      const isAnyMaterialQuoteTrue = req.body.rooms.some(room => room.materialQuote === "true");
-      if (isAnyMaterialQuoteTrue) {
-        const samplePDFData= await Setting.findOne(
-          { step: 'material_installation_quote' },
-          { step: 1, config: 1, _id: 1 }
-        );
-        const samplePdfPath = path.join(__dirname, '../public', 'api', 'uploads','pdf', samplePDFData.config.file.filename);
-        attachments.push({
-          content: fs.readFileSync(samplePdfPath), // Sample PDF file
-          filename: 'Sample-Quotation.pdf', // File name for the sample PDF
-          type: 'application/pdf', // MIME type
-          disposition: 'attachment', // Disposition type
+      if (!req.body.hasOwnProperty("isTest") || !req.body.isTest) {
+        await agenda.schedule("in 5 seconds", "create_zendesk_lead", {
+          quotationId: quotation._id,
         });
       }
-      await email_helper.sendEmail({
-        receivers: emails,
-        subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
-        context: { body_content: body },
-      },attachments);
-     
-  }
-  await quotation.save();
+
+      // **Schedule email sending via Agenda**
+      await agenda.schedule("in 10 seconds", "send_quotation_email", {
+        quotationId: quotation._id,
+      });
+      await quotation.save();
   
       res.status(200).json({
         status: true,
@@ -414,7 +311,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium-browser',
+     // executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -551,6 +448,19 @@ class FrontendController {
      }
 
       try {
+        const oneMinuteAgo = new Date(Date.now() - 30 * 1000); // 30 seconds ago
+
+        const existingOrder = await Order.findOne({
+          quotation_id: id,
+          createdAt: { $gt: oneMinuteAgo },
+        });
+    
+        if (existingOrder) {
+          return res.status(404).json({
+            status: false,
+            message: "Your other request is being processed. Please wait for thirty seconds.",
+          });
+        }
         const data = await Quotation.findOne(
             { _id: id, materials: { $elemMatch: { id: Number(material_id) } } },
             { "materials.$": 1, _id: 1,first_name:1,last_name:1,email:1,phone_number:1 } // Return only the matched material
@@ -563,20 +473,40 @@ class FrontendController {
             });
             return;
           }
+          // Save order before calling the cart API
+    let order = new Order({
+      quotation_id: id,
+      material_id,
+      cart_id: null, // Cart ID will be updated later
+      order_id: null,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+      phone_number: data.phone_number,
+      colors,
+      amount: 0.00, // Amount will be updated after the API call
+    });
+
+    const savedOrder = await order.save();
       const bigCommerceCart = await this.createBigCommerceCart(data.materials[0]);
     if(bigCommerceCart.status){
-      let order = new Order;
-      order.quotation_id=id
-      order.material_id=material_id
-      order.cart_id=bigCommerceCart.data.data.id
-      order.order_id=null
-      order.first_name = data.first_name;
-      order.last_name =data.last_name;
-      order.email = data.email;
-      order.phone_number = data.phone_number;
-      order.colors=colors;
-      order.amount = bigCommerceCart.data.data.base_amount;
-      await order.save();
+      // let order = new Order;
+      // order.quotation_id=id
+      // order.material_id=material_id
+      // order.cart_id=bigCommerceCart.data.data.id
+      // order.order_id=null
+      // order.first_name = data.first_name;
+      // order.last_name =data.last_name;
+      // order.email = data.email;
+      // order.phone_number = data.phone_number;
+      // order.colors=colors;
+      // order.amount = bigCommerceCart.data.data.base_amount;
+      // await order.save();
+        // Update the saved order with cart_id and amount
+        await Order.findByIdAndUpdate(savedOrder._id, {
+          cart_id: bigCommerceCart.data.data.id,
+          amount: bigCommerceCart.data.data.base_amount,
+        });
         res.status(200).json({
             status: true,
             id:order._id,
@@ -653,7 +583,7 @@ class FrontendController {
         "line_items": [
           {
             "quantity": 1,
-            "product_id": product_id,
+            "product_id": 111,
             "list_price": materials.price,
            // "name": "Restroom Stall"
           }
@@ -834,7 +764,7 @@ async order(req, res){
       let bigcommerceData = new BigcommerceOrderResponse;
       bigcommerceData.order_id=id
       bigcommerceData.cart_id=orderData?.cart_id
-      bigcommerceData.response=orderData
+      bigcommerceData.response=req.body
       await bigcommerceData.save();
 
       if (orderData && orderData.cart_id) {
@@ -848,9 +778,10 @@ async order(req, res){
           existingOrder.billing_address = orderData.billing_address || {};
           existingOrder.order_id = orderData.id || null;
           existingOrder.paymentDate = new Date(orderData.date_modified) || null;
+         
 
-          // Save the updated order
-          await existingOrder.save();
+          // // Save the updated order
+          // await existingOrder.save();
           const existingQuotation = await Quotation.findOne({ _id: existingOrder.quotation_id });
           existingQuotation.is_converted_to_deal = true;
 
@@ -858,11 +789,11 @@ async order(req, res){
           if (existingOrder.material_id !== '4' && existingOrder.colors?.data?.length) { 
             color = existingOrder.colors.data[0].name || ''; 
           }
-          const dealData = await this.updateDeal(existingQuotation.zendesk_ticket_id,color);
+          
           // Save the updated quotation
           await existingQuotation.save();
-          
-      
+      if(orderData.payment_status == 'captured' || orderData.payment_status == 'succeeded'){
+      //  const dealData = await this.updateDeal(existingQuotation.zendesk_ticket_id,color);
           const matchedMaterials = existingQuotation.materials.filter(material => material.id === Number(existingOrder.material_id));
             const htmlContent = await this.OrderPDFhtml(orderData.id,existingOrder.amount,color,existingQuotation.createdAt,matchedMaterials,existingQuotation.submittedData.rooms,existingOrder.billing_address);
             // const filePath = path.join(__dirname, `order.html`);
@@ -886,14 +817,16 @@ async order(req, res){
                   disposition: 'attachment',            // Disposition type
                 },
               ];
-              await email_helper.sendEmail({
-                receivers: emails,
-                subject: `Restroom Stalls & All Quotation #${existingQuotation.quotation_no}`,
-                context: { body_content: body },
-              },attachments);
-             
+              // await email_helper.sendEmail({
+              //   receivers: emails,
+              //   subject: `Restroom Stalls & All Quotation #${existingQuotation.quotation_no}`,
+              //   context: { body_content: body },
+              // },attachments);
+              existingOrder.is_mail_send=true;
           }
-         
+        }
+             // Save the updated order
+             await existingOrder.save();
            res.status(200).json({
             success: true,
             message: 'Order status updated successfully',
@@ -902,7 +835,7 @@ async order(req, res){
               order_id: existingOrder.id,
               payment_status: existingOrder.payment_status,
               order_status: existingOrder.order_status,
-              dealData:dealData
+              //dealData:dealData
             },
           });
           return;
@@ -1218,7 +1151,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                            <div  style="width: 75% !important; padding: 0px 20px 5px; margin-bottom: 0px !important;color:#fff;">
                                <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 5px;">${material.name}</h4>
                                <h6 style="font-size: 14px; font-weight: 400; margin-top: 0; margin-bottom: 0;">3 years warranty</h6>
-                               <h5 style="font-size:20px;  margin-top:4px;margin-bottom:4px;">$${Number(material.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h5>
+                               <h5 style="font-size:20px;  margin-top:4px;margin-bottom:4px;">$${Number(material.price).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h5>
                        
                                <div>
                                   <span style="color:#fff;font-weight: 400; font-size: 11px; margin-top: 3px; margin-bottom: 3px;display: inline-block;vertical-align: top;">
@@ -1229,8 +1162,8 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                                    </span>
                                   <span style="color:#fff;font-weight: 400;display:block; font-size: 11px; margin-top: 3px; margin-bottom: 0;">
                                   ${totalUrinalScreens > 0 
-                                    ? `${totalUrinalScreens} Privacy Screen${totalUrinalScreens > 1 ? 's' : ''}` 
-                                    : 'No Privacy Screens'}
+                                    ? `${totalUrinalScreens} Urinal Screen${totalUrinalScreens > 1 ? 's' : ''}` 
+                                    : 'No Urinal Screens'}
                                 </span>
                                </div>
                              
@@ -1392,7 +1325,7 @@ ${room.hasUrinalScreens ? `
                   <tr>
                       <td width="100%" style="width: 100%; vertical-align: top;" colspan="2">
                           <div style="border: 1px solid #e3e8ef;  border-radius: 10px; font-weight: 400; ">
-                              <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 7px 14px; margin-bottom: 0px; font-size: 15px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; margin-bottom: 0px;"> Privacy screens: ${room?.urinalScreen?.noOfUrinalScreens}</h4>
+                              <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 7px 14px; margin-bottom: 0px; font-size: 15px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; margin-bottom: 0px;"> Urinal screens: ${room?.urinalScreen?.noOfUrinalScreens}</h4>
                               <div style="padding: 15px 20px 15px 20px; margin-top: 0px;">
                                   <p style="margin-top: 0px; font-size: 15px; margin-bottom: 4px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Screen Depth </span>- ${room.urinalScreen?.urinalScreenConfig[0]?.screenDepth}"</p>
                               </div>
@@ -1631,7 +1564,7 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                       <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
                                <h4 style="color:#fff; font-size: 18px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Material:</span> ${material.name}</h4>
                                <h4 style="color:#fff; font-size: 18px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Color:</span> ${color}</h4>
-                               <h5 style="font-size:18px;  margin-top:0;margin-bottom:0;"><span style="    font-weight: 400;">Order Total:</span> $${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h5>
+                               <h5 style="font-size:18px;  margin-top:0;margin-bottom:0;"><span style="    font-weight: 400;">Order Total:</span> $${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h5>
                        </div>
                    </div>
                    `).join('')}
@@ -1772,7 +1705,7 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                   <tr>
                       <td width="100%" style="width: 100%; vertical-align: top;" colspan="2">
                           <div style="border: 1px solid #e3e8ef;  border-radius: 10px; font-weight: 400; ">
-                              <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 7px 14px; margin-bottom: 0px; font-size: 15px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; margin-bottom: 0px;"> Privacy screens: ${room?.urinalScreen?.noOfUrinalScreens}</h4>
+                              <h4 style="color:#000; display: flex; align-items: center; margin-top: 0; border-bottom: 1px solid #e3e8ef; padding: 7px 14px; margin-bottom: 0px; font-size: 15px;"><img src="${process.env.URI}/uploads/images/lenght.png" alt="pic" style="width: 20px; margin-right: 5px; margin-bottom: 0px;"> Urinal screens: ${room?.urinalScreen?.noOfUrinalScreens}</h4>
                               <div style="padding: 15px 20px 15px 20px; margin-top: 0px;">
                                   <p style="margin-top: 0px; font-size: 15px; margin-bottom: 4px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Screen Depth </span>- ${room.urinalScreen?.urinalScreenConfig[0]?.screenDepth}"</p>
                               </div>

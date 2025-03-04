@@ -9,7 +9,7 @@ var OrderSchema = mongoose.Schema({
     },
     cart_id: {
         type: String,
-        required: true,
+        required: false,
     },
     order_id: {
         type: String,
@@ -51,7 +51,11 @@ var OrderSchema = mongoose.Schema({
         type: String,
         default: 'Pending'
     },
-  
+    is_mail_send: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
     
     deleted: {
         type: Boolean,
@@ -261,6 +265,7 @@ OrderSchema.customFields = {
         width: "50",
         searchable: true,
     },
+ 
 
     createdAt: {
         "field_name": "createdAt",
