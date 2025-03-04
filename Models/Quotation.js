@@ -4,7 +4,7 @@ var mongoose_delete = require("mongoose-delete");
 var QuotationSchema = mongoose.Schema({
     project_name: {
         type: String,
-        required: true,
+        required: false,
     },
     quotation_no: {
         type: String,
@@ -49,6 +49,16 @@ var QuotationSchema = mongoose.Schema({
         get: function(value) {
             return value ? 'Yes' : 'No'; // Return "Yes" if true, "No" if false
         }
+    },
+    is_mail_send: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
+    is_deal_create: {
+        type: Boolean,
+        required: false,
+        default: false
     },
     deleted: {
         type: Boolean,
