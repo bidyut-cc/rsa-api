@@ -751,6 +751,7 @@ async order(req, res){
     bigcommerceData.cart_id=12345
     bigcommerceData.response=req.body
     await bigcommerceData.save();
+  return 'success';
 }
 
 /**
