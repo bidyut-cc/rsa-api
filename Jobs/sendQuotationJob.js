@@ -51,7 +51,8 @@ module.exports = (agenda) => {
 
         const email_verification_template = await Emailtemplate.findOne({ code: templateCode }).exec();
         var template = email_verification_template.template;
-        body = template.replace("{{name}}", `${quotation.submittedData.first_name} ${quotation.submittedData.last_name}`);
+        body = template.replace("{{name}}", `${quotation.submittedData.first_name} ${quotation.submittedData.last_name}`)
+        .replace("{{quotation_no}}", `${quotation.quotation_no}`);
 
         let emails = [quotation.email, process.env.QUOTATION_EMAIL];
 
@@ -64,20 +65,6 @@ module.exports = (agenda) => {
             disposition: 'attachment', // Disposition type
           },
         ];
-       
-        if (isAnyMaterialQuoteTrue) {
-          const samplePDFData = await Setting.findOne(
-            { step: 'material_installation_quote' },
-            { step: 1, config: 1, _id: 1 }
-          );
-          const samplePdfPath = path.join(__dirname, '../public', 'api', 'uploads', 'pdf', samplePDFData.config.file.filename);
-          attachments.push({
-            content: fs.readFileSync(samplePdfPath), // Sample PDF file
-            filename: 'Sample-Quotation.pdf', // File name for the sample PDF
-            type: 'application/pdf', // MIME type
-            disposition: 'attachment', // Disposition type
-          });
-        }
 
         await email_helper.sendEmail(
           {
@@ -98,7 +85,7 @@ module.exports = (agenda) => {
 
         job.attrs.result = {
           status: "success",
-          message: "Email sent successfully",
+          message: "Quotation Email sent successfully",
         };
         await job.save(); // Save job result in DB
       } catch (error) {

@@ -33,7 +33,7 @@ var OrderSchema = mongoose.Schema({
     },
     colors: {
         type: Object,
-        required: true,
+        default: {},
     },
     amount: {
         type: String,
@@ -63,6 +63,10 @@ var OrderSchema = mongoose.Schema({
         default: false,
     },
     createdAt: {
+        type: Date,
+        default: () => Date.now(), 
+    },
+    updatedAt: {
         type: Date,
         default: () => Date.now(), 
     },

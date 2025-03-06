@@ -14,7 +14,7 @@ module.exports = (agenda) => {
       try {
         const quotation = await Quotation.findOne(
           { _id: quotationId },
-          { submittedData: 1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1 }
+          { submittedData: 1, project_name:1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1 }
         );
 
         if (!quotation) {
@@ -47,6 +47,8 @@ module.exports = (agenda) => {
               "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
               "Room Details": await quotationController.formatAllRoomsData(quotation.submittedData.rooms),
               "Material Details": materialDetailsString,
+              "Quote Number":`#${quotation.quotation_no}`,
+              "Project Name":`${quotation.project_name}`,
               "Color": "No color selected",
             },
           },
@@ -55,7 +57,7 @@ module.exports = (agenda) => {
           },
         };
 
-        console.log("Creating Zendesk deal:", dealData);
+       // console.log("Creating Zendesk deal:", dealData);
 
         // Create deal in Zendesk
         const deal = await quotationController.createDeal(dealData);
@@ -70,7 +72,7 @@ module.exports = (agenda) => {
             { $set: { zendesk_ticket_id: deal.id , is_deal_create:true} }
           );
 
-          console.log(`Updated zendesk_ticket_id for quotation ${quotationId} with ${deal.id}`);
+        //  console.log(`Updated zendesk_ticket_id for quotation ${quotationId} with ${deal.id}`);
           job.attrs.result = { success: true, message: "Deal created successfully", dealId: deal.id };
           await job.save();
           return done(); // Job successful
@@ -93,7 +95,7 @@ module.exports = (agenda) => {
 
         await job.save(); // Save the updated job details
 
-        console.error(`Job failed for Quotation ID: ${quotationId}. Attempt: ${failCount}/${maxRetries}`);
+       // console.error(`Job failed for Quotation ID: ${quotationId}. Attempt: ${failCount}/${maxRetries}`);
 
         if (failCount < maxRetries) {
           console.log(`Retrying in ${retryDelay / 1000} seconds... (Attempt ${failCount}/${maxRetries})`);

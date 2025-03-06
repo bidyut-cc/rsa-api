@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const InitiateMongoServer = require("../config/db"); // Ensure correct path
 const sendQuotationJob = require("./sendQuotationJob");
 const createZendeskLeadJob = require("./createZendeskLeadJob");
+const sendOrderJob = require("./sendOrderJob");
 
 module.exports = async (agenda) => {
   try {
@@ -10,6 +11,7 @@ module.exports = async (agenda) => {
 
     sendQuotationJob(agenda); // Load quotation email job
     createZendeskLeadJob(agenda); // Load another job
+    sendOrderJob(agenda); // Load another job
 
     console.log("✅ All Agenda jobs initialized successfully!");
   } catch (error) {
