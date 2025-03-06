@@ -773,7 +773,16 @@ async order(req, res){
         }
       );
 
-      const orderData = orderResponse.data;
+
+ 
+
+       const orderData = orderResponse.data;
+      let bigcommerceData = new BigcommerceOrderResponse;
+      bigcommerceData.order_id=id
+      bigcommerceData.cart_id=orderData?.cart_id
+      bigcommerceData.response=orderData
+      await bigcommerceData.save();
+
 
       if (orderData && orderData.cart_id) {
         // Check if order exists in your database
