@@ -758,13 +758,14 @@ class FrontendController {
 
 async order(req, res){
   try {
-    const { type, id } = req.body.data;
+    
+    const { type, order_id, transaction_type } = req.body.data;
 
     // Validate if type is 'order' and id exists
-    if (type === 'order' && id) {
+    if (type === 'transaction' && transaction_type == 'captured' && order_id) {
       // Fetch order details using BigCommerce API
       const orderResponse = await axios.get(
-        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v2/orders/${id}`,
+        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v2/orders/${order_id}`,
         {
           headers: {
             'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN, // Use token from environment variables
@@ -774,33 +775,31 @@ async order(req, res){
       );
 
       const orderData = orderResponse.data;
-
       if (orderData && orderData.cart_id) {
         // Check if order exists in your database
         const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
 
         if (existingOrder) {
-         
           let bigcommerceData = new BigcommerceOrderResponse;
           bigcommerceData.order_id=id
           bigcommerceData.cart_id=orderData?.cart_id
-          bigcommerceData.response=orderData
+          bigcommerceData.response=req.body.data;
           await bigcommerceData.save();
 
 
           // Check if payment is successful
-          const isSuccessfulPayment = ['captured', 'succeeded'].includes(orderData.payment_status);
+          const isSuccessfulPayment = ['captured'].includes(transaction_type);
 
-          const lastUpdated = existingOrder.updatedAt;
-          const timeDifference = (new Date() - lastUpdated) / 1000; // Difference in seconds
+          // const lastUpdated = existingOrder.updatedAt;
+          // const timeDifference = new Date() - lastUpdated; // Difference in milliseconds
 
-          if (isSuccessfulPayment && timeDifference < 5) {
-            console.log("Duplicate 'captured' event ignored.");
-            return res.status(200).json({
-              success: true,
-              message: 'Duplicate payment event ignored.',
-            });
-          }
+          // if (isSuccessfulPayment && timeDifference <= 5000) { // Check for 1ms or less
+          //   console.log("Duplicate 'captured' event ignored.");
+          //   return res.status(200).json({
+          //     success: true,
+          //     message: 'Duplicate payment event ignored.',
+          //   });
+          // }
 
           // Fields to update in Order
           const updateFields = {
@@ -825,19 +824,28 @@ async order(req, res){
     if (!existingQuotation) {
       throw new Error('Quotation not found in the database');
     }
-
-        if (isSuccessfulPayment) {
+// Determine the color value first
+      const selectedColor =
+        existingOrder.material_id !== '4' && existingOrder?.colors?.data?.length
+          ? existingOrder.colors.data[0].name
+          : 'No color selected';
+    if (isSuccessfulPayment && !existingOrder.is_mail_send) {
           await Quotation.findByIdAndUpdate(existingQuotation._id, { $set: { is_converted_to_deal: true } }, { new: true });
-
-          // Schedule an email after 5 seconds
-          await agenda.schedule("in 5 seconds", "send_order_email", {
-            quotationId: existingOrder.quotation_id,
-            bigcommerceOrderId: orderData.id,
-            orderId: existingOrder._id,
-            color: existingOrder.material_id !== '4' && existingOrder?.colors?.data?.length
-              ? existingOrder.colors.data[0].name
-              : 'No color selected'
+          const alreadyScheduled = await agenda._collection.findOne({
+            name: "send_order_email",
+            "data.quotationId": existingOrder.quotation_id,
+            "data.orderId": existingOrder._id
           });
+
+          if (!alreadyScheduled) {
+          // Schedule an email after 5 seconds
+          // await agenda.schedule("in 5 seconds", "send_order_email", {
+          //   quotationId: existingOrder.quotation_id,
+          //   bigcommerceOrderId: orderData.id,
+          //   orderId: existingOrder._id,
+          //   color: selectedColor
+          // });
+        }
         }
 
   
