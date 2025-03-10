@@ -758,18 +758,13 @@ class FrontendController {
 
 async order(req, res){
   try {
-    
-    const { type, order_id, transaction_type, result } = req.body.data;
-    let bigcommerceData = new BigcommerceOrderResponse;
-    bigcommerceData.order_id=order_id
-   // bigcommerceData.cart_id=orderData?.cart_id
-    bigcommerceData.response=req.body.data;
-    await bigcommerceData.save();
+    const { type, id, status } = req.body.data;
+
     // Validate if type is 'order' and id exists
-    if (type === 'transaction' && result.code == 'captured' && order_id) {
+    if (type === 'order' && id) {
       // Fetch order details using BigCommerce API
       const orderResponse = await axios.get(
-        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v2/orders/${order_id}`,
+        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v2/orders/${id}`,
         {
           headers: {
             'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN, // Use token from environment variables
@@ -779,17 +774,33 @@ async order(req, res){
       );
 
       const orderData = orderResponse.data;
+
       if (orderData && orderData.cart_id) {
         // Check if order exists in your database
         const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
 
         if (existingOrder) {
-
+         
+          let bigcommerceData = new BigcommerceOrderResponse;
+          bigcommerceData.order_id=id
+          bigcommerceData.cart_id=orderData?.cart_id
+          bigcommerceData.response=orderData
+          await bigcommerceData.save();
 
 
           // Check if payment is successful
-          const isSuccessfulPayment = ['captured'].includes(result.code);
+          const isSuccessfulPayment = [11].includes(status.new_status_id);
 
+          // const lastUpdated = existingOrder.updatedAt;
+          // const timeDifference = new Date() - lastUpdated; // Difference in milliseconds
+
+          // if (isSuccessfulPayment && timeDifference <= 5000) { // Check for 1ms or less
+          //   console.log("Duplicate 'captured' event ignored.");
+          //   return res.status(200).json({
+          //     success: true,
+          //     message: 'Duplicate payment event ignored.',
+          //   });
+          // }
 
           // Fields to update in Order
           const updateFields = {
@@ -835,7 +846,6 @@ async order(req, res){
           //   orderId: existingOrder._id,
           //   color: selectedColor
           // });
-
         }
         }
 
@@ -845,7 +855,7 @@ async order(req, res){
             message: 'Order status updated successfully',
             data: {
               cart_id:orderData.cart_id,
-              order_id: existingOrder.order_id,
+              order_id: existingOrder.id,
               payment_status: existingOrder.payment_status,
               order_status: existingOrder.order_status,
               //dealData:dealData
