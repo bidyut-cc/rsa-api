@@ -596,7 +596,7 @@ class FrontendController {
         "line_items": [
           {
             "quantity": 1,
-            "product_id": 111,
+            "product_id": product_id,
             "list_price": materials.price,
            // "name": "Restroom Stall"
           }
@@ -760,6 +760,11 @@ async order(req, res){
   try {
     
     const { type, order_id, transaction_type, result } = req.body.data;
+    let bigcommerceData = new BigcommerceOrderResponse;
+    bigcommerceData.order_id=order_id
+    bigcommerceData.cart_id=orderData?.cart_id
+    bigcommerceData.response=req.body.data;
+    await bigcommerceData.save();
     // Validate if type is 'order' and id exists
     if (type === 'transaction' && result.code == 'captured' && order_id) {
       // Fetch order details using BigCommerce API
@@ -779,11 +784,7 @@ async order(req, res){
         const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
 
         if (existingOrder) {
-          let bigcommerceData = new BigcommerceOrderResponse;
-          bigcommerceData.order_id=order_id
-          bigcommerceData.cart_id=orderData?.cart_id
-          bigcommerceData.response=req.body.data;
-          await bigcommerceData.save();
+
 
 
           // Check if payment is successful
@@ -828,22 +829,13 @@ async order(req, res){
 
           if (!alreadyScheduled) {
           // Schedule an email after 5 seconds
-          await agenda.schedule("in 5 seconds", "send_order_email", {
-            quotationId: existingOrder.quotation_id,
-            bigcommerceOrderId: orderData.id,
-            orderId: existingOrder._id,
-            color: selectedColor
-          });
-
-          if (!alreadyScheduled) {
-          // Schedule an email after 5 seconds
           // await agenda.schedule("in 5 seconds", "send_order_email", {
           //   quotationId: existingOrder.quotation_id,
           //   bigcommerceOrderId: orderData.id,
           //   orderId: existingOrder._id,
           //   color: selectedColor
           // });
-        }
+
         }
         }
 
