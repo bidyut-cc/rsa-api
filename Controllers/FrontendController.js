@@ -762,7 +762,7 @@ async order(req, res){
     const { type, order_id, transaction_type, result } = req.body.data;
     let bigcommerceData = new BigcommerceOrderResponse;
     bigcommerceData.order_id=order_id
-    bigcommerceData.cart_id=orderData?.cart_id
+   // bigcommerceData.cart_id=orderData?.cart_id
     bigcommerceData.response=req.body.data;
     await bigcommerceData.save();
     // Validate if type is 'order' and id exists
