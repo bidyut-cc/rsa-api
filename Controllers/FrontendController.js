@@ -760,6 +760,12 @@ async order(req, res){
   try {
     const { type, id, status } = req.body.data;
 
+    let bigcommerceData = new BigcommerceOrderResponse;
+    bigcommerceData.order_id=id
+   // bigcommerceData.cart_id=orderData?.cart_id
+    bigcommerceData.response=req.body.data
+    await bigcommerceData.save();
+
     // Validate if type is 'order' and id exists
     if (type === 'order' && id) {
       // Fetch order details using BigCommerce API
@@ -781,11 +787,11 @@ async order(req, res){
 
         if (existingOrder) {
          
-          let bigcommerceData = new BigcommerceOrderResponse;
-          bigcommerceData.order_id=id
-          bigcommerceData.cart_id=orderData?.cart_id
-          bigcommerceData.response=orderData
-          await bigcommerceData.save();
+          // let bigcommerceData = new BigcommerceOrderResponse;
+          // bigcommerceData.order_id=id
+          // bigcommerceData.cart_id=orderData?.cart_id
+          // bigcommerceData.response=orderData
+          // await bigcommerceData.save();
 
 
           // Check if payment is successful
