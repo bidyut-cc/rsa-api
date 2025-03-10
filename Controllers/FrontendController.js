@@ -760,12 +760,6 @@ async order(req, res){
   try {
     const { type, id, status } = req.body.data;
 
-    let bigcommerceData = new BigcommerceOrderResponse;
-    bigcommerceData.order_id=id
-   // bigcommerceData.cart_id=orderData?.cart_id
-    bigcommerceData.response=req.body.data
-    await bigcommerceData.save();
-
     // Validate if type is 'order' and id exists
     if (type === 'order' && id) {
       // Fetch order details using BigCommerce API
@@ -781,32 +775,22 @@ async order(req, res){
 
       const orderData = orderResponse.data;
 
-      if (orderData && orderData.cart_id) {
+      if (orderData && orderData.cart_id && status.new_status_id === 11) {
         // Check if order exists in your database
         const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
 
         if (existingOrder) {
          
-          // let bigcommerceData = new BigcommerceOrderResponse;
-          // bigcommerceData.order_id=id
-          // bigcommerceData.cart_id=orderData?.cart_id
-          // bigcommerceData.response=orderData
-          // await bigcommerceData.save();
+          let bigcommerceData = new BigcommerceOrderResponse;
+          bigcommerceData.order_id=id
+          bigcommerceData.cart_id=orderData?.cart_id
+          bigcommerceData.response=req.body.data
+          await bigcommerceData.save();
 
 
           // Check if payment is successful
           const isSuccessfulPayment = [11].includes(status.new_status_id);
 
-          // const lastUpdated = existingOrder.updatedAt;
-          // const timeDifference = new Date() - lastUpdated; // Difference in milliseconds
-
-          // if (isSuccessfulPayment && timeDifference <= 5000) { // Check for 1ms or less
-          //   console.log("Duplicate 'captured' event ignored.");
-          //   return res.status(200).json({
-          //     success: true,
-          //     message: 'Duplicate payment event ignored.',
-          //   });
-          // }
 
           // Fields to update in Order
           const updateFields = {
@@ -845,13 +829,13 @@ async order(req, res){
           });
 
           if (!alreadyScheduled) {
-          // Schedule an email after 5 seconds
-          // await agenda.schedule("in 5 seconds", "send_order_email", {
-          //   quotationId: existingOrder.quotation_id,
-          //   bigcommerceOrderId: orderData.id,
-          //   orderId: existingOrder._id,
-          //   color: selectedColor
-          // });
+         // Schedule an email after 5 seconds
+          await agenda.schedule("in 5 seconds", "send_order_email", {
+            quotationId: existingOrder.quotation_id,
+            bigcommerceOrderId: orderData.id,
+            orderId: existingOrder._id,
+            color: selectedColor
+          });
         }
         }
 
