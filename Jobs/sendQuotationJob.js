@@ -45,16 +45,30 @@ module.exports = (agenda) => {
 
         const pdfBuffer = await quotationController.generatePDF(htmlContent);
 
-        let body = '';
+        // **Customer Email**
         const isAnyMaterialQuoteTrue = quotation.submittedData.rooms.some(room => room.materialQuote === "true");
         const templateCode = isAnyMaterialQuoteTrue ? "QUOTATION_YES" : "QUOTATION_NO";
 
-        const email_verification_template = await Emailtemplate.findOne({ code: templateCode }).exec();
-        var template = email_verification_template.template;
-        body = template.replace("{{name}}", `${quotation.submittedData.first_name} ${quotation.submittedData.last_name}`)
+        const customerTemplate = await Emailtemplate.findOne({ code: templateCode }).exec();
+        var customerEmailBody = customerTemplate.template;
+        customerEmailBody = customerEmailBody.replace("{{name}}", `${quotation.submittedData.first_name} ${quotation.submittedData.last_name}`)
         .replace("{{quotation_no}}", `${quotation.quotation_no}`);
+        let customersEmails = [quotation.email];
 
-        let emails = [quotation.email, process.env.QUOTATION_EMAIL];
+        // **Admin Email**
+        const adminTemplate = await Emailtemplate.findOne({ code: "QUOTATION_ADMIN" }).exec();
+        var adminEmailBody = adminTemplate.template;
+        adminEmailBody = adminEmailBody
+          .replace("{{project_name}}", quotation.submittedData.project_name && quotation.submittedData.project_name.trim() !== '' ? quotation.submittedData.project_name : "NA")
+          .replace("{{first_name}}", quotation.submittedData.first_name || "NA")
+          .replace("{{last_name}}", quotation.submittedData.last_name || "NA")
+          .replace("{{email}}", quotation.email || "NA")
+          .replace("{{phone_number}}", quotation.phone_number || "NA")
+          .replace("{{installation_services}}", isAnyMaterialQuoteTrue ? "Yes" : "No");
+
+         let adminEmails = [process.env.QUOTATION_EMAIL];
+
+       
 
         // Email attachments
         const attachments = [
@@ -65,12 +79,23 @@ module.exports = (agenda) => {
             disposition: 'attachment', // Disposition type
           },
         ];
-
+        // **Send Customer Email**
         await email_helper.sendEmail(
           {
-            receivers: emails,
+            receivers: customersEmails,
             subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
-            context: { body_content: body },
+            context: { body_content: customerEmailBody },
+          },
+          attachments
+        );
+
+
+        // **Send Admin Email**
+        await email_helper.sendEmail(
+          {
+            receivers: adminEmails,
+            subject: `Restroom Stalls & All Quotation - #${quotation.quotation_no}`,
+            context: { body_content: adminEmailBody },
           },
           attachments
         );
