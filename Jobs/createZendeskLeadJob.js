@@ -20,7 +20,7 @@ module.exports = (agenda) => {
         if (!quotation) {
           throw new Error(`Quotation not found for ID: ${quotationId}`);
         }
-
+        const isAnyMaterialQuoteTrue = quotation.submittedData.rooms.some(room => room.materialQuote === "true");
         const contactData = {
           first_name: quotation.submittedData.first_name,
           last_name: quotation.submittedData.last_name,
@@ -48,7 +48,8 @@ module.exports = (agenda) => {
               "Room Details": await quotationController.formatAllRoomsData(quotation.submittedData.rooms),
               "Material Details": materialDetailsString,
               "Quote Number":`#${quotation.quotation_no}`,
-              "Project Name":`${quotation.project_name}`,
+              "Project Name": quotation.project_name && quotation.project_name.trim() !== "" ? quotation.project_name : "NA",
+              "Installation Services":isAnyMaterialQuoteTrue ? "Yes" : "No",
               "Color": "No color selected",
             },
           },

@@ -244,6 +244,7 @@ class FrontendController {
         //  price: priceByProductAndRoom[productName].totalPrice.toFixed(2), // total aggregated price
           price: Math.round(priceByProductAndRoom[productName].totalPrice),
           src: matchingMaterial ? matchingMaterial.src : null,
+          warranty: matchingMaterial ? matchingMaterial.warranty : null,
           price_details: priceByProductAndRoom[productName].rooms, // detailed price per room
         };
       });
@@ -311,7 +312,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium-browser',
+     // executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -461,6 +462,21 @@ class FrontendController {
      }
 
       try {
+
+        // 🔹 Check if an order with status "Completed" (status_id: 11) exists
+        const completedOrder = await Order.findOne({
+          quotation_id: id,
+          payment_status: "Captured", // Ensure this matches your DB status field
+        });
+
+        if (completedOrder) {
+          return res.status(404).json({
+            status: false,
+            message: "An order for this quotation has already been completed.",
+          });
+        }
+
+
         const oneMinuteAgo = new Date(Date.now() - 30 * 1000); // 30 seconds ago
 
         const existingOrder = await Order.findOne({
@@ -471,7 +487,7 @@ class FrontendController {
         if (existingOrder) {
           return res.status(404).json({
             status: false,
-            message: "Your other request is being processed. Please wait for thirty seconds.",
+            message: "Another request is already being processed. Please try again in a minute.",
           });
         }
         const data = await Quotation.findOne(
@@ -596,7 +612,7 @@ class FrontendController {
         "line_items": [
           {
             "quantity": 1,
-            "product_id": product_id,
+            "product_id": 111,
             "list_price": materials.price,
            // "name": "Restroom Stall"
           }
@@ -775,18 +791,17 @@ async order(req, res){
 
       const orderData = orderResponse.data;
 
-      if (orderData && orderData.cart_id && status.new_status_id === 11) {
-        // Check if order exists in your database
-        const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
-
-        if (existingOrder) {
-         
-          let bigcommerceData = new BigcommerceOrderResponse;
+      let bigcommerceData = new BigcommerceOrderResponse;
           bigcommerceData.order_id=id
           bigcommerceData.cart_id=orderData?.cart_id
           bigcommerceData.response=req.body.data
           await bigcommerceData.save();
 
+      if (orderData && orderData.cart_id && status.new_status_id === 11) {
+        // Check if order exists in your database
+        const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
+
+        if (existingOrder) {
 
           // Check if payment is successful
           const isSuccessfulPayment = [11].includes(status.new_status_id);
@@ -1110,7 +1125,7 @@ Stalls Details :
 Total : ${noOfStalls} Stalls
 ${stallsDetails}
 
-Layout- ${layoutDirection}${urinalDetails}
+Layout- ${layout?.layoutName}${urinalDetails}
 `;
 }
 
@@ -1163,7 +1178,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                            </div>
                            <div  style="width: 75% !important; padding: 0px 20px 5px; margin-bottom: 0px !important;color:#fff;">
                                <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 5px;">${material.name}</h4>
-                               <h6 style="font-size: 14px; font-weight: 400; margin-top: 0; margin-bottom: 0;">3 years warranty</h6>
+                               <h6 style="font-size: 14px; font-weight: 400; margin-top: 0; margin-bottom: 0;">${material.warranty} warranty</h6>
                                <h5 style="font-size:20px;  margin-top:4px;margin-bottom:4px;">$${Number(material.price).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h5>
                        
                                <div>
