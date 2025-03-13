@@ -34,16 +34,17 @@ module.exports = (agenda) => {
         const materialDetailsString = quotation.materials
           .map((material) => `${material.name}: $${material.price}`)
           .join("\n"); // Use newline character for each item
-
+        const amount = await quotationController.getSmallestOuterPrice(quotation.materials);
         const dealData = {
           data: {
             name: `${contactData.first_name} ${contactData.last_name}`,
-            value: await quotationController.getSmallestOuterPrice(quotation.materials),
+            value: amount,
             hot: true,
             contact_id: contact_id,
             stage_id: Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
             tags: ["important"],
             custom_fields: {
+              "Order Total": `$${amount}`,
               "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
               "Room Details": await quotationController.formatAllRoomsData(quotation.submittedData.rooms),
               "Material Details": materialDetailsString,
