@@ -74,7 +74,7 @@ module.exports = (agenda) => {
         const attachments = [
           {
             content: Buffer.from(pdfBuffer), // Directly use the buffer
-            filename: `Quotation-${quotation.quotation_no}.pdf`, // Set file name
+            filename: `Quote-${quotation.quotation_no}.pdf`, // Set file name
             type: 'application/pdf', // Set MIME type
             disposition: 'attachment', // Disposition type
           },
@@ -83,7 +83,7 @@ module.exports = (agenda) => {
         await email_helper.sendEmail(
           {
             receivers: customersEmails,
-            subject: `Restroom Stalls & All Quotation #${quotation.quotation_no}`,
+            subject: `Restroom Stalls & All Quote #${quotation.quotation_no}`,
             context: { body_content: customerEmailBody },
           },
           attachments
@@ -94,7 +94,7 @@ module.exports = (agenda) => {
         await email_helper.sendEmail(
           {
             receivers: adminEmails,
-            subject: `Restroom Stalls & All Quotation - #${quotation.quotation_no}`,
+            subject: `Restroom Stalls & All Quote - #${quotation.quotation_no}`,
             context: { body_content: adminEmailBody },
           },
           attachments

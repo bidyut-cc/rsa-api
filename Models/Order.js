@@ -39,6 +39,16 @@ var OrderSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    shipping_amount: {
+        type: Number,
+        required: false,
+        default:0
+    },
+    total_amount: {
+        type: Number,
+        required: false,
+        default:0
+    },
     billing_address: {
         type: Object,
         required: false,
@@ -83,7 +93,7 @@ OrderSchema.changeLog = true;
 
 OrderSchema.plugin(mongoose_delete);
 OrderSchema.plugin(mongoose_delete, { overrideMethods: "all" });
-OrderSchema.fillable = ["quotation_id","material_id","cart_id","order_id","first_name","last_name","email","phone_number","colors","amount","payment_status","billing_address"];
+OrderSchema.fillable = ["quotation_id","material_id","cart_id","order_id","first_name","last_name","email","phone_number","colors","amount","shipping_amount","total_amount","payment_status","billing_address"];
 
 OrderSchema.customFields = {
     _id: {
@@ -222,6 +232,32 @@ OrderSchema.customFields = {
         db_name: "amount",
         type: "text",
         placeholder: "amount",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    shipping_amount: {
+        field_name: "shipping_amount",
+        db_name: "shipping_amount",
+        type: "text",
+        placeholder: "shipping_amount",
+        listing: true,
+        sort: true,
+        default_sort: false,
+        required: false,
+        value: "",
+        width: "50",
+        searchable: true,
+    },
+    total_amount: {
+        field_name: "total_amount",
+        db_name: "total_amount",
+        type: "text",
+        placeholder: "total_amount",
         listing: true,
         sort: true,
         default_sort: false,

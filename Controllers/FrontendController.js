@@ -269,7 +269,7 @@ class FrontendController {
         });
       }
 
-      // **Schedule email sending via Agenda**
+      // // **Schedule email sending via Agenda**
       await agenda.schedule("in 10 seconds", "send_quotation_email", {
         quotationId: quotation._id,
       });
@@ -312,7 +312,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-     // executablePath: '/usr/bin/chromium-browser',
+      executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -535,6 +535,8 @@ class FrontendController {
         await Order.findByIdAndUpdate(savedOrder._id, {
           cart_id: bigCommerceCart.data.data.id,
           amount: bigCommerceCart.data.data.base_amount,
+          shipping_amount:250,
+          amount: bigCommerceCart.data.data.base_amount + 250,
         });
         res.status(200).json({
             status: true,
@@ -612,7 +614,7 @@ class FrontendController {
         "line_items": [
           {
             "quantity": 1,
-            "product_id": 111,
+            "product_id": product_id,
             "list_price": materials.price,
            // "name": "Restroom Stall"
           }
@@ -813,6 +815,8 @@ async order(req, res){
             order_status: await this.capitalizeWords(orderData.status) || 'Pending',
             billing_address: orderData.billing_address || {},
             order_id: orderData.id || null,
+            shipping_amount: orderData.shipping_cost_inc_tax || 0.00,
+            total_amount: orderData.total_inc_tax || existingOrder.amount,
             paymentDate: new Date(orderData.date_modified) || null,
             updatedAt: Date.now(),
           };
@@ -849,7 +853,9 @@ async order(req, res){
             quotationId: existingOrder.quotation_id,
             bigcommerceOrderId: orderData.id,
             orderId: existingOrder._id,
-            color: selectedColor
+            color: selectedColor,
+            amount: orderData.subtotal_inc_tax,
+            total_amount: orderData.total_inc_tax,
           });
         }
         }
@@ -1049,14 +1055,16 @@ async downloadPDF(req, res) {
   }
 }
 
-async updateDeal(id,color) {
+async updateDeal(id,color,amount,total_amount) {
   try {
       const dealResponse = await axios.put(
         `${process.env.ZENDESK_SELL_API_URL}/deals/${id}`,// Use the provided URL structure
           {
               data: {
+                  value: amount,
                   stage_id: Number(process.env.ZENDESK_DEAL_FINAL_STAGE_ID), // Replace with the desired stage ID
                   "custom_fields": {
+                    "Order Total": `$${total_amount}`,
                     "Color": color,
                   }
               },
@@ -1095,7 +1103,7 @@ async formatRoomData(roomData) {
   const stallsDetails = stallConfig
     .map(
       (stall, index) =>
-        `Stall ${index + 1}${stall?.type ? ' (ADA)' : ''} - Width: ${stall.stallWidth}"  Door: ${stall.doorOpening}"  Door Swing: ${stall.doorSwing.name}`
+        `Stall ${index + 1}${stall?.type ? ' (ADA)' : ''} - Width: ${stall?.totalStallWidth}"  Door: ${stall.doorOpening}"  Door Swing: ${stall.doorSwing.name}`
     )
     .join("\n\n");
 
@@ -1119,8 +1127,7 @@ async formatRoomData(roomData) {
 
   // Final formatted string
   return `
-Room ${id}
-Room Name: #${id}. ${title}
+Room Name: ${title}
 Stalls Details : 
 Total : ${noOfStalls} Stalls
 ${stallsDetails}
@@ -1155,16 +1162,31 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
      
   </tr>
   <tr>
-      <td colspan="2" style="text-align: center; margin-top: 0px; ">
-          <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 10px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 10px;">Review your Pricing Options</h4>
-          <div style="display: flex; align-items: center; justify-content:center; position: relative;">
-           <p></p>
-            <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation_id}&abandoned=1" style="color:#fff; font-size: 12px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; border-radius: 5px; padding: 6px 8px; text-decoration: none; margin-left: 0px; position: absolute; right: 0;background-color: #4e843d;">Return to Quote Builder</a>
-          </div>
+  <td colspan="2" style="text-align: center; margin-top: 0px;">
+      <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 10px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 10px;">
+          Review Your Pricing Options
+      </h4>
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; position: relative;">
+          <!-- Left Button -->
+          <a href="${process.env.FRONTEND_UI_URL}/create-a-project?new-quote=1" 
+             style="color:#fff; font-size: 12px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; 
+                    border-radius: 5px; padding: 6px 8px; text-decoration: none; background-color: #4e843d;">
+              Start New Quote
+          </a>
           
-      </td>
-      
-  </tr>
+          <!-- Spacer -->
+          <p></p>
+
+          <!-- Right Button -->
+          <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation_id}&abandoned=1" 
+             style="color:#fff; font-size: 12px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; 
+                    border-radius: 5px; padding: 6px 8px; text-decoration: none; background-color: #4e843d;">
+              Continue Order Process
+          </a>
+      </div>
+  </td>
+</tr>
+
   <tr>
       <td colspan="2" width="100%" style="width: 100%;">
           <div class="table_box" style="margin-top: 5px;">
@@ -1204,11 +1226,11 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                              
                                   
                                        <div style="width:100%;">
-                                       <p style="margin-top:0; line-height:1.4; margin-bottom: 7px; font-size: 10px; color:#fff; text-align:center;">Our Team will Confirm your Order Details at: <span style="cursor: default;    pointer-events: none;">${formattedPhone}</span></p>
+                                       <p style="margin-top:0; line-height:1.4; margin-bottom: 7px; font-size: 10px; color:#fff; text-align:center;">Our team will Confirm your Order Details at: <span style="cursor: default;    pointer-events: none;">${formattedPhone}</span></p>
                                           <div style="text-align: right; width: 100%;">
                                               <a href="${process.env.QUOTATION_PAYMENT_URL}?id=${quotation_id}&material_id=${material.id}" style="text-decoration: none; color:#000; padding: 4px 10px; border:1px solid #feda15; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #feda15;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
                                           </div>
-                                         <p style="margin-top:7px; line-height: 1; margin-bottom: 0px; font-size:9px; color:#fff; text-align:center;">Shipped in 4-6 business days</p>
+                                         <p style="margin-top:7px; line-height: 1; margin-bottom: 0px; font-size:9px; color:#fff; text-align:center;">Ships in appx. 4-6 business days</p>
 
                                        </div>
                                   
@@ -1221,7 +1243,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                    <div style="padding: 10px 40px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px;  print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;width:48%; box-sizing: border-box; min-height: 200px;" >
                       <p style="color:#fff; font-size:16px; line-height: 1.3; text-align: left; padding:0; margin-top: 5px;font-weight: 700;    margin-bottom: 10px;">What's included in my order?</p>
                       <ul style="color:#fff; font-size: 13px; line-height: 1.3; text-align: left; padding:0 0 0 15px;    margin: 0;">
-                        <li style="margin:0 0 4px 0;">Prices include Shipping for all order components: doors, panels, pilasters, brackets, anchors, and screws.</li>
+                        <li style="margin:0 0 4px 0;">Prices include shipping for all order components: doors, panels, pilasters, brackets, anchors, and screws.</li>
                         <li style="margin:0 0 4px 0;">Sales tax added at checkout.</li>
                         <li style="margin:0 0 4px 0;">Availability may change. </li>
                         <li style="margin:0 0 0 0;">Orders are subject to review by RSA.</li>
@@ -1277,7 +1299,7 @@ ${rooms.map((room, index) => `
                              <p style="display: flex; align-items: center; font-size: 15px; width:100%; line-height: 1;padding-left:20px;"><img src="${process.env.URI}/uploads/images/layout.png" alt="pic" style="width: 17px; margin-right:10px;"/><span style="color:#000; font-weight: 500; font-weight: 700; line-height: 1;color:#0061a6;">Layout </span>- ${room.stall?.layout?.layoutName}</p>
                               <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
                                   ${room?.stall?.stallConfig?.map((stall, stallIndex) =>`
-                                  <p style="margin-top: 0px; font-size: 12px; margin-bottom: 5px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"  <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"  <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
+                                  <p style="margin-top: 0px; font-size: 12px; margin-bottom: 5px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall?.totalStallWidth}"  <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"  <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
                                       </p>
                                       `).join('')}
                               </div>
@@ -1310,8 +1332,9 @@ ${rooms.map((room, index) => `
                           </div>
                       </td>
                       <td width="50%" style="width: 50%;">
-                         <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need Something Bigger?</h5>
-                          <p style="margin-top: 5px;">No problem! Our Partition Experts will help you Customize your Layout.</p>
+                         <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need something bigger?</h5>
+                          <p style="margin-top: 5px;">No problem! Our partition experts will help you
+                          customize your layout.</p>
                       </td>
                   </tr>
               </table>
@@ -1385,8 +1408,9 @@ ${room.hasUrinalScreens ? `
                           </div>
                       </td>
                       <td width="50%" style="width: 50%;">
-                          <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need Something Bigger?</h5>
-                          <p style="margin-top: 4px;">No problem! Our Partition Experts will help you Customize your Layout.</p>
+                          <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need something bigger?</h5>
+                          <p style="margin-top: 4px;">No problem! Our partition experts will help you
+                          customize your layout.</p>
                       </td>
                   </tr>
               </table>
@@ -1447,14 +1471,7 @@ ${room.hasUrinalScreens ? `
                                   </a>
                                   </div>
                               </td>
-                              <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/DJ_Bunn.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">DJ Bunn</h4>
-                                  </a>
-                                  </div>
-                              </td>
+                         
                               <td style="width: 15%;">
                                   <div>
                                   <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
@@ -1475,7 +1492,7 @@ ${room.hasUrinalScreens ? `
                                   <div>
                                   <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Megan_Schroeder.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Megan Schroeder
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Megan Watkins
                                       </h4>
                                   </a>
                                   </div>
@@ -1504,15 +1521,7 @@ ${room.hasUrinalScreens ? `
                                   </a>
                                   </div>
                               </td>
-                              <td style="width: 15%;">
-                                              <div>
-                                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                                  <img src="${process.env.URI}/uploads/images/Tracy_Hanson.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Tracy Hanson
-                                                  </h4>
-                                                </a>
-                                              </div>
-                                          </td>
+                     
                                           <td style="width: 15%;">
                                               <div>
                                               <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
@@ -1546,7 +1555,7 @@ ${room.hasUrinalScreens ? `
   <tr>
       <td colspan="2" style="text-align: center;">
           <h5 style="color:#000; font-size: 20px; font-weight: 600; margin-bottom: 5px; margin-top: 10px;">Do you have questions?</h5>
-          <p style="color:#000; font-size: 18px; margin-top: 10px; margin-bottom: 10px;">Call us or email us and we'd be happy to assist you.</p>
+          <p style="color:#000; font-size: 18px; margin-top: 10px; margin-bottom: 10px;">We are here to help. Call or email us today.</p>
        <h4 style="display: flex; align-items: center; justify-content: center; margin-top: 10px; margin-bottom: 10px;"><a href="tel:1-8448178255" style="color:#285fa1; font-weight: 900; text-decoration: none; font-size: 24px; font-family:Verdana, Geneva, Tahoma, sans-serif; font-style:italic">1-844-81-STALL</a><a href="mailto:cs@restroomstallsandall.com" style="font-size: 20px; color:#000; font-weight: 400; margin-left: 15px;">cs@restroomstallsandall.com</a></h4>
       </td>
   </tr>
@@ -1660,7 +1669,7 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                              <p style="display: flex; align-items: center; font-size: 15px; width:100%; line-height: 1;padding-left:20px;"><img src="${process.env.URI}/uploads/images/layout.png" alt="pic" style="width: 17px; margin-right:10px;"/><span style="color:#000; font-weight: 500; font-weight: 700; line-height: 1;color:#0061a6;">Layout </span>- ${room.stall?.layout?.layoutName}</p>
                               <div style="padding: 0px 20px 15px 20px; margin-top: 0px;">
                                   ${room?.stall?.stallConfig?.map((stall, stallIndex) =>`
-                                  <p style="margin-top: 0px; font-size: 12px; margin-bottom: 5px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall.stallWidth}"  <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"  <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
+                                  <p style="margin-top: 0px; font-size: 12px; margin-bottom: 5px; line-height: 1;"><span style="color:#000; font-weight: 700; color:#0061a6; line-height: 1;">Stall ${stallIndex+1}${stall?.type ? '(ADA)' : ''} </span>- <span style="font-weight: 600; line-height: 1;">Width:</span> ${stall?.totalStallWidth}"  <span style="font-weight: 600;">Door:</span> ${stall.doorOpening}"  <span style="font-weight: 600;">Door Swing:</span> ${stall.doorSwing?.name}
                                       </p>
                                       `).join('')}
                               </div>
@@ -1693,8 +1702,9 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                           </div>
                       </td>
                       <td width="50%" style="width: 50%;">
-                         <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need Something Bigger?</h5>
-                          <p style="margin-top: 5px;">No problem! Our Partition Experts will help you Customize your Layout.</p>
+                         <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need something bigger?</h5>
+                          <p style="margin-top: 5px;">No problem! Our partition experts will help you
+                          customize your layout.</p>
                       </td>
                   </tr>
               </table>
@@ -1768,8 +1778,9 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                           </div>
                       </td>
                       <td width="50%" style="width: 50%;">
-                          <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need Something Bigger?</h5>
-                          <p style="margin-top: 4px;">No problem! Our Partition Experts will help you Customize your Layout.</p>
+                          <h5 style="color:#0061a6; font-size: 20px; font-weight: 600; margin-bottom: 0px; margin-top: 0px;">Need something bigger?</h5>
+                          <p style="margin-top: 4px;">No problem! Our partition experts will help you
+                          customize your layout.</p>
                       </td>
                   </tr>
               </table>
@@ -1830,14 +1841,7 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                                   </a>
                                   </div>
                               </td>
-                              <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/DJ_Bunn.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">DJ Bunn</h4>
-                                  </a>
-                                  </div>
-                              </td>
+                            
                               <td style="width: 15%;">
                                   <div>
                                   <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
@@ -1858,7 +1862,7 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                                   <div>
                                   <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Megan_Schroeder.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Megan Schroeder
+                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Megan Watkins
                                       </h4>
                                   </a>
                                   </div>
@@ -1887,15 +1891,7 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                                   </a>
                                   </div>
                               </td>
-                              <td style="width: 15%;">
-                                              <div>
-                                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                                  <img src="${process.env.URI}/uploads/images/Tracy_Hanson.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Tracy Hanson
-                                                  </h4>
-                                                </a>
-                                              </div>
-                                          </td>
+                    
                                           <td style="width: 15%;">
                                               <div>
                                               <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">

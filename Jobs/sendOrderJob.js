@@ -13,7 +13,7 @@ module.exports = (agenda) => {
     "send_order_email",
     { shouldSaveResult: true },
     async (job) => {
-      const { quotationId, bigcommerceOrderId, orderId, color } = job.attrs.data;
+      const { quotationId, bigcommerceOrderId, orderId, color,amount,total_amount } = job.attrs.data;
       const maxRetries = 4;
       const retryDelay = 10 * 1000; // 10 seconds
 
@@ -59,7 +59,7 @@ module.exports = (agenda) => {
              
 
           }
-          const dealData = await quotationController.updateDeal(quotation.zendesk_ticket_id,color);
+          const dealData = await quotationController.updateDeal(quotation.zendesk_ticket_id,color,amount,total_amount);
        // console.log(`Email successfully sent for order ID: ${orderId}`);
 
         job.attrs.result = {
