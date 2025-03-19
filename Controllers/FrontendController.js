@@ -269,7 +269,7 @@ class FrontendController {
         });
       }
 
-      // // **Schedule email sending via Agenda**
+      // **Schedule email sending via Agenda**
       await agenda.schedule("in 10 seconds", "send_quotation_email", {
         quotationId: quotation._id,
       });
@@ -322,6 +322,71 @@ class FrontendController {
     
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+        // Inject the trimImage function into the browser context
+        await page.evaluate(() => {
+          window.trimImage = function trimImage(imageElement) {
+              const image = new Image();
+              image.crossOrigin = "anonymous";
+              image.src = imageElement.src;
+  
+              image.onload = () => {
+                  const canvas = document.createElement("canvas");
+                  const ctx = canvas.getContext("2d");
+  
+                  canvas.width = image.width;
+                  canvas.height = image.height;
+                  ctx.drawImage(image, 0, 0);
+  
+                  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                  let top = 0, left = 0, right = canvas.width, bottom = canvas.height;
+  
+                  while (top < bottom && isRowWhite(imgData, top)) top++;
+                  while (bottom > top && isRowWhite(imgData, bottom - 1)) bottom--;
+                  while (left < right && isColumnWhite(imgData, left)) left++;
+                  while (right > left && isColumnWhite(imgData, right - 1)) right--;
+  
+                  const newWidth = right - left;
+                  const newHeight = bottom - top;
+  
+                  const trimmedCanvas = document.createElement("canvas");
+                  trimmedCanvas.width = newWidth;
+                  trimmedCanvas.height = newHeight;
+                  const trimmedCtx = trimmedCanvas.getContext("2d");
+                  trimmedCtx.drawImage(canvas, left, top, newWidth, newHeight, 0, 0, newWidth, newHeight);
+  
+                  imageElement.src = trimmedCanvas.toDataURL();
+              };
+  
+              function isRowWhite(imgData, y) {
+                  for (let x = 0; x < imgData.width; x++) {
+                      const i = (y * imgData.width + x) * 4;
+                      if (!isWhite(imgData.data[i], imgData.data[i + 1], imgData.data[i + 2], imgData.data[i + 3])) return false;
+                  }
+                  return true;
+              }
+  
+              function isColumnWhite(imgData, x) {
+                  for (let y = 0; y < imgData.height; y++) {
+                      const i = (y * imgData.width + x) * 4;
+                      if (!isWhite(imgData.data[i], imgData.data[i + 1], imgData.data[i + 2], imgData.data[i + 3])) return false;
+                  }
+                  return true;
+              }
+  
+              function isWhite(r, g, b, a) {
+                  return (r > 250 && g > 250 && b > 250) || a === 0;
+              }
+          };
+      });
+  
+      // Run trimImage on all images with class "roomImage"
+      await page.evaluate(() => {
+          const images = document.querySelectorAll(".roomImage");
+          images.forEach(imageElement => {
+              window.trimImage(imageElement);
+          });
+      });
+
     const pdfBuffer = await page.pdf({
       format: 'A4',
       displayHeaderFooter: true,
@@ -536,7 +601,7 @@ class FrontendController {
           cart_id: bigCommerceCart.data.data.id,
           amount: bigCommerceCart.data.data.base_amount,
           shipping_amount:250,
-          amount: bigCommerceCart.data.data.base_amount + 250,
+          total_amount: bigCommerceCart.data.data.base_amount + 250,
         });
         res.status(200).json({
             status: true,
@@ -848,6 +913,10 @@ async order(req, res){
           });
 
           if (!alreadyScheduled) {
+      
+            const formattedTotalAmount = Number(orderData.total_inc_tax).toLocaleString("en-US", {
+              maximumFractionDigits: 0,
+            });
          // Schedule an email after 5 seconds
           await agenda.schedule("in 5 seconds", "send_order_email", {
             quotationId: existingOrder.quotation_id,
@@ -855,7 +924,7 @@ async order(req, res){
             orderId: existingOrder._id,
             color: selectedColor,
             amount: orderData.subtotal_inc_tax,
-            total_amount: orderData.total_inc_tax,
+            total_amount: formattedTotalAmount,
           });
         }
         }
@@ -1226,7 +1295,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                              
                                   
                                        <div style="width:100%;">
-                                       <p style="margin-top:0; line-height:1.4; margin-bottom: 7px; font-size: 10px; color:#fff; text-align:center;">Our team will Confirm your Order Details at: <span style="cursor: default;    pointer-events: none;">${formattedPhone}</span></p>
+                                       <p style="margin-top:0; line-height:1.4; margin-bottom: 7px; font-size: 10px; color:#fff; text-align:center;">Our team will confirm your order details at: <span style="cursor: default;    pointer-events: none;">${formattedPhone}</span></p>
                                           <div style="text-align: right; width: 100%;">
                                               <a href="${process.env.QUOTATION_PAYMENT_URL}?id=${quotation_id}&material_id=${material.id}" style="text-decoration: none; color:#000; padding: 4px 10px; border:1px solid #feda15; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #feda15;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
                                           </div>
@@ -1311,7 +1380,7 @@ ${rooms.map((room, index) => `
                   <tr>
                       <td colspan="2" width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                           <div style=" padding: 13px; text-align: center; width:95%;  min-height: 140px; display: flex; align-items: center; justify-content: center;">
-                              <img src="${room.image_2D}" alt="pic" style="width:auto;height:380px;max-width:100%; margin: 0 auto;"/>
+                              <img class="roomImage" src="${room.image_2D}" alt="pic" style="width:auto;height:380px;max-width:100%; margin: 0 auto;"/>
                           </div>
                           
                       </td>
@@ -1387,7 +1456,7 @@ ${room.hasUrinalScreens ? `
                       <tr>
                       <td colspan="2"  width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                           <div style=" padding: 3px; text-align: center; width:97%;  ">
-                              <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:420px;max-width:100%;transform: scale(1) ;"/>
+                              <img class="roomImage" src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:420px;max-width:100%;transform: scale(1) ;"/>
                           </div>
                           
                       </td>
@@ -1681,7 +1750,7 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                   <tr>
                       <td colspan="2" width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                           <div style=" padding: 13px; text-align: center; width:95%;  min-height: 140px; display: flex; align-items: center; justify-content: center;">
-                              <img src="${room.image_2D}" alt="pic" style="width:auto;height:380px;max-width:100%; margin: 0 auto;"/>
+                              <img class="roomImage" src="${room.image_2D}" alt="pic" style="width:auto;height:380px;max-width:100%; margin: 0 auto;"/>
                           </div>
                           
                       </td>
@@ -1757,7 +1826,7 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
                       <tr>
                       <td colspan="2"  width="100%" style="width: 100%; border: 1px solid #e3e8ef; border-radius: 10px;">
                           <div style=" padding: 3px; text-align: center; width:97%;  ">
-                              <img src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:420px;max-width:100%;transform: scale(1) ;"/>
+                              <img class="roomImage" src="${room.urinalScreen?.urinal_2D}" alt="pic" style="width:auto;height:420px;max-width:100%;transform: scale(1) ;"/>
                           </div>
                           
                       </td>
