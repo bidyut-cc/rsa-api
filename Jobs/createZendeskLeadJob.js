@@ -31,10 +31,19 @@ module.exports = (agenda) => {
          const contact_id = await quotationController.checkEmailAndCreateContact(contactData);
        // const contact_id = 223; // Placeholder ID
 
-        const materialDetailsString = quotation.materials
-          .map((material) => `${material.name}: $${material.price}`)
-          .join("\n"); // Use newline character for each item
+
+          const materialDetailsString = quotation.materials
+          .map(
+            (material) =>
+              `${material.name}: $${Number(material.price).toLocaleString("en-US", {
+                maximumFractionDigits: 0,
+              })}`
+          )
+          .join("\n");
         const amount = await quotationController.getSmallestOuterPrice(quotation.materials);
+        const formattedAmount = Number(amount).toLocaleString("en-US", {
+          maximumFractionDigits: 0,
+        });
         const dealData = {
           data: {
             name: `${contactData.first_name} ${contactData.last_name}`,
@@ -44,7 +53,7 @@ module.exports = (agenda) => {
             stage_id: Number(process.env.ZENDESK_DEAL_INITIAL_STAGE_ID),
             tags: ["important"],
             custom_fields: {
-              "Order Total": `$${amount}`,
+              "Order Total": `$${formattedAmount}`,
               "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
               "Room Details": await quotationController.formatAllRoomsData(quotation.submittedData.rooms),
               "Material Details": materialDetailsString,
