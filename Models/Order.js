@@ -238,7 +238,7 @@ OrderSchema.customFields = {
         required: false,
         value: "",
         width: "50",
-        searchable: true,
+        searchable: false,
     },
     shipping_amount: {
         field_name: "shipping_amount",
@@ -251,7 +251,7 @@ OrderSchema.customFields = {
         required: false,
         value: "",
         width: "50",
-        searchable: true,
+        searchable: false,
     },
     total_amount: {
         field_name: "total_amount",
@@ -264,7 +264,7 @@ OrderSchema.customFields = {
         required: false,
         value: "",
         width: "50",
-        searchable: true,
+        searchable: false,
     },
     payment_status: {
         field_name: "payment_status",
