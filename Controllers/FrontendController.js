@@ -684,9 +684,6 @@ class FrontendController {
            // "name": "Restroom Stall"
           }
         ],
-      //   "redirect_urls": {
-      //     "return_url": process.env.BIGCOMMERCE_RETURN_URL
-      // }
       }
       const bigCommerceApiUrl = `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v3/carts?include=redirect_urls`;
       const bigCommerceHeaders = {
@@ -1247,7 +1244,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
           <p></p>
 
           <!-- Right Button -->
-          <a href="${process.env.QUOTATION_PDF_LINK_URL}?id=${quotation_id}&abandoned=1" 
+          <a href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1" 
              style="color:#fff; font-size: 12px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; 
                     border-radius: 5px; padding: 6px 8px; text-decoration: none; background-color: #4e843d;">
               Continue Order Process
@@ -1265,7 +1262,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                       <div width="100%"  >
                           <div style="display: flex; align-items: center;">
                            <div  style="width: 25% !important; margin-bottom: 0px;">
-                               <img src="${material.src}" alt="pic" style="width:100%"/>
+                               <img src="${process.env.URI}/${material.src}" alt="pic" style="width:100%"/>
                            </div>
                            <div  style="width: 75% !important; padding: 0px 20px 5px; margin-bottom: 0px !important;color:#fff;">
                                <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 5px;">${material.name}</h4>
@@ -1297,7 +1294,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                                        <div style="width:100%;">
                                        <p style="margin-top:0; line-height:1.4; margin-bottom: 7px; font-size: 10px; color:#fff; text-align:center;">Our team will confirm your order details at: <span style="cursor: default;    pointer-events: none;">${formattedPhone}</span></p>
                                           <div style="text-align: right; width: 100%;">
-                                              <a href="${process.env.QUOTATION_PAYMENT_URL}?id=${quotation_id}&material_id=${material.id}" style="text-decoration: none; color:#000; padding: 4px 10px; border:1px solid #feda15; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #feda15;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
+                                              <a href="${process.env.FRONTEND_UI_URL}/generate-payment-link?id=${quotation_id}&material_id=${material.id}" style="text-decoration: none; color:#000; padding: 4px 10px; border:1px solid #feda15; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #feda15;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
                                           </div>
                                          <p style="margin-top:7px; line-height: 1; margin-bottom: 0px; font-size:9px; color:#fff; text-align:center;">Ships in appx. 4-6 business days</p>
 
