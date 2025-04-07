@@ -1,6 +1,6 @@
 const FrontendController = require('../Controllers/FrontendController'); // Adjust path as needed
 const quotationController = new FrontendController();
-const email_helper = require("../Helpers/Sendmail.js");
+const email_helper = require("../Helpers/Mandrill.js");
 const Quotation = require("../Models/Quotation.js");
 const Emailtemplate = require('../Models/Emailtemplate.js');
 const Setting = require("../Models/Setting.js");
@@ -73,10 +73,9 @@ module.exports = (agenda) => {
         // Email attachments
         const attachments = [
           {
-            content: Buffer.from(pdfBuffer), // Directly use the buffer
-            filename: `Quote-${quotation.quotation_no}.pdf`, // Set file name
-            type: 'application/pdf', // Set MIME type
-            disposition: 'attachment', // Disposition type
+            type: "application/pdf", // MIME type for PDF
+            name: `Quote-${quotation.quotation_no}.pdf`, // File name
+            content: Buffer.from(pdfBuffer).toString("base64"), // Base64 encoded content
           },
         ];
         // **Send Customer Email**
