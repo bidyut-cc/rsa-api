@@ -1629,7 +1629,7 @@ ${room.hasUrinalScreens ? `
 return htmlContent;
 }
 
-async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_address){
+async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials,rooms,billing_address,color,installation,project_name){
   const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif;print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/pdf_watermark_top.png');background-repeat: no-repeat;background-size:auto;background-position: left top;table-layout: fixed;"><tr><td><table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
   <tr>
       <td style="padding: 10px; text-align: left;">
@@ -1653,9 +1653,47 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
       </td>
      
   </tr>
+
+  <tr>
+    <td colspan="2" style="text-align: center; margin-top: 0px; ">
+        <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom:20px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top:30px;">Customer Details</h4>
+        
+        
+    </td>
+    
+</tr>
+<tr>
+    <td colspan="2" width="100%" style="width: 100%;">
+        <div class="table_box" style="margin-top: 5px;">
+            <div style="display: flex; align-items: flex-start; width: 100%; justify-content: space-between;  flex-wrap: wrap; box-sizing: border-box;border: 1px solid #3d58a4; border-radius: 15px;background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;">
+                
+                <div style="padding:40px 0 40px 25px;min-height: 280px; text-align:left; width:50%; box-sizing: border-box;print-color-adjust: exact;  -webkit-print-color-adjust: exact;">
+                    <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
+                             <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Name:</span> ${billing_address.first_name} ${billing_address.last_name}</h4>
+                             <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Email:</span> ${billing_address.email}</h4>
+                             <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Phone:</span> ${phone_number}</h4>
+                             <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Quote:</span> #${quotation_no}</h4>
+                     </div>
+                 </div>
+                 
+                 <div style="padding: 40px 25px 40px 0;min-height: 280px; text-align:center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; width:50%;box-sizing: border-box;" >
+                    <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
+                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Address:</span> ${billing_address.street_1}</h4>
+                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">City:</span> ${billing_address.city}</h4>
+                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">State:</span> ${billing_address.state}</h4>
+                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Zip:</span> ${billing_address.zip}</h4>
+                    </div>
+                 </div> 
+            </div>
+        </div>
+
+       
+    </td>
+    
+</tr>
   <tr>
       <td colspan="2" style="text-align: center; margin-top: 0px; ">
-          <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 30px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 20px;">Order Details</h4>
+          <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 20px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top:30px;">Order Details</h4>
           
           
       </td>
@@ -1664,27 +1702,24 @@ async OrderPDFhtml(order_id,amount,color,createdAt,materials,rooms,billing_addre
   <tr>
       <td colspan="2" width="100%" style="width: 100%;">
           <div class="table_box" style="margin-top: 5px;">
-              <div style="display: flex; align-items: flex-start; width: 100%; justify-content: space-between;  flex-wrap: wrap; box-sizing: border-box; gap: 20px;">
-                  ${materials.map(material => `
-                  <div style="padding:40px 25px;min-height: 280px; text-align:left; border: 1px solid #3d58a4; border-radius: 15px;  width:48%; box-sizing: border-box;print-color-adjust: exact;  -webkit-print-color-adjust: exact;background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;">
+              <div style="display: flex; align-items: flex-start; width: 100%; justify-content: space-between;  flex-wrap: wrap; box-sizing: border-box;border: 1px solid #3d58a4; border-radius: 15px;background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;">
+                  
+                  <div style="padding:40px 0 40px 25px;min-height: 280px; text-align:left; width:50%; box-sizing: border-box;print-color-adjust: exact;  -webkit-print-color-adjust: exact;">
                       <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
-                               <h4 style="color:#fff; font-size: 18px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Material:</span> ${material.name}</h4>
-                               <h4 style="color:#fff; font-size: 18px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Color:</span> ${color}</h4>
-                               <h5 style="font-size:18px;  margin-top:0;margin-bottom:0;"><span style="    font-weight: 400;">Order Total:</span> $${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h5>
+                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Project Name:</span> ${project_name}</h4>
+                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Order:</span> #${order_id}</h4>
+                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Order Total:</span> $${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h4>
                        </div>
                    </div>
-                   `).join('')}
-                   <div style="padding: 40px 25px;min-height: 280px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px;  print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;width:48%; box-sizing: border-box;" >
-                      <p style="color:#fff; font-size:18px; line-height: 1.3; text-align: left; padding:0; margin-top: 0;font-weight: 700;    margin-bottom: 18px;">Contact Details:</p>
-                      <ul style="color:#fff; font-size: 14px; line-height: 1.3; text-align: left; padding:0 0 0 0;    margin: 0;    list-style-type: none;">
-                        <li style="margin:0 0 7px 0;">Name: ${billing_address.first_name} ${billing_address.last_name}</li>
-                        <li style="margin:0 0 7px 0;">Email: ${billing_address.email}</li>
-                        <li style="margin:0 0 7px 0;">City: ${billing_address.city}</li>
-                        <li style="margin:0 0 7px 0;">State: ${billing_address.state}</li>
-                        <li style="margin:0 0 7px 0;">Zip: ${billing_address.zip}</li>
-                        <li style="margin:0 0 7px 0;">Country: ${billing_address.country}</li>
-                      </ul>
+                   ${materials.map(material => `
+                   <div style="padding: 40px 25px 40px 0;min-height: 280px; text-align:center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; width:50%; box-sizing: border-box;" >
+                        <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
+                            <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Material:</span> ${material.name}</h4>
+                            <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Color:</span> ${color}</h4>
+                            <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Installation:</span> ${installation}</h4>
+                        </div>
                    </div> 
+                   `).join('')}
               </div>
           </div>
  

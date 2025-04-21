@@ -20,18 +20,25 @@ module.exports = (agenda) => {
       try {
         const quotation = await Quotation.findOne(
           { _id: quotationId },
-          { submittedData: 1, email:1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1,is_mail_send:1,zendesk_ticket_id:1 }
+          { submittedData: 1, email:1, roomData: 1, project_name:1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1,is_mail_send:1,zendesk_ticket_id:1 }
         );
         const order = await Order.findOne({ _id: orderId });
         const matchedMaterials = quotation.materials.filter(material => material.id === Number(order.material_id));
+        const isAnyMaterialQuoteTrue = quotation.submittedData.rooms.some(room => room.materialQuote === "true");
+        const installation= isAnyMaterialQuoteTrue ? "Yes" : "No";
+        const project_name = quotation.project_name && quotation.project_name.trim() !== "" ? quotation.project_name : "NA";
         const htmlContent = await quotationController.OrderPDFhtml(
-            bigcommerceOrderId,
-            order.amount,
-            color,
-            quotation.createdAt,
-            matchedMaterials,
-            quotation.submittedData.rooms,
-            order.billing_address
+          quotation.quotation_no,
+          bigcommerceOrderId,
+          order.amount,
+          quotation.phone_number,
+          quotation.createdAt,
+          matchedMaterials,
+          quotation.submittedData.rooms,
+          order.billing_address,
+          color,
+          installation,
+          project_name
             );
          
             const pdfBuffer = await quotationController.generatePDF(htmlContent); // Ensure this is called correctly
