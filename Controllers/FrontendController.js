@@ -1495,8 +1495,8 @@ ${room.hasUrinalScreens ? `
 
 <tr>
     <td colspan="2" style="text-align: center;">
-        <a style="margin-top: 20px;display: block;width: 100%;" href="https://youtu.be/Ampb6o49UYA?si=f2n95uG2TfU1Ex8z" target="_blank">
-            <img src="${process.env.URI}/uploads/images/youtube-video.png" alt="logo" style="width:100%; height:220px;object-fit: contain;">
+        <a style="margin-top: 20px;display: block;width: 100%;" href="https://youtu.be/8wErfrWcWOE?si=B3eXSFxPd4hbMBQE" target="_blank">
+            <img src="${process.env.URI}/uploads/images/youtube-video-new.jpg" alt="logo" style="width:100%; height:220px;object-fit: contain;">
         </a>
     </td>
 </tr>
@@ -1900,8 +1900,8 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
 
 <tr>
     <td colspan="2" style="text-align: center;">
-        <a style="margin-top: 20px;display: block;width: 100%;" href="https://youtu.be/Ampb6o49UYA?si=f2n95uG2TfU1Ex8z" target="_blank">
-            <img src="${process.env.URI}/uploads/images/youtube-video.png" alt="logo" style="width:100%; height:220px;object-fit: contain;">
+        <a style="margin-top: 20px;display: block;width: 100%;" href="https://youtu.be/8wErfrWcWOE?si=B3eXSFxPd4hbMBQE" target="_blank">
+            <img src="${process.env.URI}/uploads/images/youtube-video-new.jpg" alt="logo" style="width:100%; height:220px;object-fit: contain;">
         </a>
     </td>
 </tr>
