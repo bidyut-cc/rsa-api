@@ -1309,8 +1309,8 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                    <div style="padding: 10px 40px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px;  print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;width:48%; box-sizing: border-box; min-height: 200px;" >
                       <p style="color:#fff; font-size:16px; line-height: 1.3; text-align: left; padding:0; margin-top: 5px;font-weight: 700;    margin-bottom: 10px;">What's included in my order?</p>
                       <ul style="color:#fff; font-size: 13px; line-height: 1.3; text-align: left; padding:0 0 0 15px;    margin: 0;">
-                        <li style="margin:0 0 4px 0;">Prices include shipping for all order components: doors, panels, pilasters, brackets, anchors, and screws.</li>
-                        <li style="margin:0 0 4px 0;">Sales tax added at checkout.</li>
+                        <li style="margin:0 0 4px 0;">Prices include all order components: doors, panels, pilasters, brackets, anchors, and screws.</li>
+                        <li style="margin:0 0 4px 0;">Sales tax and shipping costs added at checkout.</li>
                         <li style="margin:0 0 4px 0;">Availability may change. </li>
                         <li style="margin:0 0 0 0;">Orders are subject to review by RSA.</li>
                       </ul>
