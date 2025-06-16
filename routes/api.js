@@ -64,6 +64,7 @@ router.post("/quotation/generatePaymentLink",[VerifyEncryptedTokenMiddleware],Fr
 router.post("/quotation/updatePaymentResponse",[VerifyEncryptedTokenMiddleware],FrontendController.updatePaymentResponse);
 router.get("/quotation/downloadPDF",[VerifyEncryptedTokenMiddleware],FrontendController.downloadPDF);
 router.post("/webhook/order",FrontendController.order);
+router.post("/webhook/abandoned",FrontendController.abandoned);
 
 
 

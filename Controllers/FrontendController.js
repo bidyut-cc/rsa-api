@@ -16,6 +16,7 @@ const path = require('path');
 const Color = require("../Models/Color.js");
 const MasterSetting = require("../Models/MasterSetting.js");
 const agenda = require('../config/agendaConfig.js'); // Import the Agenda instance
+const abandonedOrder = require("../Models/AbandonedOrder.js");
 
 class FrontendController {
   
@@ -2076,6 +2077,71 @@ async formatPhoneNumber(number) {
   return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
 }
 
+
+async abandoned(req, res) {
+  try {
+    const { type, id } = req.body.data;
+
+    if (type === 'cart' && id) {
+      const cartResponse = await axios.get(
+        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v3/carts/${id}`,
+        {
+          headers: {
+            'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN,
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      const cartData = cartResponse.data?.data;
+
+      if (cartData && cartData.id) {
+        // Check if abandoned order already exists and mail not sent
+        const existing = await abandonedOrder.findOne({
+          cart_id: cartData.id,
+        });
+
+        if (!existing) {
+          // Create new abandoned order record
+          const abandoned_orders = new abandonedOrder({
+            cart_id: cartData.id,
+            email: cartData?.email,
+            cart_amount: cartData?.cart_amount,
+            line_items: cartData?.line_items,
+          });
+
+          await abandoned_orders.save();
+
+          // Schedule email job
+          await agenda.schedule("in 5 seconds", "send_abandoned_order_mail", {
+            cartId: cartData.id,
+            cart_amount: cartData?.cart_amount
+          });
+
+          return res.status(200).json({
+            success: true,
+            cartData
+          });
+        } else {
+          return res.status(200).json({
+            success: false,
+            message: "Email already sent or job already scheduled for this cart."
+          });
+        }
+      } else {
+        throw new Error('Cart ID not found in order data');
+      }
+    } else {
+      throw new Error('Invalid webhook payload');
+    }
+  } catch (error) {
+    console.error('Error processing order:', error.message);
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
 
 
 

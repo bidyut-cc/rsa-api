@@ -3,6 +3,7 @@ const Quotation = require("../Models/Quotation.js");
 const Controller = require("./Controller.js");
 const moment = require('moment');
 const _ = require("lodash");
+const abandonedOrder = require("../Models/AbandonedOrder.js");
 
 class OrdersController extends Controller {
     constructor() {
@@ -292,6 +293,164 @@ async charts(req,res){
       
         return result;
       }
+
+      // async abandonedOrders() {
+      //   const data = await abandonedOrder.aggregate([
+      //     {
+      //       $sort: { createdAt: -1 }
+      //     },
+      //     {
+      //       $group: {
+      //         _id: "$cart_id",
+      //         doc: { $first: "$$ROOT" }
+      //       }
+      //     },
+      //     {
+      //       $replaceRoot: {
+      //         newRoot: "$doc"
+      //       }
+      //     },
+      //     {
+      //       $lookup: {
+      //         from: "orders",
+      //         let: { cartId: "$cart_id" },
+      //         pipeline: [
+      //           {
+      //             $match: {
+      //               $expr: {
+      //                 $and: [
+      //                   { $eq: ["$cart_id", "$$cartId"] },
+      //                   { $eq: ["$order_status", "Pending"] } ,
+      //                   { $eq: ["$payment_status", "Pending"] } 
+      //                 ]
+      //               }
+      //             }
+      //           }
+      //         ],
+      //         as: "orders_data"
+      //       }
+      //     },
+      //     {
+      //       $match: {
+      //         orders_data: { $ne: [] } // Only include documents where the lookup found matches
+      //       }
+      //     }
+      //   ]);
+      //   return data;
+      // }
+
+      async abandonedOrders(req) {
+        const search = req.query.search || "";
+        const limit = parseInt(req.query.show || 10);
+        const page = parseInt(req.query.page || 1);
+        const offset = (page - 1) * limit;
+        const sort_field = req.query.sort || "createdAt";
+        const sort_order = req.query.sort_order === "asc" ? 1 : -1;
+      
+        // Custom fields and search field setup
+        const fields = this.getModelObj().schema.customFields;
+        const select_fields = Object.keys(fields);
+        const search_fields = select_fields.filter((item) => fields[item]["searchable"]);
+      
+        // Aggregation stages
+        const baseStages = [
+          { $sort: { createdAt: -1 } },
+          {
+            $group: {
+              _id: "$cart_id",
+              doc: { $first: "$$ROOT" },
+            },
+          },
+          { $replaceRoot: { newRoot: "$doc" } },
+          {
+            $lookup: {
+              from: "orders",
+              let: { cartId: "$cart_id" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$cart_id", "$$cartId"] },
+                        { $eq: ["$order_status", "Pending"] },
+                        { $eq: ["$payment_status", "Pending"] },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: "orders_data",
+            },
+          },
+          { $match: { orders_data: { $ne: [] } } },
+        ];
+      
+        // Dynamic search condition
+        if (search.length > 0 && search_fields.length > 0) {
+          const dynamicSearch = search_fields.map((field) => ({
+            [`orders_data.${field}`]: { $regex: search, $options: "i" },
+          }));
+      
+          baseStages.push({
+            $match: {
+              $or: dynamicSearch,
+            },
+          });
+        }
+      
+        // Count query
+        const totalResult = await abandonedOrder.aggregate([
+          ...baseStages,
+          { $count: "total" },
+        ]);
+        const count = totalResult.length > 0 ? totalResult[0].total : 0;
+      
+        // Last page calculation
+        let last_page = 1;
+        if (parseInt(count) / limit > 1) {
+          last_page = parseInt(parseInt(count) / limit);
+          if (parseInt(count) % limit > 0) {
+            last_page++;
+          }
+        }
+      
+        // Fetch paginated data
+        const data = await abandonedOrder.aggregate([
+          ...baseStages,
+          { $sort: { [sort_field]: sort_order } },
+          { $skip: offset },
+          { $limit: limit },
+        ]);
+      
+        return {
+          fields: fields,
+          results: {
+            results_count: count,
+            results: {
+              query: {
+                search,
+                show: limit,
+                page,
+                sort: sort_field,
+                sort_order,
+              },
+              data: data,
+              count: count,
+              current_page: page,
+              per_page: limit,
+              last_page: last_page,
+              to: count,
+              total: count,
+            },
+          },
+        };
+      }
+      
+      
+      
+      
+      
+      
 }
 
 module.exports = OrdersController;
