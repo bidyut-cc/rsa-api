@@ -66,6 +66,11 @@ var OrderSchema = mongoose.Schema({
         required: false,
         default: false
     },
+    is_abandoned_mail_send: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
     
     deleted: {
         type: Boolean,

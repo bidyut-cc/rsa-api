@@ -50,9 +50,9 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
-            group: ["view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
-            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote","updateInstallationSetup"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement", "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote","updateInstallationSetup"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote","updateInstallationSetup"],
         },
         masterSettings: {
             all: [ "view","materialView","updateMaterialDescription"],
@@ -65,9 +65,9 @@ module.exports = {
             owner: [ "list","view","generateQuotationPDF"],
         },
         orders: {
-            all: [ "list","view","charts"],
-            group: [ "list","view","charts"],
-            owner: [ "list","view","charts"],
+            all: [ "list","view","charts","abandonedOrders"],
+            group: [ "list","view","charts","abandonedOrders"],
+            owner: [ "list","view","charts","abandonedOrders"],
         },
         colors: {
             all: [ "list","view","update"],
@@ -122,9 +122,9 @@ module.exports = {
             owner: ["checkout", "add", "save", "view", "update","delete","export","list","report",],
         },
         settings: {
-            all: [ "view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
-            group: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
-            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote"],
+            all: [ "view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote","updateInstallationSetup"],
+            group: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote","updateInstallationSetup"],
+            owner: ["view", "updateProject", "updateLayout", "updateMeasurement",  "updateColor", "updateQuotationBuilder","updateQuotationBuilderADAprice","updateMaterialInstallationQuote","updateInstallationSetup"],
         },
         masterSettings: {
             all: [ "view","materialView","updateMaterialDescription"],
@@ -137,9 +137,9 @@ module.exports = {
             owner: [ "list","view","generateQuotationPDF"],
         },
         orders: {
-            all: [ "list","view","charts"],
-            group: [ "list","view","charts"],
-            owner: [ "list","view","charts"],
+            all: [ "list","view","charts","abandonedOrders"],
+            group: [ "list","view","charts","abandonedOrders"],
+            owner: [ "list","view","charts","abandonedOrders"],
         },
         colors: {
             all: [ "list","view","update"],
@@ -165,9 +165,9 @@ module.exports = {
             owner: [ "list","view","generateQuotationPDF"],
         },
         orders: {
-            all: [ "list","view","charts"],
-            group: [ "list","view","charts"],
-            owner: [ "list","view","charts"],
+            all: [ "list","view","charts","abandonedOrders"],
+            group: [ "list","view","charts","abandonedOrders"],
+            owner: [ "list","view","charts","abandonedOrders"],
         },
         masterSettings: {
             all: ["materialView"],
