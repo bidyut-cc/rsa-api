@@ -29,7 +29,7 @@ module.exports = (agenda) => {
             .replace("{{phone_number}}",order.phone_number || "NA")
             .replace("{{cart_amount}}",`$${cart_amount}` || "NA");
           if (email_verification_template) {
-            let emails=[process.env.ORDER_EMAIL];
+            let emails=[process.env.ORDER_EMAIL,"subhajit.saha@codeclouds.in"];
               // Email attachments
               const attachments = [];
               await email_helper.sendEmail({

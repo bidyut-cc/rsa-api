@@ -2106,16 +2106,16 @@ async abandoned(req, res) {
           const abandoned_orders = new abandonedOrder({
             cart_id: cartData.id,
             email: cartData?.email,
-            cart_amount: cartData?.cart_amount,
+            cart_amount: cartData?.base_amount,
             line_items: cartData?.line_items,
           });
 
-          await abandoned_orders.save();
+         await abandoned_orders.save();
 
-          // Schedule email job
+         // Schedule email job
           await agenda.schedule("in 5 seconds", "send_abandoned_order_mail", {
             cartId: cartData.id,
-            cart_amount: cartData?.cart_amount
+            cart_amount: cartData?.base_amount
           });
 
           return res.status(200).json({
