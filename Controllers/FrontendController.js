@@ -37,6 +37,8 @@ class FrontendController {
     this.updatePaymentResponse = this.updatePaymentResponse.bind(this);
     this.order = this.order.bind(this);
     this.downloadPDF = this.downloadPDF.bind(this);
+    this.checkZipCode = this.checkZipCode.bind(this);
+    
   }
 
 /**
@@ -261,6 +263,9 @@ class FrontendController {
       quotation.roomData = results;
       quotation.materials = materials;
       quotation.zendesk_ticket_id = zendesk_ticket_id;
+      quotation.zip_code = req.body.zip_code;
+      quotation.distance = req.body.distance;
+      quotation.is_within_max_distance = req.body.is_within_max_distance;
       quotation.is_mail_send = false;
       quotation.is_deal_create = false;
 
@@ -558,7 +563,7 @@ class FrontendController {
         }
         const data = await Quotation.findOne(
             { _id: id, materials: { $elemMatch: { id: Number(material_id) } } },
-            { "materials.$": 1, _id: 1,first_name:1,last_name:1,email:1,phone_number:1 } // Return only the matched material
+            { "materials.$": 1, _id: 1,first_name:1,last_name:1,email:1,phone_number:1,submittedData:1,is_within_max_distance:1,distance:1 } // Return only the matched material
           );
       
           if (!data) {
@@ -583,7 +588,45 @@ class FrontendController {
     });
 
     const savedOrder = await order.save();
-      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0]);
+    let additional_product = {}
+    if (typeof data.is_within_max_distance !== 'undefined' && data.is_within_max_distance === true) {
+        let installation_setup_setting = await Setting.findOne(
+          { step: "installation_setup" },
+          { step: 1, config: 1, _id: 1 }
+        );
+        let distance = parseFloat(data.distance);
+        const totalStalls = data?.submittedData?.rooms.reduce((sum, room) => {
+          return sum + (room.stall?.noOfStalls || 0);
+        }, 0);
+        const totalScreens =data?.submittedData?.rooms.reduce((screenSum, room) => {
+          return screenSum + (room.urinalScreen?.noOfUrinalScreens || 0);
+        }, 0);
+       
+        let charge_per_stalls = parseFloat(installation_setup_setting.config.charge_per_stalls);
+        let charge_per_screens = parseFloat(installation_setup_setting.config.charge_per_screens);
+        let charge_per_mile = parseFloat(installation_setup_setting.config.charge_per_mile);
+        let charge_per_hotel_night = parseFloat(installation_setup_setting.config.charge_per_hotel_night);
+        let charge_per_diem = parseFloat(installation_setup_setting.config.charge_per_diem);
+        var price = 0;
+        if(distance <= 175){
+          price = charge_per_diem + (charge_per_mile * distance * 2 ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
+        }else if(distance > 175 && distance <= 300){
+          price = (charge_per_diem * 2)  + charge_per_hotel_night  + (charge_per_mile * distance * 2 ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
+        }else if(distance > 300 && distance <= 500){
+          price = (charge_per_diem * 3) + (charge_per_hotel_night * 2)  + (charge_per_mile * distance * 2 ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
+        }
+        // ⏫ Additional charge if stalls >= 10
+        // const totalStalls = data?.submittedData?.rooms.reduce((sum, room) => {
+        //   return sum + (room.stall?.noOfStalls || 0);
+        // }, 0);
+        if (totalStalls >= 10) {
+          price += charge_per_hotel_night + charge_per_diem; // One more night + one more diem
+        }
+        additional_product.quantity = 1;
+        additional_product.product_id = process.env.CUSTOM_PRODUCT_ID;
+        additional_product.list_price = price;
+    }
+      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0],additional_product);
     if(bigCommerceCart.status){
       // let order = new Order;
       // order.quotation_id=id
@@ -661,7 +704,7 @@ class FrontendController {
  * }
  */
 
-  async createBigCommerceCart(materials) {
+  async createBigCommerceCart(materials,additional_product) {
     try {
       // Prepare the data for BigCommerce cart (example: passing materials and prices)
         const mappingDoc = await Setting.findOne({ step: 'product_material_mapping', deleted: false });
@@ -674,17 +717,21 @@ class FrontendController {
     if (!product_id) {
       throw new Error(`No product ID found for material ID: ${material_id}`);
     }
-   
+    const line_items = [
+      {
+        quantity: 1,
+        product_id: product_id, // from mapping
+        list_price: materials.price,
+      },
+    ];
+    
+    // Only add additional_product if it has properties
+    if (additional_product && Object.keys(additional_product).length > 0) {
+      line_items.push(additional_product);
+    }
       const cartData = {
         "customer_id": 0,
-        "line_items": [
-          {
-            "quantity": 1,
-            "product_id": product_id,
-            "list_price": materials.price,
-           // "name": "Restroom Stall"
-          }
-        ],
+        line_items
       }
       const bigCommerceApiUrl = `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v3/carts?include=redirect_urls`;
       const bigCommerceHeaders = {
@@ -2140,6 +2187,59 @@ async abandoned(req, res) {
       success: false,
       message: error.message,
     });
+  }
+}
+
+async checkZipCode(req,res){
+  try {
+    const { zip_code } = req.body;
+    const fixedZip = process.env.SOURCE_ZIP_CODE;
+    let max_distance = 500;
+    if (!zip_code) {
+      return res.status(400).json({
+        success: false,
+        message: "zip_code is required",
+      });
+    }
+    const distance = await this.getDistanceInMiles(zip_code, fixedZip);
+    const is_within_max = distance <= max_distance;
+      return res.status(200).json({
+        success: is_within_max,
+        is_within_max_distance: is_within_max,
+        distance:distance
+      });
+   
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
+}
+
+
+
+async  getDistanceInMiles(zip1, zip2) {
+  try {
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${zip1}&destinations=${zip2}&key=${process.env.GOOGLE_MAP_API_KEY}`;
+    
+
+    const response = await axios.get(url);
+
+    if (
+      response.data.status !== "OK" ||
+      response.data.rows[0].elements[0].status !== "OK"
+    ) {
+      console.error("Google API error response:", response.data);
+      throw new Error("Failed to fetch distance from Google API");
+    }
+
+    const distanceText = response.data.rows[0].elements[0].distance.text;
+    const distanceInMiles = parseFloat(distanceText.replace(/[^\d.]/g, ""));
+    return distanceInMiles;
+  } catch (err) {
+    throw new Error("Google Distance Matrix API request failed");
   }
 }
 

@@ -63,6 +63,7 @@ router.get("/quotation/view",[VerifyEncryptedTokenMiddleware],FrontendController
 router.post("/quotation/generatePaymentLink",[VerifyEncryptedTokenMiddleware],FrontendController.generatePaymentLink);
 router.post("/quotation/updatePaymentResponse",[VerifyEncryptedTokenMiddleware],FrontendController.updatePaymentResponse);
 router.get("/quotation/downloadPDF",[VerifyEncryptedTokenMiddleware],FrontendController.downloadPDF);
+router.post("/app-setting/checkZipCode",[VerifyEncryptedTokenMiddleware],FrontendController.checkZipCode);
 router.post("/webhook/order",FrontendController.order);
 router.post("/webhook/abandoned",FrontendController.abandoned);
 
