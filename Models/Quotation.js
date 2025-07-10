@@ -60,6 +60,20 @@ var QuotationSchema = mongoose.Schema({
         required: false,
         default: false
     },
+    zip_code: {
+        type: String,
+        required: false,
+    },
+    distance: {
+        type: String,
+        required: false,
+        default: 0
+    },
+    is_within_max_distance: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
     deleted: {
         type: Boolean,
         required: false,

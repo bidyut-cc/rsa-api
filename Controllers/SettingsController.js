@@ -603,6 +603,67 @@ if (!matched) {
   }
 }
   }
+
+  async updateInstallationSetup(req, res) {
+    // Validate the input data
+    const v = new Validator(
+      req.body,
+      {
+        material_types: "required|array",
+        "material_types.*": "required|object",
+        charge_per_stalls: "required|numeric",
+        charge_per_screens: "required|numeric",
+        charge_per_mile: "required|numeric",
+        max_distance_limit: "required|numeric",
+        charge_per_hotel_night: "required|numeric",
+        charge_per_diem: "required|numeric"
+      },
+      {
+        "material_types.required": "The material types field is mandatory.",
+      }
+    );
+
+    // Check if validation passes
+    const matched = await v.check();
+    if (!matched) {
+      // If validation fails, respond with a 422 status and the validation errors
+      res.status(422).json({
+        status: false,
+        errors: v.errors,
+      });
+    } else {
+      try {
+        const config = {
+          material_types: req.body.material_types,
+          charge_per_stalls: req.body.charge_per_stalls,
+          charge_per_screens: req.body.charge_per_screens,
+          charge_per_mile: req.body.charge_per_mile,
+          max_distance_limit: req.body.max_distance_limit,
+          charge_per_hotel_night: req.body.charge_per_hotel_night,
+          charge_per_diem: req.body.charge_per_diem
+        };
+        delete req.body.material_types;
+        delete req.body.charge_per_stalls;
+        delete req.body.charge_per_screens;
+        delete req.body.charge_per_mile;
+        delete req.body.max_distance_limit;
+        delete req.body.charge_per_hotel_night;
+        delete req.body.charge_per_diem;
+        req.body.config = config;
+        // Attempt to update the label using the inherited update method
+        const result = await super.update(req);
+
+        // Respond with a 200 status and the result
+        res.status(200).json(result);
+      } catch (error) {
+        // If an error occurs, respond with a 500 status and an error message
+        res.status(500).json({
+          status: false,
+          message: error.message,
+        });
+      }
+    }
+  }
 }
 
 module.exports = SettingsController;
