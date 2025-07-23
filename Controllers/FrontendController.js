@@ -2194,7 +2194,11 @@ async checkZipCode(req,res){
   try {
     const { zip_code } = req.body;
     const fixedZip = process.env.SOURCE_ZIP_CODE;
-    let max_distance = 500;
+    let installation_setup_setting = await Setting.findOne(
+      { step: "installation_setup" },
+      { step: 1, config: 1, _id: 1 }
+    );
+    let max_distance = parseFloat(installation_setup_setting?.config?.max_distance_limit);
     if (!zip_code) {
       return res.status(400).json({
         success: false,
@@ -2206,7 +2210,8 @@ async checkZipCode(req,res){
       return res.status(200).json({
         success: is_within_max,
         is_within_max_distance: is_within_max,
-        distance:distance
+        distance:distance,
+        max_distance:max_distance
       });
    
   } catch (error) {
