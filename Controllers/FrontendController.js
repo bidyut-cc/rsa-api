@@ -645,6 +645,7 @@ class FrontendController {
           cart_id: bigCommerceCart.data.data.id,
           amount: bigCommerceCart.data.data.base_amount,
           shipping_amount:250,
+          tax_amount:0,
           total_amount: bigCommerceCart.data.data.base_amount + 250,
         });
         res.status(200).json({
@@ -925,7 +926,8 @@ async order(req, res){
             order_status: await this.capitalizeWords(orderData.status) || 'Pending',
             billing_address: orderData.billing_address || {},
             order_id: orderData.id || null,
-            shipping_amount: orderData.shipping_cost_inc_tax || 0.00,
+            shipping_amount: orderData.base_shipping_cost || existingOrder.shipping_amount,
+            total_tax: orderData.total_tax || existingOrder.total_tax,
             total_amount: orderData.total_inc_tax || existingOrder.amount,
             paymentDate: new Date(orderData.date_modified) || null,
             updatedAt: Date.now(),
@@ -962,12 +964,28 @@ async order(req, res){
             const formattedTotalAmount = Number(orderData.total_inc_tax).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
+            const formatted_quote_amount = Number(existingOrder.amount).toLocaleString("en-US", {
+              maximumFractionDigits: 0,
+            });
+            const formatted_shipping_amount = Number(orderData.base_shipping_cost).toLocaleString("en-US", {
+              maximumFractionDigits: 0,
+            });
+           
+            const formatted_tax_amount = Number(orderData.total_tax).toLocaleString("en-US", {
+              maximumFractionDigits: 0,
+            });
          // Schedule an email after 5 seconds
           await agenda.schedule("in 5 seconds", "send_order_email", {
             quotationId: existingOrder.quotation_id,
             bigcommerceOrderId: orderData.id,
             orderId: existingOrder._id,
             color: selectedColor,
+            quote_amount:existingOrder.amount,
+            formatted_quote_amount:formatted_quote_amount,
+            shipping_amount:orderData.base_shipping_cost,
+            formatted_shipping_amount:formatted_shipping_amount,
+            tax_amount:orderData.total_tax,
+            formatted_tax_amount:formatted_tax_amount,
             amount: orderData.subtotal_inc_tax,
             total_amount: formattedTotalAmount,
           });
@@ -1292,11 +1310,11 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
           <p></p>
 
           <!-- Right Button -->
-          <a href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1" 
+          <!-- a href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1" 
              style="color:#fff; font-size: 12px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; 
                     border-radius: 5px; padding: 6px 8px; text-decoration: none; background-color: #4e843d;">
               Continue Order Process
-          </a>
+          </a -->
       </div>
   </td>
 </tr>
@@ -1342,7 +1360,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                                        <div style="width:100%;">
                                        <p style="margin-top:0; line-height:1.4; margin-bottom: 7px; font-size: 10px; color:#fff; text-align:center;">Our team will confirm your order details at: <span style="cursor: default;    pointer-events: none;">${formattedPhone}</span></p>
                                           <div style="text-align: right; width: 100%;">
-                                              <a href="${process.env.FRONTEND_UI_URL}/generate-payment-link?id=${quotation_id}&material_id=${material.id}" style="text-decoration: none; color:#000; padding: 4px 10px; border:1px solid #feda15; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #feda15;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
+                                              <a href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1&material_id=${material.id}" style="text-decoration: none; color:#000; padding: 4px 10px; border:1px solid #feda15; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #feda15;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
                                           </div>
                                          <p style="margin-top:7px; line-height: 1; margin-bottom: 0px; font-size:9px; color:#fff; text-align:center;">Ships in appx. 4-6 business days</p>
 
@@ -1677,7 +1695,8 @@ ${room.hasUrinalScreens ? `
 return htmlContent;
 }
 
-async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials,rooms,billing_address,color,installation,project_name){
+async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials,rooms,billing_address,color,installation,project_name,shipping_amount,tax_amount,total_amount){
+  
   const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif;print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/pdf_watermark_top.png');background-repeat: no-repeat;background-size:auto;background-position: left top;table-layout: fixed;"><tr><td><table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
   <tr>
       <td style="padding: 10px; text-align: left;">
@@ -1756,7 +1775,10 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                       <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
                                <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Project Name:</span> ${project_name}</h4>
                                <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Order:</span> #${order_id}</h4>
-                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Order Total:</span> $${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h4>
+                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Quote Amount:</span> $${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h4>
+                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Shipping Cost:</span> $${Number(shipping_amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h4>
+                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Tax:</span> $${Number(tax_amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h4>
+                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Order Total:</span> $${Number(total_amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h4>
                        </div>
                    </div>
                    ${materials.map(material => `

@@ -44,6 +44,11 @@ var OrderSchema = mongoose.Schema({
         required: false,
         default:0
     },
+    tax_amount: {
+        type: Number,
+        required: false,
+        default:0
+    },
     total_amount: {
         type: Number,
         required: false,
@@ -98,7 +103,7 @@ OrderSchema.changeLog = true;
 
 OrderSchema.plugin(mongoose_delete);
 OrderSchema.plugin(mongoose_delete, { overrideMethods: "all" });
-OrderSchema.fillable = ["quotation_id","material_id","cart_id","order_id","first_name","last_name","email","phone_number","colors","amount","shipping_amount","total_amount","payment_status","billing_address"];
+OrderSchema.fillable = ["quotation_id","material_id","cart_id","order_id","first_name","last_name","email","phone_number","colors","amount","shipping_amount","tax_amount","total_amount","payment_status","billing_address"];
 
 OrderSchema.customFields = {
     _id: {
