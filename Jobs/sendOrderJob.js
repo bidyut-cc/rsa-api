@@ -38,7 +38,10 @@ module.exports = (agenda) => {
           order.billing_address,
           color,
           installation,
-          project_name
+          project_name,
+          order.shipping_amount,
+          order.tax_amount,
+          order.total_amount
             );
          
             const pdfBuffer = await quotationController.generatePDF(htmlContent); // Ensure this is called correctly
