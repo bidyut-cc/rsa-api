@@ -563,7 +563,7 @@ class FrontendController {
         }
         const data = await Quotation.findOne(
             { _id: id, materials: { $elemMatch: { id: Number(material_id) } } },
-            { "materials.$": 1, _id: 1,first_name:1,last_name:1,email:1,phone_number:1,submittedData:1,is_within_max_distance:1,distance:1 } // Return only the matched material
+            { "materials.$": 1, _id: 1,quotation_no:1,first_name:1,last_name:1,email:1,phone_number:1,submittedData:1,is_within_max_distance:1,distance:1,zip_code:1 } // Return only the matched material
           );
       
           if (!data) {
@@ -625,8 +625,9 @@ class FrontendController {
         additional_product.quantity = 1;
         additional_product.product_id = process.env.CUSTOM_PRODUCT_ID;
         additional_product.list_price = price;
+        additional_product.name = `Installation Services Zip: ${data?.zip_code}`
     }
-      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0],additional_product);
+      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0],additional_product,data.quotation_no);
     if(bigCommerceCart.status){
       // let order = new Order;
       // order.quotation_id=id
@@ -705,7 +706,7 @@ class FrontendController {
  * }
  */
 
-  async createBigCommerceCart(materials,additional_product) {
+  async createBigCommerceCart(materials,additional_product,quotation_no) {
     try {
       // Prepare the data for BigCommerce cart (example: passing materials and prices)
         const mappingDoc = await Setting.findOne({ step: 'product_material_mapping', deleted: false });
@@ -723,6 +724,7 @@ class FrontendController {
         quantity: 1,
         product_id: product_id, // from mapping
         list_price: materials.price,
+        name:`${materials.name} #${quotation_no}`
       },
     ];
     
