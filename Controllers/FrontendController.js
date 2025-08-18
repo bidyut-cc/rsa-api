@@ -251,6 +251,13 @@ class FrontendController {
           price_details: priceByProductAndRoom[productName].rooms, // detailed price per room
         };
       });
+      const calculateInstallationPayload = {
+        is_within_max_distance:req.body.is_within_max_distance,
+        distance:req.body.distance,
+        submittedData:req.body
+
+
+      }
       let zendesk_ticket_id = '';
       let quotation = new Quotation;
       quotation.quotation_no = Date.now();
@@ -265,6 +272,7 @@ class FrontendController {
       quotation.zendesk_ticket_id = zendesk_ticket_id;
       quotation.zip_code = req.body.zip_code;
       quotation.distance = req.body.distance;
+      quotation.installation_price = await this.calculateInstallationPrice(calculateInstallationPayload);
       quotation.is_within_max_distance = req.body.is_within_max_distance;
       quotation.is_mail_send = false;
       quotation.is_deal_create = false;
@@ -461,7 +469,7 @@ class FrontendController {
       try {
         const data = await Quotation.findOne(
           { _id: id },
-          { submittedData: 1, roomData: 1, materials:1, _id: 1 }
+          { installation_price:1,is_within_max_distance:1,zip_code:1,submittedData: 1, roomData: 1, materials:1, _id: 1 }
         );
         res.status(200).json({
           status: true,
@@ -563,7 +571,7 @@ class FrontendController {
         }
         const data = await Quotation.findOne(
             { _id: id, materials: { $elemMatch: { id: Number(material_id) } } },
-            { "materials.$": 1, _id: 1,quotation_no:1,first_name:1,last_name:1,email:1,phone_number:1,submittedData:1,is_within_max_distance:1,distance:1,zip_code:1 } // Return only the matched material
+            { "materials.$": 1, _id: 1,quotation_no:1,first_name:1,last_name:1,email:1,phone_number:1,submittedData:1,is_within_max_distance:1,distance:1,zip_code:1,installation_price:1 } // Return only the matched material
           );
       
           if (!data) {
@@ -590,42 +598,10 @@ class FrontendController {
     const savedOrder = await order.save();
     let additional_product = {}
     if (typeof data.is_within_max_distance !== 'undefined' && data.is_within_max_distance === true) {
-        let installation_setup_setting = await Setting.findOne(
-          { step: "installation_setup" },
-          { step: 1, config: 1, _id: 1 }
-        );
-        let distance = parseFloat(data.distance);
-        const totalStalls = data?.submittedData?.rooms.reduce((sum, room) => {
-          return sum + (room.stall?.noOfStalls || 0);
-        }, 0);
-        const totalScreens =data?.submittedData?.rooms.reduce((screenSum, room) => {
-          return screenSum + (room.urinalScreen?.noOfUrinalScreens || 0);
-        }, 0);
-       
-        let charge_per_stalls = parseFloat(installation_setup_setting.config.charge_per_stalls);
-        let charge_per_screens = parseFloat(installation_setup_setting.config.charge_per_screens);
-        let charge_per_mile = parseFloat(installation_setup_setting.config.charge_per_mile);
-        let charge_per_hotel_night = parseFloat(installation_setup_setting.config.charge_per_hotel_night);
-        let charge_per_diem = parseFloat(installation_setup_setting.config.charge_per_diem);
-        var price = 0;
-        if(distance <= 175){
-          price = charge_per_diem + (charge_per_mile * distance * 2 ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
-        }else if(distance > 175 && distance <= 300){
-          price = (charge_per_diem * 2)  + charge_per_hotel_night  + (charge_per_mile * distance * 2 ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
-        }else if(distance > 300 && distance <= 500){
-          price = (charge_per_diem * 3) + (charge_per_hotel_night * 2)  + (charge_per_mile * distance * 2 ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
-        }
-        // ⏫ Additional charge if stalls >= 10
-        // const totalStalls = data?.submittedData?.rooms.reduce((sum, room) => {
-        //   return sum + (room.stall?.noOfStalls || 0);
-        // }, 0);
-        if (totalStalls >= 10) {
-          price += charge_per_hotel_night + charge_per_diem; // One more night + one more diem
-        }
         additional_product.quantity = 1;
         additional_product.product_id = process.env.CUSTOM_PRODUCT_ID;
-        additional_product.list_price = price;
-        additional_product.name = `Installation Services Zip: ${data?.zip_code}`
+        additional_product.list_price = data.installation_price;
+        additional_product.name = `Installation Services (Zip: ${data?.zip_code})`
     }
       const bigCommerceCart = await this.createBigCommerceCart(data.materials[0],additional_product,data.quotation_no);
     if(bigCommerceCart.status){
@@ -724,7 +700,8 @@ class FrontendController {
         quantity: 1,
         product_id: product_id, // from mapping
         list_price: materials.price,
-        name:`${materials.name} #${quotation_no}`
+        name:`${materials.name} Partition Package \n (Quote #${quotation_no.slice(-5)})`
+
       },
     ];
     
@@ -1166,17 +1143,19 @@ async downloadPDF(req, res) {
     try {
       const quotation = await Quotation.findOne(
         { _id: id },
-        { submittedData: 1, roomData: 1, materials:1, _id: 1,quotation_no:1, phone_number:1, createdAt:1 }
+        { submittedData: 1, roomData: 1, materials:1, _id: 1,quotation_no:1, phone_number:1, createdAt:1,is_within_max_distance:1,distance:1,zip_code:1 }
       );
       const totalStalls = quotation.submittedData.rooms.reduce((sum, room) => sum + (room.stall?.noOfStalls || 0), 0);
 
     const totalUrinalScreens = quotation.submittedData.rooms.reduce((sum, room) => {
         return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
     }, 0);
-      const htmlContent = await this.QuotationPDFhtml(quotation._id,quotation.quotation_no,quotation.createdAt,quotation.phone_number,quotation.materials,quotation.submittedData.rooms,totalStalls,totalUrinalScreens);
+      const instalation_price = await this.calculateInstallationPrice(quotation);
+      const htmlContent = await this.QuotationPDFhtml(quotation._id,quotation.quotation_no,quotation.createdAt,quotation.phone_number,quotation.materials,quotation.submittedData.rooms,totalStalls,totalUrinalScreens,instalation_price);
       const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
       res.status(200).json({
         status: true,
+        instalation_price:instalation_price,
         data: Buffer.from(pdfBuffer),
       });
       return;
@@ -1270,7 +1249,7 @@ Layout- ${layout?.layoutName}${urinalDetails}
 `;
 }
 
-async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,materials,rooms,totalStalls,totalUrinalScreens){
+async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,materials,rooms,totalStalls,totalUrinalScreens,instalation_price){
   const formattedPhone = await this.formatPhoneNumber(phone_number);
   const htmlContent = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif;print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/pdf_watermark_top.png');background-repeat: no-repeat;background-size:auto;background-position: left top;table-layout: fixed;"><tr><td><table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, Helvetica, sans-serif; padding: 0px 20px; margin: 0 auto; page-break-before:always; table-layout: fixed; max-width: 1200px;">
   <tr>
@@ -1317,6 +1296,10 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                     border-radius: 5px; padding: 6px 8px; text-decoration: none; background-color: #4e843d;">
               Continue Order Process
           </a -->
+          ${instalation_price > 0 ? `
+                    <p style="color:#fff; font-size: 12px; line-height: 18px; border: 1px solid #000; font-family: Verdana, Geneva, Tahoma, sans-serif; border-radius: 5px; padding: 6px 8px; text-decoration: none; background-color: #4e843d;">
+                      Installation Price : $${instalation_price.toFixed(2)}
+                    </p>` : ``}
       </div>
   </td>
 </tr>
@@ -2270,7 +2253,46 @@ async  getDistanceInMiles(zip1, zip2) {
   } catch (err) {
     throw new Error("Google Distance Matrix API request failed");
   }
+  
 }
+
+async  calculateInstallationPrice(data) {
+  if (typeof data.is_within_max_distance !== 'undefined' && data.is_within_max_distance === true) {
+    let installation_setup_setting = await Setting.findOne(
+      { step: "installation_setup" },
+      { step: 1, config: 1, _id: 1 }
+    );
+    let distance = parseFloat(data.distance);
+    const totalStalls = data?.submittedData?.rooms.reduce((sum, room) => {
+      return sum + (room.stall?.noOfStalls || 0);
+    }, 0);
+    const totalScreens =data?.submittedData?.rooms.reduce((screenSum, room) => {
+      return screenSum + (room.urinalScreen?.noOfUrinalScreens || 0);
+    }, 0);
+   
+    let charge_per_stalls = parseFloat(installation_setup_setting.config.charge_per_stalls);
+    let charge_per_screens = parseFloat(installation_setup_setting.config.charge_per_screens);
+    let charge_per_mile = parseFloat(installation_setup_setting.config.charge_per_mile);
+    let charge_per_hotel_night = parseFloat(installation_setup_setting.config.charge_per_hotel_night);
+    let charge_per_diem = parseFloat(installation_setup_setting.config.charge_per_diem);
+    var price = 0;
+    if(distance <= 175){
+      price = charge_per_diem + (charge_per_mile * distance ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
+    }else if(distance > 175 && distance <= 300){
+      price = (charge_per_diem * 2)  + charge_per_hotel_night  + (charge_per_mile * distance ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
+    }else if(distance > 300 && distance <= 500){
+      price = (charge_per_diem * 3) + (charge_per_hotel_night * 2)  + (charge_per_mile * distance ) + (charge_per_stalls * totalStalls) + (charge_per_screens * totalScreens)
+    }
+
+    if (totalStalls >= 10) {
+      price += charge_per_hotel_night + charge_per_diem; // One more night + one more diem
+    }
+  return price; 
+}else{
+  return null;
+}
+}
+
 
 
 

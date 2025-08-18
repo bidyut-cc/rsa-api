@@ -19,7 +19,7 @@ module.exports = (agenda) => {
       try {
         const quotation = await Quotation.findOne(
           { _id: quotationId },
-          { submittedData: 1, email:1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1,is_mail_send:1 }
+          { submittedData: 1, email:1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1,is_mail_send:1,installation_price:1  }
         );
 
         const totalStalls = quotation.submittedData.rooms.reduce(
@@ -32,6 +32,7 @@ module.exports = (agenda) => {
           0
         );
 
+        
         const htmlContent = await quotationController.QuotationPDFhtml(
           quotation._id,
           quotation.quotation_no,
@@ -40,7 +41,8 @@ module.exports = (agenda) => {
           quotation.materials,
           quotation.submittedData.rooms,
           totalStalls,
-          totalUrinalScreens
+          totalUrinalScreens,
+          quotation.installation_price
         );
 
         const pdfBuffer = await quotationController.generatePDF(htmlContent);
