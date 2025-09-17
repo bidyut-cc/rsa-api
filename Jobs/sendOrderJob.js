@@ -68,7 +68,8 @@ module.exports = (agenda) => {
              
 
           }
-          const dealData = await quotationController.updateDeal(quotation.zendesk_ticket_id,color,amount,total_amount);
+       //   const dealData = await quotationController.updateDeal(quotation.zendesk_ticket_id,color,amount,total_amount);
+          const dealData = await quotationController.updateHubspotDeal(quotation.zendesk_ticket_id,color,amount,total_amount);
        // console.log(`Email successfully sent for order ID: ${orderId}`);
 
         job.attrs.result = {
