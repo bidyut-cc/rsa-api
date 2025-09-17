@@ -277,11 +277,15 @@ class FrontendController {
       quotation.is_mail_send = false;
       quotation.is_deal_create = false;
 
-      if (!req.body.hasOwnProperty("isTest") || !req.body.isTest) {
-        await agenda.schedule("in 5 seconds", "create_zendesk_lead", {
+     if (!req.body.hasOwnProperty("isTest") || !req.body.isTest) {
+        // await agenda.schedule("in 5 seconds", "create_zendesk_lead", {
+        //   quotationId: quotation._id,
+        // });
+
+        await agenda.schedule("in 5 seconds", "create_hubspot_lead", {
           quotationId: quotation._id,
         });
-      }
+     }
 
       // **Schedule email sending via Agenda**
       await agenda.schedule("in 10 seconds", "send_quotation_email", {
@@ -603,7 +607,12 @@ class FrontendController {
         additional_product.list_price = data.installation_price;
         additional_product.name = `Installation Services (Zip: ${data?.zip_code})`
     }
-      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0],additional_product,data.quotation_no);
+    const totalStalls = data?.submittedData?.rooms?.reduce((sum, room) => sum + (room.stall?.noOfStalls || 0), 0);
+
+    const totalUrinalScreens = data?.submittedData?.rooms?.reduce((sum, room) => {
+        return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
+    }, 0);
+      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0],additional_product,data.quotation_no,totalStalls,totalUrinalScreens);
     if(bigCommerceCart.status){
       // let order = new Order;
       // order.quotation_id=id
@@ -682,7 +691,7 @@ class FrontendController {
  * }
  */
 
-  async createBigCommerceCart(materials,additional_product,quotation_no) {
+  async createBigCommerceCart(materials,additional_product,quotation_no,totalStalls,totalUrinalScreens) {
     try {
       // Prepare the data for BigCommerce cart (example: passing materials and prices)
         const mappingDoc = await Setting.findOne({ step: 'product_material_mapping', deleted: false });
@@ -698,12 +707,13 @@ class FrontendController {
     const line_items = [
       {
         quantity: 1,
-        product_id: product_id, // from mapping
+        product_id: product_id, // from mapping 
         list_price: materials.price,
-        name:`${materials.name} Partition Package \n (Quote #${quotation_no.slice(-5)})`
-
+        name: `${materials.name} Partition Package \n (Quote #${quotation_no.slice(-5)}) (Total Stalls: ${totalStalls})` 
+              + (totalUrinalScreens > 0 ? ` (Total Screens: ${totalUrinalScreens})` : "")
       },
     ];
+    
     
     // Only add additional_product if it has properties
     if (additional_product && Object.keys(additional_product).length > 0) {
@@ -1101,6 +1111,45 @@ async  createDeal(dealData) {
   }
 }
 
+async createHubspotDeal(dealData){
+  try {
+    // 1. Get a fresh access token
+    const tokenResponse = await axios.post(
+      "https://api.hubapi.com/oauth/v1/token",
+      new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: process.env.HUBSPOT_CLIENT_ID,
+        client_secret: process.env.HUBSPOT_CLIENT_SECRET,
+        refresh_token: process.env.HUBSPOT_REFRESH_TOKEN,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+
+    // 2. Create the deal
+    const dealResponse = await axios.post(
+      "https://api.hubapi.com/crm/v3/objects/0-3",
+       dealData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return dealResponse.data;
+  } catch (error) {
+    console.error("Error creating HubSpot deal:", error.response?.data || error.message);
+    throw error;
+  }
+}
+
 async getSmallestOuterPrice(materials) {
   let smallestPrice = Infinity;
   materials.forEach(material => {
@@ -1197,6 +1246,53 @@ async updateDeal(id,color,amount,total_amount) {
       throw new Error(
           error.response?.data?.error || 'Failed to update deal'
       );
+  }
+}
+async updateHubspotDeal(id,color,amount,total_amount) {
+  try {
+    // 1. Get a fresh access token
+    const tokenResponse = await axios.post(
+      "https://api.hubapi.com/oauth/v1/token",
+      new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: process.env.HUBSPOT_CLIENT_ID,
+        client_secret: process.env.HUBSPOT_CLIENT_SECRET,
+        refresh_token: process.env.HUBSPOT_REFRESH_TOKEN,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+   
+        // Build update payload
+        const updatePayload = {
+          properties: {
+            color: color || "No color selected",
+            amount: amount || null,
+            order_total: total_amount ? `$${total_amount}` : null,
+            dealstage: process.env.HUBSPOT_DEAL_FINAL_STAGE, // hardcoded pipeline as per your example
+          },
+        };
+  
+        const response = await axios.patch(
+          `https://api.hubapi.com/crm/v3/objects/deals/${id}`,
+          updatePayload,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+  
+        return response.data;
+  } catch (error) {
+    console.error("Error creating HubSpot deal:", error.response?.data || error.message);
+    throw error;
   }
 }
 

@@ -4,6 +4,7 @@ const sendQuotationJob = require("./sendQuotationJob");
 const createZendeskLeadJob = require("./createZendeskLeadJob");
 const sendOrderJob = require("./sendOrderJob");
 const sendAbandonedOrderJob = require("./sendAbandonedOrderJob");
+const createHubspotLeadJob = require("./createHubspotLeadJob");
 
 module.exports = async (agenda) => {
   try {
@@ -14,6 +15,7 @@ module.exports = async (agenda) => {
     createZendeskLeadJob(agenda); // Load another job
     sendOrderJob(agenda); // Load order job
     sendAbandonedOrderJob(agenda); //abandoned  order another job
+    createHubspotLeadJob(agenda); // Load Hubspot job
 
     console.log("✅ All Agenda jobs initialized successfully!");
   } catch (error) {
