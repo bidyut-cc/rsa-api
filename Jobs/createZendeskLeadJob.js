@@ -54,7 +54,7 @@ module.exports = (agenda) => {
             tags: ["important"],
             custom_fields: {
               "Order Total": `$${formattedAmount}`,
-              "Document URL": `${process.env.QUOTATION_GENERATE_URL}?id=${quotation._id}`,
+              "Document URL": `${process.env.FRONTEND_UI_URL}/create-quotation?id=${quotation._id}`,
               "Room Details": await quotationController.formatAllRoomsData(quotation.submittedData.rooms),
               "Material Details": materialDetailsString,
               "Quote Number":`#${quotation.quotation_no}`,
@@ -80,7 +80,7 @@ module.exports = (agenda) => {
           // Update zendesk_ticket_id in Quotation model
           await Quotation.updateOne(
             { _id: quotationId },
-            { $set: { zendesk_ticket_id: deal.id , is_deal_create:true} }
+            { $set: { zendesk_ticket_id: deal.id , is_deal_create:true , is_zendesk_deal_create:true} }
           );
 
         //  console.log(`Updated zendesk_ticket_id for quotation ${quotationId} with ${deal.id}`);

@@ -276,15 +276,23 @@ class FrontendController {
       quotation.is_within_max_distance = req.body.is_within_max_distance;
       quotation.is_mail_send = false;
       quotation.is_deal_create = false;
+      quotation.is_zendesk_deal_create = false;
+      quotation.is_hubspot_deal_create = false;
 
      if (!req.body.hasOwnProperty("isTest") || !req.body.isTest) {
-        // await agenda.schedule("in 5 seconds", "create_zendesk_lead", {
-        //   quotationId: quotation._id,
-        // });
+        // Check ENABLE_ZENDESK
+          if (process.env.ENABLE_ZENDESK === "true") {
+            await agenda.schedule("in 5 seconds", "create_zendesk_lead", {
+              quotationId: quotation._id,
+            });
+          }
 
-        await agenda.schedule("in 5 seconds", "create_hubspot_lead", {
-          quotationId: quotation._id,
-        });
+          // Check ENABLE_HUBSPOT
+          if (process.env.ENABLE_HUBSPOT === "true") {
+            await agenda.schedule("in 5 seconds", "create_hubspot_lead", {
+              quotationId: quotation._id,
+            });
+          }
      }
 
       // **Schedule email sending via Agenda**
