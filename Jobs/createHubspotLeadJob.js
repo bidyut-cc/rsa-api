@@ -73,7 +73,7 @@ module.exports = (agenda) => {
         if (deal?.id) {
           await Quotation.updateOne(
             { _id: quotationId },
-            { $set: { zendesk_ticket_id: deal.id , is_deal_create:true} }
+            { $set: { hubspot_deal_id: deal.id , is_deal_create:true,is_hubspot_deal_create:true} }
           );
 
         

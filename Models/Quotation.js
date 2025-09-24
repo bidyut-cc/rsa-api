@@ -42,6 +42,10 @@ var QuotationSchema = mongoose.Schema({
         type: String,
         required: false,
     },
+    hubspot_deal_id: {
+        type: String,
+        required: false,
+    },
     is_converted_to_deal: {
         type: Boolean,
         required: false,
@@ -56,6 +60,16 @@ var QuotationSchema = mongoose.Schema({
         default: false
     },
     is_deal_create: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
+    is_zendesk_deal_create: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
+    is_hubspot_deal_create: {
         type: Boolean,
         required: false,
         default: false

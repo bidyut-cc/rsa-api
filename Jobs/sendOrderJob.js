@@ -20,7 +20,7 @@ module.exports = (agenda) => {
       try {
         const quotation = await Quotation.findOne(
           { _id: quotationId },
-          { submittedData: 1, email:1, roomData: 1, project_name:1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1,is_mail_send:1,zendesk_ticket_id:1 }
+          { submittedData: 1, email:1, roomData: 1, project_name:1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1,is_mail_send:1,zendesk_ticket_id:1,hubspot_deal_id:1,is_zendesk_deal_create:1,is_hubspot_deal_create:1 }
         );
         const order = await Order.findOne({ _id: orderId });
         const matchedMaterials = quotation.materials.filter(material => material.id === Number(order.material_id));
@@ -68,8 +68,14 @@ module.exports = (agenda) => {
              
 
           }
-       //   const dealData = await quotationController.updateDeal(quotation.zendesk_ticket_id,color,amount,total_amount);
-          const dealData = await quotationController.updateHubspotDeal(quotation.zendesk_ticket_id,color,amount,total_amount);
+          if (quotation?.is_hubspot_deal_create && quotation.hubspot_deal_id) {
+            const hubSpotdealData = await quotationController.updateHubspotDeal(quotation.hubspot_deal_id,color,amount,total_amount);
+          }
+          if (quotation?.is_zendesk_deal_create && quotation.zendesk_ticket_id) {
+            const sendeskDealData = await quotationController.updateDeal(quotation.zendesk_ticket_id,color,amount,total_amount);
+          }
+          
+          
        // console.log(`Email successfully sent for order ID: ${orderId}`);
 
         job.attrs.result = {
