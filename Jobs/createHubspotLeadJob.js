@@ -46,7 +46,8 @@ module.exports = (agenda) => {
         });
         const dealData = {
           properties: {
-            dealname: `#${quotation.quotation_no}`,
+            deal_id: `#${quotation.quotation_no}`,
+            dealname: quotation.project_name && quotation.project_name.trim() !== "" ? quotation.project_name : "",
             amount: amount,
             dealstage: process.env.HUBSPOT_DEAL_INITIAL_STAGE, // stage id from pipeline
             pipeline: "default", // or another pipeline ID

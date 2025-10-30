@@ -17,7 +17,10 @@ class DynamicRouteController {
                 "Controller";
             const controller_obj = eval("new Controllers." + controller_name);
             var response = await controller_obj[action](req, res);
+           // res.json(response);
+           if (!res.headersSent) {
             res.json(response);
+          }
         } catch (error) {
             res.status(500).json({
                 message: error.message,
