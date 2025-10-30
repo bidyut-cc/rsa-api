@@ -74,6 +74,11 @@ module.exports = {
             group: [ "list","view","update"],
             owner: [ "list","view","update"],
         },
+        bids: {
+            all: [ "list","view","export","update","processOpportunity"],
+            group: [ "list","view","export","update","processOpportunity"],
+            owner: [ "list","view","export","update","processOpportunity"],
+        },
         
     },
     super_admin: {
@@ -145,6 +150,11 @@ module.exports = {
             all: [ "list","view","update"],
             group: [ "list","view","update"],
             owner: [ "list","view","update"],
+        },
+        bids: {
+            all: [ "list","view","export","update","processOpportunity"],
+            group: [ "list","view","export","update","processOpportunity"],
+            owner: [ "list","view","export","update","processOpportunity"],
         },
     },
     sales_agent: {

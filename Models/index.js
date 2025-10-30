@@ -11,3 +11,4 @@ exports.MasterSetting = require("./MasterSetting");
 exports.Quotation = require("./Quotation");
 exports.Order = require("./Order");
 exports.Color = require("./Color");
+exports.Bid = require("./Bid");

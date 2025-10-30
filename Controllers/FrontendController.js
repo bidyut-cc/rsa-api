@@ -1664,7 +1664,7 @@ ${room.hasUrinalScreens ? `
   </tr>
   <tr>
       <td colspan="2" style="width: 100%;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 0px; vertical-align: top;">
+          <table width="70%" cellpadding="0" cellspacing="0" style="margin-top: 0px;margin-left:auto;margin-right:auto; vertical-align: top;">
                <tr>
                   <td style="width: 100%; display: flex; justify-content: center; align-items:center;">
                       <table width="100%" cellpadding="0" cellspacing="10" style="margin-top: 10px; vertical-align: top; text-align: center; border: 1px solid #e3e8ef; padding: 10px;  width:100%; border-radius: 10px;">
@@ -1692,6 +1692,15 @@ ${room.hasUrinalScreens ? `
                                   </a>
                                   </div>
                               </td>
+                              <td style="width: 15%;">
+                              <div>
+                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <img src="${process.env.URI}/uploads/images/DJ_Bunn.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">DJ Bunn
+                                  </h4>
+                              </a>
+                              </div>
+                          </td>
                          
                               <td style="width: 15%;">
                                   <div>
@@ -1701,15 +1710,8 @@ ${room.hasUrinalScreens ? `
                                   </a>
                                   </div>
                               </td>
-                               <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jim Artman</h4>
-                                      </a>
-                                  </div>
-                              </td>
-                              <td style="width: 15%;">
+                               
+                              <!-- <td style="width: 15%;">
                                   <div>
                                   <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Megan_Schroeder.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
@@ -1717,14 +1719,22 @@ ${room.hasUrinalScreens ? `
                                       </h4>
                                   </a>
                                   </div>
-                              </td>
+                              </td> -->
                           </tr>
                           <tr>
                               <td style="width:100%;" colspan="6">
                                  <table width="100%" cellpadding="0" cellspacing="10" style="text-align: center; margin:0 auto;border:none;">
                                   <tr>
-                                  <td style="width:6.5%"></td>
-                                    <td style="width: 15%;">
+                                   <td style="width:6.5%"></td> 
+                                  <td style="width: 15%;">
+                                    <div>
+                                    <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                        <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                        <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jim Artman</h4>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td style="width: 15%;">
                                   <div>
                                   <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
@@ -1733,7 +1743,7 @@ ${room.hasUrinalScreens ? `
                                       </a>
                                   </div>
                               </td>
-                              <td style="width: 15%;">
+                              <!-- <td style="width: 15%;">
                                   <div>
                                   <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Rob_Watkins.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
@@ -1741,27 +1751,27 @@ ${room.hasUrinalScreens ? `
                                       </h4>
                                   </a>
                                   </div>
-                              </td>
+                              </td> -->
                      
-                                          <td style="width: 15%;">
-                                              <div>
-                                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                                  <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Travis Perdue
-                                                  </h4>
-                                              </a>
-                                              </div>
-                                          </td>
-                                          <td style="width: 15%;">
-                                              <div>
-                                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                                  <img src="${process.env.URI}/uploads/images/CJ_Cooper.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">CJ Cooper
-                                                  </h4>
-                                              </a>
-                                              </div>
-                                          </td>
-                                          <td style="width:6.5%"></td>
+                                    <td style="width: 15%;">
+                                        <div>
+                                        <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                            <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                            <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Travis Perdue
+                                            </h4>
+                                        </a>
+                                        </div>
+                                    </td>
+                                   <!-- <td style="width: 15%;">
+                                        <div>
+                                        <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                            <img src="${process.env.URI}/uploads/images/CJ_Cooper.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                            <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">CJ Cooper
+                                            </h4>
+                                        </a>
+                                        </div>
+                                    </td> -->
+                                     <td style="width:6.5%"></td> 
                                   </tr>
                                  </table>
                               </td>     
@@ -2073,7 +2083,7 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
   </tr>
   <tr>
       <td colspan="2" style="width: 100%;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 0px; vertical-align: top;">
+          <table width="70%" cellpadding="0" cellspacing="0" style="margin-top: 0px;margin-left:auto;margin-right:auto; vertical-align: top;">
                <tr>
                   <td style="width: 100%; display: flex; justify-content: center; align-items:center;">
                       <table width="100%" cellpadding="0" cellspacing="10" style="margin-top: 10px; vertical-align: top; text-align: center; border: 1px solid #e3e8ef; padding: 10px;  width:100%; border-radius: 10px;">
@@ -2101,7 +2111,15 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                                   </a>
                                   </div>
                               </td>
-                            
+                              <td style="width: 15%;">
+                              <div>
+                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <img src="${process.env.URI}/uploads/images/DJ_Bunn.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">DJ Bunn
+                                  </h4>
+                              </a>
+                              </div>
+                          </td>
                               <td style="width: 15%;">
                                   <div>
                                   <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
@@ -2110,67 +2128,41 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                                   </a>
                                   </div>
                               </td>
-                               <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jim Artman</h4>
-                                      </a>
-                                  </div>
-                              </td>
-                              <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/Megan_Schroeder.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Megan Watkins
-                                      </h4>
-                                  </a>
-                                  </div>
-                              </td>
+                               
                           </tr>
                           <tr>
                               <td style="width:100%;" colspan="6">
                                  <table width="100%" cellpadding="0" cellspacing="10" style="text-align: center; margin:0 auto;border:none;">
                                   <tr>
-                                  <td style="width:6.5%"></td>
+                                  <td style="width:6.5%"></td> 
                                     <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Peyton Cape
-                                      </h4>
-                                      </a>
-                                  </div>
-                              </td>
-                              <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/Rob_Watkins.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Rob Watkins
-                                      </h4>
-                                  </a>
-                                  </div>
-                              </td>
+                                      <div>
+                                      <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                          <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                          <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jim Artman</h4>
+                                          </a>
+                                      </div>
+                                    </td>
+                                    <td style="width: 15%;">
+                                    <div>
+                                    <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                        <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                        <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Peyton Cape
+                                        </h4>
+                                        </a>
+                                    </div>
+                                </td>
                     
-                                          <td style="width: 15%;">
-                                              <div>
-                                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                                  <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Travis Perdue
-                                                  </h4>
-                                              </a>
-                                              </div>
-                                          </td>
-                                          <td style="width: 15%;">
-                                              <div>
-                                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                                  <img src="${process.env.URI}/uploads/images/CJ_Cooper.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">CJ Cooper
-                                                  </h4>
-                                              </a>
-                                              </div>
-                                          </td>
-                                          <td style="width:6.5%"></td>
+                                <td style="width: 15%;">
+                                    <div>
+                                    <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                        <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                        <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Travis Perdue
+                                        </h4>
+                                    </a>
+                                    </div>
+                                </td>
+                                <td style="width:6.5%"></td> 
                                   </tr>
                                  </table>
                               </td>     
