@@ -106,6 +106,8 @@ class BidsController extends Controller {
           const Model = Models[this.model_name];
           const exportHeader = Model.schema.exportFields;
           const filename = req.query.filename || "Report";
+          var sort_field = req.query.sort || "_id";
+          var sort_order = req.query.sort_order || "desc";
           const month = req.query.month || null;
           const search = req.query.search || ""; // ✅ search
           const where_clause = req.query.where_clause
@@ -114,6 +116,7 @@ class BidsController extends Controller {
       
           const where_fields = where_clause.where_fields || [];
           const where_values = where_clause.where_values || [];
+          sort_order = sort_order == "asc" ? 1 : -1;
       
           // 🔍 Build search query
           const fields = Model.schema.customFields;
@@ -152,7 +155,7 @@ class BidsController extends Controller {
         //  console.log("Final Query for CSV export:", JSON.stringify(finalQuery, null, 2));
       
           // Fetch data
-          const records = await Model.find(finalQuery).sort({ _id: -1 }).lean().exec();
+          const records = await Model.find(finalQuery).sort({ [sort_field]: sort_order }).lean().exec();
       
           // Generate CSV
           const headers = Object.keys(exportHeader).map(k => exportHeader[k].displayName);

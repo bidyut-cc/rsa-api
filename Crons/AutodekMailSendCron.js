@@ -22,7 +22,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
       try {
         // Convert last 1 day to EDT (optional, or keep UTC if API expects UTC)
         const end = moment().utc();
-        const start = moment(end).subtract(10, "hours");
+        const start = moment(end).subtract(1, "hours");
         const lastDayRange = `${start.format("YYYY-MM-DDTHH:mm:ss.SSS[Z]")}..${end.format("YYYY-MM-DDTHH:mm:ss.SSS[Z]")}`;
 
       console.log(lastDayRange);
@@ -524,13 +524,20 @@ async function calculateSmartBidScore(bid) {
 
   // Distance (assume bid.distance in miles if available)
   if (bid.location) {
-    const bidDistance = await getDistanceInMiles(bid.location.zip, process.env.SOURCE_ZIP_CODE); // example
+    let bidDistance = await getDistanceInMiles(bid.location.zip, process.env.SOURCE_ZIP_CODE); // example
+    // Round up to nearest integer
+    bidDistance = Math.ceil(bidDistance);
     const distanceArray = weights.distance;
   
-    const matchedRange = distanceArray.find(range => 
-      (range.max === null && bidDistance > range.min) ||
-      (bidDistance >= range.min && bidDistance < range.max)
+    // const matchedRange = distanceArray.find(range => 
+    //   (range.max === null && bidDistance > range.min) ||
+    //   (bidDistance >= range.min && bidDistance < range.max)
+    // );
+    const matchedRange = distanceArray.find(range =>
+      (range.max === null && bidDistance >= range.min) ||
+      (bidDistance >= range.min && bidDistance <= range.max)
     );
+    
   
     if (matchedRange) {
      // console.log("location", matchedRange.percentage);
@@ -570,7 +577,7 @@ if (demoDeadline) {
 //  console.log("diffDays:", diffDays);
 
  const matchedTimeline = weights.projectTimeline.find(t => 
-   (t.max === null && diffDays > t.min) ||
+   (t.max === null && diffDays >= t.min) ||
    (diffDays >= t.min && diffDays <= t.max)
  );
 
@@ -584,13 +591,16 @@ if (demoDeadline) {
 
   // ProjectSize
   if (bid.projectSize) {
+    // Round up project size to nearest integer
+    const roundedSize = Math.ceil(bid.projectSize);
+  
     const matchedSize = weights.projectSize.find(range => 
-      (range.max === null && bid.projectSize > range.min) ||
-      (bid.projectSize >= range.min && bid.projectSize <= range.max)
+      (range.max === null && roundedSize >= range.min) ||          // last range
+      (roundedSize >= range.min && roundedSize <= range.max)      // other ranges
     );
   
     if (matchedSize) {
-     // console.log("project size", matchedSize.percentage);
+      // console.log("project size", matchedSize.percentage);
       score += matchedSize.percentage;
     }
   }
@@ -709,6 +719,7 @@ async function upsertHubspotLead(bid,contactData){
             hubspot_owner_id:process.env.HUBSPOT_OWNER_ID,
             hs_lead_type:"NEW_BUSINESS",
             hs_lead_name: bid.name,
+            company_name:`${bid.client?.company?.name}`,
             due_at: bid.dueAt,
             project_size: bid.projectSize,
             location: bid.location?.complete,
