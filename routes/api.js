@@ -66,6 +66,7 @@ router.get("/quotation/downloadPDF",[VerifyEncryptedTokenMiddleware],FrontendCon
 router.post("/app-setting/checkZipCode",[VerifyEncryptedTokenMiddleware],FrontendController.checkZipCode);
 router.post("/webhook/order",FrontendController.order);
 router.post("/webhook/abandoned",FrontendController.abandoned);
+router.post("/webhook/syncToMonday",FrontendController.syncToMonday);
 
 
 
