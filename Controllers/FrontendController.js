@@ -2412,6 +2412,14 @@ async  calculateInstallationPrice(data) {
 }
 }
 
+async syncToMonday(req,res){
+  console.log(req.body);
+return res.status(200).json({
+  success: true,
+  message: req.body,
+});
+}
+
 
 
 
