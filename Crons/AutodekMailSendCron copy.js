@@ -399,21 +399,16 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
                 "email": clientData?.lead?.email,
                 "firstname": clientData?.lead?.firstName,
                 "lastname": clientData?.lead?.lastName,
-                "tags":"BUILDINGCONNECTED"
                // "phone": clientData?.lead?.phoneNumber
                }
-
-              // const contactData = {
-              //   "email": "test123@gmail.com",
-              //   "firstname": "Test 12",
-              //   "lastname": "Test 34",
-              //   "tags":"BUILDINGCONNECTED"
-              //  // "phone": clientData?.lead?.phoneNumber
-              //  }
-            
+              // const hubspotIds = await upsertHubspotLead(bid,contactData);
+              // if (hubspotIds) {
+              //   bid.hubspotContactId = hubspotIds.hubspotContactId;
+              //   bid.hubspotLeadId = hubspotIds.hubspotLeadId; // save HubSpot ID
+              // }
 
               queue = queue.then(async () => {
-                const hubspotIds = await upsertHubspotDeal(bid, contactData);
+                const hubspotIds = await upsertHubspotLead(bid, contactData);
                 await delay(interval); // wait before next HubSpot call
                 if (hubspotIds) {
                   bid.hubspotContactId = hubspotIds.hubspotContactId;
@@ -777,158 +772,6 @@ async function upsertHubspotLead(bid,contactData){
     return null;
   }
 
-}
-
-async function upsertHubspotDeal(bid,contactData){
-  try {
-    const tokenResponse = await axios.post(
-      "https://api.hubapi.com/oauth/v1/token",
-      new URLSearchParams({
-        grant_type: "refresh_token",
-        client_id: process.env.HUBSPOT_CLIENT_ID,
-        client_secret: process.env.HUBSPOT_CLIENT_SECRET,
-        refresh_token: process.env.HUBSPOT_REFRESH_TOKEN,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
-  
-    const accessToken = tokenResponse.data.access_token;
-
-    // 2️⃣ Upsert Contact
-    let hubspotContactId = null;
-    const existingBid = await Bid.findOne({ opportunities_id: bid.opportunities_id });
-
-    if (existingBid?.hubspotContactId) {
-      hubspotContactId = existingBid.hubspotContactId;
-    } else {
-      // 1️⃣ Try to find contact by email
-      const searchPayload = {
-        filterGroups: [
-          {
-            filters: [
-              {
-                propertyName: "email",
-                operator: "EQ",
-                value:  contactData.email,
-              },
-            ],
-          },
-        ],
-        properties: ["email", "firstname", "lastname", "phone"],
-        limit: 1,
-      };
-    
-      const searchResponse = await axios.post(
-        "https://api.hubapi.com/crm/v3/objects/contacts/search",
-        searchPayload,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    
-      if (searchResponse.data.results && searchResponse.data.results.length > 0) {
-        hubspotContactId = searchResponse.data.results[0].id; // Found existing contact
-      } else {
-        // 2️⃣ Create new contact if not found
-        const contactPayload = {
-          properties: contactData,
-        };
-    
-        const contactResponse = await axios.post(
-          "https://api.hubapi.com/crm/v3/objects/contacts",
-          contactPayload,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-    
-        hubspotContactId = contactResponse.data.id;
-      }
-    }
-          // 1️⃣ SmartBid score number
-      const smartBidScore = Number(bid.smartBidScore || 0);
-
-      // 2️⃣ Decide Pipeline + Stage based on threshold
-      const isHighScore = smartBidScore >= process.env.SMARTBID_THRESHOLD;
-
-      const selectedPipelineId = isHighScore
-        ? process.env.SMARTBID_HIGH_SCORE_PIPELINE_ID
-        : process.env.SMARTBID_LOW_SCORE_PIPELINE_ID;
-
-      const selectedStageId = isHighScore
-        ? process.env.SMARTBID_HIGH_SCORE_STAGE_ID
-        : process.env.SMARTBID_LOW_SCORE_STAGE_ID;
-
-    
-        // 2️⃣ Prepare the payload
-        const dealPayload = {
-          properties: {
-            hubspot_owner_id:process.env.HUBSPOT_OWNER_ID,
-            pipeline: selectedPipelineId,
-            dealstage: selectedStageId,
-            dealname: bid.name,
-            company_name:`${bid.client?.company?.name}`,
-            due_at: bid.dueAt,
-            project_size: bid.projectSize,
-            location: bid.location?.complete,
-            client: `${bid.client?.lead?.firstName} ${bid.client?.lead?.lastName}`,
-            trade_name: bid.tradeName,
-            dead_line: bid.deadline,
-            project_information: bid.projectInformation,
-            smart_bid_score: `${bid.smartBidScore}%`,
-            link_url: bid.LinkURL,
-            created_at:new Date(bid.createdAt),
-            updated_at:new Date(bid.updatedAt),
-          },
-          associations: [
-            {
-              "to": { "id": hubspotContactId},
-              "types": [
-                {
-                  "associationCategory": "HUBSPOT_DEFINED",
-                  "associationTypeId": 3
-                }
-              ]
-            }
-          ]
-          
-         
-        };
-         // 4️⃣ Upsert Lead
-    let leadId = existingBid?.hubspotLeadId;
-    const url = leadId
-      ? `https://api.hubapi.com/crm/v3/objects/deals/${leadId}`
-      : `https://api.hubapi.com/crm/v3/objects/deals`;
-    const method = leadId ? "patch" : "post";
-
-    //console.log(url,method,dealPayload);
-
-    const dealResponse = await axios({
-      method,
-      url,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      data: dealPayload,
-    });
-
-    const hubspotLeadId = dealResponse.data.id;
-    return { hubspotContactId, hubspotLeadId };
-  } catch (err) {
-    console.error("HubSpot upsert error:", err.response?.data || err.message);
-    return null;
-  }
 }
 
 

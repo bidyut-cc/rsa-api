@@ -22,10 +22,11 @@ module.exports = (agenda) => {
         }
         const isAnyMaterialQuoteTrue = quotation.submittedData.rooms.some(room => room.materialQuote === "true");
         const contactData = {
-          first_name: quotation.submittedData.first_name,
-          last_name: quotation.submittedData.last_name,
+          firstname: quotation.submittedData.first_name,
+          lastname: quotation.submittedData.last_name,
           email: quotation.submittedData.email,
-          phone: quotation.submittedData.phone_number,
+        //  phone: quotation.submittedData.phone_number,
+          tags:"QUOTE"
         };
 
       //   const contact_id = await quotationController.checkEmailAndCreateContact(contactData);
@@ -44,13 +45,13 @@ module.exports = (agenda) => {
         const formattedAmount = Number(amount).toLocaleString("en-US", {
           maximumFractionDigits: 0,
         });
-        const dealData = {
+        let dealData = {
           properties: {
             deal_id: `#${quotation.quotation_no}`,
             dealname: quotation.project_name && quotation.project_name.trim() !== "" ? quotation.project_name : "",
             amount: amount,
-            dealstage: process.env.HUBSPOT_DEAL_INITIAL_STAGE, // stage id from pipeline
-            pipeline: "default", // or another pipeline ID
+            dealstage: process.env.QUOTE_TOOL_INITIAL_STAGE_ID, // stage id from pipeline
+            pipeline: process.env.QUOTE_TOOL_PIPELINE_ID, // or another pipeline ID
             // Standard HubSpot properties
            // description: `Quote #: #${quotation.quotation_no}, Project: ${quotation.project_name || "NA"}`,
             // Custom properties (you need to create these in HubSpot beforehand with same internal names)
@@ -65,10 +66,12 @@ module.exports = (agenda) => {
             hubspot_owner_id:process.env.HUBSPOT_OWNER_ID
           }
         };
+
+        
  
 
         // Create deal in Hubspot
-        const deal = await quotationController.createHubspotDeal(dealData);
+        const deal = await quotationController.createHubspotDeal(contactData,dealData);
      
   
         if (deal?.id) {
