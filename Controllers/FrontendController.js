@@ -340,7 +340,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-     // executablePath: '/usr/bin/chromium-browser',
+      executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -1828,7 +1828,7 @@ ${room.hasUrinalScreens ? `
                           <tr>
                               <td style="width: 15%;">
                                   <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <a href="https://www.linkedin.com/in/jimwsouthard" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Jim_Southard.png" alt="pic" style="margin-bottom: 10px; width:80px;height:80px;"/>
                                       <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px; font-size:10px;white-space: nowrap;">Jim Southard</h4>
                                       </a>
@@ -1836,7 +1836,7 @@ ${room.hasUrinalScreens ? `
                               </td>
                               <td style="width: 15%;">
                                   <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <a href="https://www.linkedin.com/in/josh-williams-64a0815b" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Josh_Williams.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
                                       <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Josh Williams
                                       </h4>
@@ -1844,85 +1844,57 @@ ${room.hasUrinalScreens ? `
                                   </div>
                               </td>
                               <td style="width: 15%;">
-                              <div>
-                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                  <img src="${process.env.URI}/uploads/images/DJ_Bunn.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">DJ Bunn
-                                  </h4>
-                              </a>
-                              </div>
-                          </td>
-                         
-                              <td style="width: 15%;">
                                   <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <a href="https://www.linkedin.com/in/jennifer-hollis-2068bb177" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Jennifer_Hollis.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
                                       <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jennifer Hollis</h4>
                                   </a>
                                   </div>
                               </td>
-                               
                               <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jim Artman
-                                      </h4>
+                              <div>
+                              <a href="https://www.linkedin.com/in/peyton-cape-5b139b209" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Peyton Cape
+                                  </h4>
                                   </a>
-                                  </div>
-                              </td>
+                              </div>
+                            </td>
+                       
                           </tr>
                           <tr>
                               <td style="width:100%;" colspan="6">
                                  <table width="100%" cellpadding="0" cellspacing="10" style="text-align: center; margin:0 auto;border:none;">
                                   <tr>
-                                   
-                                  <td style="width: 15%;">
-                                  <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                      <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                      <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Peyton Cape
-                                      </h4>
-                                      </a>
-                                  </div>
-                                </td>
-                                <td style="width: 15%;">
-                                <div>
-                                <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                    <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                    <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Travis Perdue
-                                    </h4>
-                                </a>
-                                </div>
-                              </td>
+                                  <td style="width: 7.5%;">&nbsp;</td>
                                     <td style="width: 15%;">
-                                        <div>
-                                        <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                            <img src="${process.env.URI}/uploads/images/Angel_Smith.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px; border-redius:50%; overflow:hidden;"/>
-                                            <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Angel Smith
-                                            </h4>
-                                        </a>
-                                        </div>
+                                      <div>
+                                      <a href="https://www.linkedin.com/in/travis-perdue-abb18182" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                          <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                          <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Travis Perdue
+                                          </h4>
+                                      </a>
+                                      </div>
                                     </td>
-                                   <td style="width: 15%;">
-                                        <div>
-                                        <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                    <td style="width: 15%;">
+                                      <div>
+                                      <a href="https://www.linkedin.com/in/jim-artman-77a24820a" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                          <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                          <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jim Artman
+                                          </h4>
+                                      </a>
+                                      </div>
+                                    </td>
+                                    <td style="width: 15%;">
+                                      <div>
+                                        <a href="https://www.linkedin.com/in/courtney-underwood-8177a3131/" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                             <img src="${process.env.URI}/uploads/images/Courtney_Underwood.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
                                             <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Courtney Underwood
                                             </h4>
                                         </a>
-                                        </div>
+                                      </div>
                                     </td>
-                                    <td style="width: 15%;">
-                                    <div>
-                                    <a href="mailto:cs@restroomstallsandall.com?subject=PDF Quote #${quotation_no}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                        <img src="${process.env.URI}/uploads/images/Jessica_Meeks.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                        <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jessica Meeks
-                                        </h4>
-                                    </a>
-                                    </div>
-                                </td>
-                                    
+                                    <td style="width: 7.5%;">&nbsp;</td>
                                   </tr>
                                  </table>
                               </td>     
@@ -2247,7 +2219,7 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                           <tr>
                               <td style="width: 15%;">
                                   <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <a href="https://www.linkedin.com/in/jimwsouthard" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Jim_Southard.png" alt="pic" style="margin-bottom: 10px; width:80px;height:80px;"/>
                                       <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px; font-size:10px;white-space: nowrap;">Jim Southard</h4>
                                       </a>
@@ -2255,25 +2227,17 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                               </td>
                               <td style="width: 15%;">
                                   <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <a href="https://www.linkedin.com/in/josh-williams-64a0815b" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Josh_Williams.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
                                       <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Josh Williams
                                       </h4>
                                   </a>
                                   </div>
                               </td>
-                              <td style="width: 15%;">
-                              <div>
-                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                  <img src="${process.env.URI}/uploads/images/DJ_Bunn.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">DJ Bunn
-                                  </h4>
-                              </a>
-                              </div>
-                          </td>
+                             
                               <td style="width: 15%;">
                                   <div>
-                                  <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <a href="https://www.linkedin.com/in/jennifer-hollis-2068bb177" style="text-decoration: none;display: inline-block;color:#285fa1;">
                                       <img src="${process.env.URI}/uploads/images/Jennifer_Hollis.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
                                       <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jennifer Hollis</h4>
                                   </a>
@@ -2281,62 +2245,45 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                               </td>
                               <td style="width: 15%;">
                               <div>
-                              <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                  <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jim Artman</h4>
-                              </a>
+                              <a href="https://www.linkedin.com/in/peyton-cape-5b139b209" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                  <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                  <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Peyton Cape</h4>
+                                  </a>
                               </div>
-                          </td>
+                            </td>
                           </tr>
                           <tr>
                               <td style="width:100%;" colspan="6">
                                  <table width="100%" cellpadding="0" cellspacing="10" style="text-align: center; margin:0 auto;border:none;">
                                   <tr>
+                                    <td style="width: 7.5%;">&nbsp;</td>
                                     <td style="width: 15%;">
                                       <div>
-                                      <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                          <img src="${process.env.URI}/uploads/images/Peyton_Cape.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                          <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Peyton Cape</h4>
-                                          </a>
+                                        <a href="https://www.linkedin.com/in/travis-perdue-abb18182" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                            <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                            <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Travis Perdue
+                                            </h4>
+                                        </a>
                                       </div>
                                     </td>
                                     <td style="width: 15%;">
-                                    <div>
-                                    <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                        <img src="${process.env.URI}/uploads/images/Travis_Perdue.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                        <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Travis Perdue
-                                        </h4>
-                                    </a>
-                                    </div>
-                                </td>
-                    
-                                <td style="width: 15%;">
-                                    <div>
-                                    <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                        <img src="${process.env.URI}/uploads/images/Angel_Smith.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                        <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Angel Smith
-                                        </h4>
-                                    </a>
-                                    </div>
-                                </td>
-                                <td style="width: 15%;">
-                                <div>
-                                <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                    <img src="${process.env.URI}/uploads/images/Courtney_Underwood.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                    <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Courtney Underwood
-                                    </h4>
-                                </a>
-                                </div>
-                            </td>
-                            <td style="width: 15%;">
-                            <div>
-                            <a href="mailto:cs@restroomstallsandall.com?subject=PDF Order #${order_id}" style="text-decoration: none;display: inline-block;color:#285fa1;">
-                                <img src="${process.env.URI}/uploads/images/Jessica_Meeks.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
-                                <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jessica Meeks
-                                </h4>
-                            </a>
-                            </div>
-                        </td>
+                                      <div>
+                                        <a href="https://www.linkedin.com/in/jim-artman-77a24820a" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                            <img src="${process.env.URI}/uploads/images/Jim_Artman.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                            <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Jim Artman</h4>
+                                        </a>
+                                      </div>
+                                    </td>
+                                    <td style="width: 15%;">
+                                      <div>
+                                        <a href="https://www.linkedin.com/in/courtney-underwood-8177a3131/" style="text-decoration: none;display: inline-block;color:#285fa1;">
+                                            <img src="${process.env.URI}/uploads/images/Courtney_Underwood.png" alt="pic" style="margin-bottom: 10px;width:80px;height:80px;"/>
+                                            <h4 style="margin-top: 0px; color:#285fa1; margin-bottom: 5px;font-size:10px;white-space: nowrap;">Courtney Underwood
+                                            </h4>
+                                        </a>
+                                      </div>
+                                    </td>
+                                    <td style="width: 7.5%;">&nbsp;</td>
                                   </tr>
                                  </table>
                               </td>     
