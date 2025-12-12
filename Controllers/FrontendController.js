@@ -17,6 +17,7 @@ const Color = require("../Models/Color.js");
 const MasterSetting = require("../Models/MasterSetting.js");
 const agenda = require('../config/agendaConfig.js'); // Import the Agenda instance
 const abandonedOrder = require("../Models/AbandonedOrder.js");
+const Bid = require("../Models/Bid.js");
 
 class FrontendController {
   
@@ -38,6 +39,7 @@ class FrontendController {
     this.order = this.order.bind(this);
     this.downloadPDF = this.downloadPDF.bind(this);
     this.checkZipCode = this.checkZipCode.bind(this);
+    this.syncToMonday = this.syncToMonday.bind(this);
     
   }
 
@@ -281,11 +283,11 @@ class FrontendController {
 
      if (!req.body.hasOwnProperty("isTest") || !req.body.isTest) {
         // Check ENABLE_ZENDESK
-          if (process.env.ENABLE_ZENDESK === "true") {
-            await agenda.schedule("in 5 seconds", "create_zendesk_lead", {
-              quotationId: quotation._id,
-            });
-          }
+          // if (process.env.ENABLE_ZENDESK === "true") {
+          //   await agenda.schedule("in 5 seconds", "create_zendesk_lead", {
+          //     quotationId: quotation._id,
+          //   });
+          // }
 
           // Check ENABLE_HUBSPOT
           if (process.env.ENABLE_HUBSPOT === "true") {
@@ -338,7 +340,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium-browser',
+     // executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -1119,7 +1121,7 @@ async  createDeal(dealData) {
   }
 }
 
-async createHubspotDeal(dealData){
+async createHubspotDeal(contactData,dealData){
   try {
     // 1. Get a fresh access token
     const tokenResponse = await axios.post(
@@ -1138,7 +1140,74 @@ async createHubspotDeal(dealData){
     );
 
     const accessToken = tokenResponse.data.access_token;
+    let hubspotContactId = null;
 
+    // 1️⃣ Try to find contact by email
+    const searchPayload = {
+      filterGroups: [
+        {
+          filters: [
+            {
+              propertyName: "email",
+              operator: "EQ",
+              value:  contactData.email,
+            },
+          ],
+        },
+      ],
+      properties: ["email", "firstname", "lastname", "phone"],
+      limit: 1,
+    };
+  
+    const searchResponse = await axios.post(
+      "https://api.hubapi.com/crm/v3/objects/contacts/search",
+      searchPayload,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  
+    if (searchResponse.data.results && searchResponse.data.results.length > 0) {
+      hubspotContactId = searchResponse.data.results[0].id; // Found existing contact
+    } else {
+      // 2️⃣ Create new contact if not found
+      const contactPayload = {
+        properties: contactData,
+      };
+  
+      const contactResponse = await axios.post(
+        "https://api.hubapi.com/crm/v3/objects/contacts",
+        contactPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      hubspotContactId = contactResponse.data.id;
+    }
+// -----------------------------
+    // 3️⃣ Add association IF contact exists
+    // -----------------------------
+    if (hubspotContactId) {
+      dealData.associations = [
+        {
+          to: { id: hubspotContactId },
+          types: [
+            {
+              associationCategory: "HUBSPOT_DEFINED",
+              associationTypeId: 3, // Contact → Deal default association
+            },
+          ],
+        },
+      ];
+    }
+    
     // 2. Create the deal
     const dealResponse = await axios.post(
       "https://api.hubapi.com/crm/v3/objects/0-3",
@@ -1282,7 +1351,7 @@ async updateHubspotDeal(id,color,amount,total_amount) {
             color: color || "No color selected",
             amount: amount || null,
             order_total: total_amount ? `$${total_amount}` : null,
-            dealstage: process.env.HUBSPOT_DEAL_FINAL_STAGE, // hardcoded pipeline as per your example
+            dealstage: process.env.QUOTE_TOOL_FINAL_STAGE_ID, // hardcoded pipeline as per your example
           },
         };
   
@@ -1303,6 +1372,88 @@ async updateHubspotDeal(id,color,amount,total_amount) {
     throw error;
   }
 }
+
+async createMondayItem(quotation) {
+  try {
+    // -----------------------------
+    // 1) CREATE ITEM
+    // -----------------------------
+    const createItemQuery = `
+      mutation {
+        create_item (
+          board_id: ${process.env.MONDAY_BOARD_ID},
+          group_id: "${process.env.MONDAY_GROUP_ID}",
+          item_name: "${quotation?.project_name} - (Quote Tool)",
+          column_values: "{\\"project_status\\\": {\\\"label\\\": \\\"Working on it\\\"}, \\\"project_owner\\\": {\\\"personsAndTeams\\\":[{\\\"id\\\": 96271035, \\\"kind\\\": \\\"person\\\"}]}, \\\"date\\\": {\\\"date\\\": \\\"2025-11-18\\\"}}"
+        ) {
+          id
+          name
+        }
+      }
+    `;
+
+    const createItemRes = await axios.post(
+      "https://api.monday.com/v2",
+      { query: createItemQuery },
+      {
+        headers: {
+          Authorization: process.env.MONDAY_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const itemId =
+      createItemRes?.data?.data?.create_item?.id ||
+      createItemRes?.data?.data?.create_item?.[0]?.id;
+
+    if (!itemId) {
+      throw new Error("Failed to fetch created Monday item ID");
+    }
+
+    console.log("✔ Item created:", itemId);
+
+    // -----------------------------
+    // 2) CREATE UPDATE FOR THAT ITEM
+    // -----------------------------
+    const updateQuery = `
+    mutation {
+      create_update(
+        item_id: ${itemId},
+        body: "Project Name: ${quotation?.project_name} - (Quote Tool)<br>Client Name: ${quotation?.first_name} ${quotation?.last_name}<br>Client Email: ${quotation?.email}<br>Phone: ${quotation?.phone_number}"
+      ) {
+        id
+      }
+    }
+  `;
+  
+
+    const updateRes = await axios.post(
+      "https://api.monday.com/v2",
+      { query: updateQuery },
+      {
+        headers: {
+          Authorization: process.env.MONDAY_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("✔ Update created:", updateRes.data);
+
+    return {
+      item: createItemRes.data,
+      update: updateRes.data,
+    };
+  } catch (error) {
+    console.error(
+      "Monday API ERROR:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+}
+
 
 async  formatAllRoomsData(roomsData) {
   const formattedRooms = await Promise.all(
@@ -2413,12 +2564,106 @@ async  calculateInstallationPrice(data) {
 }
 
 async syncToMonday(req,res){
-  console.log(req.body);
-return res.status(200).json({
-  success: true,
-  message: req.body,
-});
+  try {
+    const events = req.body; // HubSpot always sends an array
+
+    for (const event of events) {
+      const { propertyName, propertyValue, objectId } = event;
+
+      // 1️⃣ Only process dealstage change
+      if (propertyName !== "dealstage") continue;
+
+      // 2️⃣ Match specific stage
+      if (propertyValue === process.env.SMARTBID_SCORE_FINAL_STAGE_ID) { 
+        console.log("✔ Target stage reached for deal:", objectId);
+
+        // 👉 Call your Monday creation function here
+        await this.createMondayItemForDeal(objectId);
+        
+      }
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Webhook Error:", error);
+    res.sendStatus(500);
+  }
 }
+
+async createMondayItemForDeal(hubspotDealId) {
+  try {
+
+    const bid = await Bid.findOne({ hubspotLeadId: hubspotDealId });
+
+    if (!bid) {
+      console.log("❌ No bid found for this deal");
+      return;
+    }
+
+    // Create Monday item
+    const createItemQuery = `
+      mutation {
+        create_item (
+          board_id: ${process.env.MONDAY_BOARD_ID},
+          group_id: "${process.env.MONDAY_GROUP_ID}",
+          item_name: "${bid.name} - (Building Connected)",
+          column_values: "{\\"project_status\\\": {\\\"label\\\": \\\"Working on it\\\"}}"
+        ) {
+          id
+        }
+      }
+    `;
+
+    const createItemRes = await axios.post(
+      "https://api.monday.com/v2",
+      { query: createItemQuery },
+      { headers: { Authorization: process.env.MONDAY_API_KEY } }
+    );
+
+    const itemId = createItemRes.data.data.create_item.id;
+
+    console.log("✔ Monday item created:", itemId);
+
+            // Create update
+            const updateBody = `
+            Project Name: ${bid.name}
+            Project Size: ${bid.projectSize || "N/A"}
+            Project Information: ${bid.projectInformation || "N/A"}
+            Location: ${bid?.location?.complete || "N/A"}
+            Client Name: ${bid.client?.lead?.firstName} ${bid.client?.lead?.lastName}
+            Client Email: ${bid.client?.lead?.email}
+            Trade Name: ${bid.tradeName || "N/A"}
+            Smart Bid Score: ${bid.smartBidScore || "N/A"}%
+            Link: ${bid.LinkURL}
+            Created At: ${bid.createdAt}
+            `
+              .trim()
+              .replace(/"/g, '\\"')          // escape quotes
+              .replace(/\n/g, "\\n");         // escape newlines
+            
+
+            const updateQuery = `
+              mutation {
+                create_update(
+                  item_id: ${itemId},
+                  body: "${updateBody}"
+                ) {
+                  id
+                }
+              }
+            `;
+
+    await axios.post("https://api.monday.com/v2", { query: updateQuery }, {
+      headers: { Authorization: process.env.MONDAY_API_KEY }
+    });
+
+    console.log("✔ Monday update added");
+
+  } catch (err) {
+    console.error("Monday API Error:", err.response?.data || err);
+  }
+}
+
 
 
 
