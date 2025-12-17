@@ -912,7 +912,7 @@ class FrontendController {
 
 async order(req, res){
   try {
-    console.log(order);
+    console.log(req.body);
     const { type, id, status } = req.body.data;
 
     // Validate if type is 'order' and id exists
