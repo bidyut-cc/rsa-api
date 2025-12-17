@@ -340,7 +340,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium-browser',
+     // executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -612,48 +612,43 @@ class FrontendController {
     const savedOrder = await order.save();
     let additional_product = {}
     if (typeof data.is_within_max_distance !== 'undefined' && data.is_within_max_distance === true) {
-        additional_product.quantity = 1;
-        additional_product.product_id = process.env.CUSTOM_PRODUCT_ID;
-        additional_product.list_price = data.installation_price;
-        additional_product.name = `Installation Services (Zip: ${data?.zip_code})`
+        additional_product.variantId= `gid://shopify/ProductVariant/${process.env.SHOPIFY_CUSTOM_PRODUCT_ID}`,
+        additional_product.quantity= 1,
+        priceOverride= {
+          amount: data.installation_price,
+          currencyCode: process.env.SHOPIFY_CURRENCY_CODE
+        },
+        customAttributes= [
+            { key: "Zip", value: data?.zip_code },
+        ]
     }
     const totalStalls = data?.submittedData?.rooms?.reduce((sum, room) => sum + (room.stall?.noOfStalls || 0), 0);
 
     const totalUrinalScreens = data?.submittedData?.rooms?.reduce((sum, room) => {
         return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
     }, 0);
-      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0],additional_product,data.quotation_no,totalStalls,totalUrinalScreens);
-    if(bigCommerceCart.status){
-      // let order = new Order;
-      // order.quotation_id=id
-      // order.material_id=material_id
-      // order.cart_id=bigCommerceCart.data.data.id
-      // order.order_id=null
-      // order.first_name = data.first_name;
-      // order.last_name =data.last_name;
-      // order.email = data.email;
-      // order.phone_number = data.phone_number;
-      // order.colors=colors;
-      // order.amount = bigCommerceCart.data.data.base_amount;
-      // await order.save();
+    
+     const shopifyCart = await this.createShopifyCart(data.materials[0],additional_product,data.quotation_no,totalStalls,totalUrinalScreens);
+
+     if(shopifyCart.status){
         // Update the saved order with cart_id and amount
         await Order.findByIdAndUpdate(savedOrder._id, {
-          cart_id: bigCommerceCart.data.data.id,
-          amount: bigCommerceCart.data.data.base_amount,
+          cart_id: shopifyCart.data.id,
+          amount: Number(shopifyCart?.data?.totalPriceSet?.shopMoney?.amount)-250,
           shipping_amount:250,
           tax_amount:0,
-          total_amount: bigCommerceCart.data.data.base_amount + 250,
+          total_amount:Number(shopifyCart?.data?.totalPriceSet?.shopMoney?.amount)
         });
         res.status(200).json({
             status: true,
             id:order._id,
-            checkoutUrl:bigCommerceCart.data.data.redirect_urls.checkout_url
+            checkoutUrl:shopifyCart.data?.invoiceUrl
           });
           return;
     }else{
         res.status(500).json({
             status: false,
-            message: bigCommerceCart.message,
+            message: shopifyCart.message,
           });
           return; 
     }
@@ -669,93 +664,124 @@ class FrontendController {
     }
   }
 
-/**
- * Creates a BigCommerce cart for the specified materials.
- *
- * @param {object} materials - The materials data containing details for the cart.
- * @param {number} materials.id - The material ID.
- * @param {number} materials.price - The price of the material.
- * @returns {Promise<object>} A promise resolving to an object containing the cart creation status and data or an error message.
- *
- * @description
- * - Fetches the material-to-product mapping configuration from the `Setting` collection.
- * - Validates the presence of the mapping configuration and the corresponding product ID for the material ID.
- * - Constructs a cart data payload with the product ID, price, and a redirect URL for checkout.
- * - Sends a POST request to the BigCommerce API to create the cart.
- * - On success:
- *   - Returns an object with `status: true` and the BigCommerce API response containing the cart and redirect URL.
- * - On failure:
- *   - Logs the error to the console.
- *   - Returns an object with `status: false` and a failure message.
- *
- * @throws
- * - Throws an error if the mapping document or configuration is missing or if no product ID is found for the material ID.
- *
- * @example
- * const materials = { id: 123, price: 299.99 };
- * const cart = await createBigCommerceCart(materials);
- * if (cart.status) {
- *   console.log('Cart created successfully:', cart.data);
- * } else {
- *   console.error('Error creating cart:', cart.message);
- * }
- */
 
-  async createBigCommerceCart(materials,additional_product,quotation_no,totalStalls,totalUrinalScreens) {
+
+  async createShopifyCart(
+    materials,
+    additional_product,
+    quotation_no,
+    totalStalls,
+    totalUrinalScreens
+  ) {
     try {
-      // Prepare the data for BigCommerce cart (example: passing materials and prices)
-        const mappingDoc = await Setting.findOne({ step: 'product_material_mapping', deleted: false });
-        if (!mappingDoc || !mappingDoc.config || !mappingDoc.config.mapping) {
-          throw new Error('Mapping document or config is missing.');
-        }
-        const material_id = materials.id;
-       // Retrieve the product_id based on the material_id
-    const product_id = mappingDoc.config.mapping[material_id.toString()];
-    if (!product_id) {
-      throw new Error(`No product ID found for material ID: ${material_id}`);
-    }
-    const line_items = [
-      {
-        quantity: 1,
-        product_id: product_id, // from mapping 
-        list_price: materials.price,
-        name: `${materials.name} Partition Package \n (Quote #${quotation_no.slice(-5)}) (Total Stalls: ${totalStalls})` 
-              + (totalUrinalScreens > 0 ? ` (Total Screens: ${totalUrinalScreens})` : "")
-      },
-    ];
-    
-    
-    // Only add additional_product if it has properties
-    if (additional_product && Object.keys(additional_product).length > 0) {
-      line_items.push(additional_product);
-    }
-      const cartData = {
-        "customer_id": 0,
-        line_items
+      const mappingDoc = await Setting.findOne({
+        step: "product_material_mapping",
+        deleted: false
+      });
+  
+      if (!mappingDoc?.config?.mapping) {
+        throw new Error("Mapping document or config is missing.");
       }
-      const bigCommerceApiUrl = `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v3/carts?include=redirect_urls`;
-      const bigCommerceHeaders = {
-        'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN,  // Replace with your BigCommerce API token
-        'Content-Type': 'application/json',
+  
+      const material_id = materials.id;
+      const productVariantId = mappingDoc.config.mapping[material_id.toString()];
+  
+      if (!productVariantId) {
+        throw new Error(`No product ID found for material ID: ${material_id}`);
+      }
+  
+      /* ---------------- Line Items ---------------- */
+      const lineItems = [
+        {
+          variantId: `gid://shopify/ProductVariant/${productVariantId}`,
+          quantity: 1,
+          priceOverride: {
+            amount: String(materials.price),
+            currencyCode: process.env.SHOPIFY_CURRENCY_CODE
+          },
+          customAttributes: [
+            { key: "Quote", value: `#${quotation_no.slice(-5)}` },
+            { key: "Total Stalls", value: String(totalStalls) },
+            { key: "Total Screens", value: String(totalUrinalScreens) }
+          ]
+        }
+      ];
+  
+      if (additional_product && Object.keys(additional_product).length > 0) {
+        lineItems.push(additional_product);
+      }
+  
+      /* ---------------- GraphQL ---------------- */
+      const query = `
+        mutation DraftOrderCreate($input: DraftOrderInput!) {
+          draftOrderCreate(input: $input) {
+            draftOrder {
+              id
+              invoiceUrl
+              totalPriceSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
+              shippingLine {
+                title
+                price
+              }
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+      `;
+  
+      const variables = {
+        input: {
+          lineItems,
+          shippingLine: {
+            title: "Standard Shipping",
+            priceWithCurrency: {
+              amount: "250.00",
+              currencyCode: process.env.SHOPIFY_CURRENCY_CODE
+            }
+          },
+          note: `Quote #${quotation_no.slice(-5)}`,
+          taxExempt: true
+        }
       };
   
-      // Make POST request to BigCommerce API
-      const bigCommerceResponse = await axios.post(bigCommerceApiUrl, cartData, { headers: bigCommerceHeaders });
- 
-      // Extract checkout URL from the response
-     // const checkoutUrl = bigCommerceResponse.data.data.redirect_urls.checkout_url;
-      return {
-        status:true,
-        data:bigCommerceResponse.data
+      const response = await axios.post(
+        `${process.env.SHOPIFY_DOMAIN_NAME}/admin/api/2025-10/graphql.json`,
+        { query, variables },
+        {
+          headers: {
+            "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+  
+      const result = response.data.data?.draftOrderCreate;
+  
+      if (result?.userErrors?.length) {
+        throw new Error(result.userErrors.map(e => e.message).join(", "));
       }
+  
+      return {
+        status: true,
+        data: result.draftOrder
+      };
     } catch (error) {
-      console.error('BigCommerce Error:', error);
+      console.error("Shopify Error:", error.message);
       return {
-        status:false,
-        message:'Failed to create cart in BigCommerce'
-      }
+        status: false,
+        message: "Failed to create draft order in Shopify"
+      };
     }
   }
+  
 
 /**
  * Updates the payment response details in the order.
@@ -886,6 +912,7 @@ class FrontendController {
 
 async order(req, res){
   try {
+    console.log(order);
     const { type, id, status } = req.body.data;
 
     // Validate if type is 'order' and id exists
@@ -1278,6 +1305,11 @@ async downloadPDF(req, res) {
     }, 0);
       const instalation_price = await this.calculateInstallationPrice(quotation);
       const htmlContent = await this.QuotationPDFhtml(quotation._id,quotation.quotation_no,quotation.createdAt,quotation.phone_number,quotation.materials,quotation.submittedData.rooms,totalStalls,totalUrinalScreens,instalation_price);
+       // Define the file path
+//   const filePath = path.join(__dirname, `quotation_${quotation.quotation_no}.html`);
+
+// await fs.promises.writeFile(filePath, htmlContent);
+
       const pdfBuffer = await this.generatePDF(htmlContent); // Ensure this is called correctly
       res.status(200).json({
         status: true,
@@ -1532,8 +1564,12 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
   <tr>
   <td colspan="2" style="text-align: center; margin-top: 0px;">
       <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 10px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 10px;">
-          Review Your Pricing Options
+         Select Your Material & Purchase Now
       </h4>
+      <h5 style="font-size: 14px; color:#3d58a4; font-weight: 500; margin-bottom: 10px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 10px;">
+      Choose the partition material that best fits your project. Click <a style="font-weight:700;" href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1">Purchase Now</a> to check
+      out securely—our team will confirm details before production.
+      </h5>
       <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; position: relative;">
           <!-- Left Button -->
           <a href="${process.env.FRONTEND_UI_URL}/create-a-project?new-quote=1" 
@@ -1562,32 +1598,76 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
   <tr>
       <td colspan="2" width="100%" style="width: 100%;">
           <div class="table_box" style="margin-top: 5px;">
-              <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;  flex-wrap: wrap; box-sizing: border-box; gap: 20px;">
+              <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;  flex-wrap: wrap; box-sizing: border-box; gap:10px;">
                   ${materials.map(material => `
-                  <div style="padding: 10px 20px 10px; text-align:left; border: 1px solid #3d58a4; border-radius: 15px;  width:48%; box-sizing: border-box;print-color-adjust: exact;  -webkit-print-color-adjust: exact;background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;">
+                  <div style="position:relative;padding: 10px 20px 10px; text-align:left; border: 1px solid #3d58a4; border-radius: 15px;  width:48%; box-sizing: border-box;print-color-adjust: exact;  -webkit-print-color-adjust: exact;background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;">
+                      <a href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1&material_id=${material.id}" style="position:absolute;right:10px;top:10px;border:1px solid #fff;border-radius:30px;width:17px;text-align: center;color: #fff;text-decoration:none;font-size:16px">i</a>
                       <div width="100%"  >
                           <div style="display: flex; align-items: center;">
                            <div  style="width: 25% !important; margin-bottom: 0px;">
                                <img src="${process.env.URI}/${material.src}" alt="pic" style="width:100%"/>
                            </div>
                            <div  style="width: 75% !important; padding: 0px 20px 5px; margin-bottom: 0px !important;color:#fff;">
-                               <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 5px;">${material.name}</h4>
-                               <h6 style="font-size: 14px; font-weight: 400; margin-top: 0; margin-bottom: 0;">${material.warranty} warranty</h6>
-                               <h5 style="font-size:20px;  margin-top:4px;margin-bottom:4px;">$${Number(material.price).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h5>
+                               <h4 style="color:#fff; font-size: 12px; font-weight: 700; margin-bottom:0; margin-top: 3px;">${material.name}</h4>
+                               ${(() => {
+                                if (material.id === 1) {
+                                  return `
+                                  <div style="font-size: 8px; margin-top: 3px;">Best for: <span>Low-to-moderate traffic offices, Tenant Improvements, Church’s</span></div>
+                                  <div style="font-size: 8px; margin-top: 3px;">Pros: <span>cost-effective, many color options</span></div>
+                                  <div style="font-size: 8px; margin-top: 3px;">Cons: <span>not ideal for constant moisture/abuse areas</span></div>
+                                  `;
+                                } else if (material.id === 2) {
+                                  return `
+                                    <div style="font-size:8px;margin-top:3px;">Best for: Offices, Retail Stores, Low - to- medium-traffic commercial restrooms</div>
+                                    <div style="font-size:8px;margin-top:3px;">Pros: durable finish, easy to clean</div>
+                                    <div style="font-size:8px;margin-top:3px;">Cons: can scratch/dent in high-abuse spaces</div>
+                                  `;
+                                }
+                                else if (material.id === 3) {
+                                  return `
+                                    <div style="font-size:8px;margin-top:3px;">Best for: School, Gyms, Water parks, Public Parks, wet environments</div>
+                                    <div style="font-size:8px;margin-top:3px;">Pros: won’t rust, rot, or delaminate; easy maintenance</div>
+                                    <div style="font-size:8px;margin-top:3px;">Cons: higher upfront cost, long-term value</div>
+                                  `;
+                                }
+                                else if (material.id === 4) {
+                                  return `
+                                    <div style="font-size:8px;margin-top:3px;">Best for: Airports, Hospitals, High-end commercial Buildings</div>
+                                    <div style="font-size:8px;margin-top:3px;">Pros: premium look, strong durability</div>
+                                    <div style="font-size:8px;margin-top:3px;">Cons: higher cost; fingerprints may show</div>
+                                  `;
+                                }
+                                else if (material.id === 5) {
+                                  return `
+                                    <div style="font-size:8px;margin-top:3px;">Best for: Schools, Corporate Campuses, Healthcare, Upscale public restrooms</div>
+                                    <div style="font-size:8px;margin-top:3px;">Pros: extremely durable, highly moisture resistant</div>
+                                    <div style="font-size:8px;margin-top:3px;">Cons: premium price, premium lifespan</div>
+                                  `;
+                                }else{
+                                  return `
+                                    <div style="font-size:8px;margin-top:3px;">Best for: High-traffic commercial environments</div>
+                                    <div style="font-size:8px;margin-top:3px;">Pros: Extremely durable and moisture resistant</div>
+                                    <div style="font-size:8px;margin-top:3px;">Cons: Higher cost compared to Laminate</div>
+                                  `;
+                                }
+                              })()}
+                             
+                               <h5 style="font-size:12px;  margin-top:3px;margin-bottom:0;">Dynamic Cost: $${Number(material.price).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h5>
                        
                                <div>
-                                  <span style="color:#fff;font-weight: 400; font-size: 11px; margin-top: 3px; margin-bottom: 3px;display: inline-block;vertical-align: top;">
-                                  ${rooms.length > 0 ? `${rooms.length} Room${rooms.length > 1 ? 's' : ''}` : ''} 
+                                  <span style="color:#fff;font-weight: 400; font-size: 8px;display: inline-block;vertical-align:middle;">
+                                  Rooms stalls: ${rooms.length > 0 ? `${rooms.length} Room${rooms.length > 1 ? 's' : ''}` : ''} 
                                   </span>
-                                  <span style="color:#fff;font-weight: 400; font-size: 11px; margin-top: 3px; margin-bottom: 3px;display: inline-block;vertical-align: top;">
+                                  <span style="color:#fff;font-weight: 400; font-size: 8px;display: inline-block;vertical-align:middle;">
                                   ${totalStalls > 0 ? `${totalStalls} Stall${totalStalls > 1 ? 's' : ''}` : ''}
-                                   </span>
-                                  <span style="color:#fff;font-weight: 400;display:block; font-size: 11px; margin-top: 3px; margin-bottom: 0;">
-                                  ${totalUrinalScreens > 0 
+                                  </span>
+                                  <span style="color:#fff;font-weight: 400;display:block; font-size: 8px;">
+                                  Urinal screens: ${totalUrinalScreens > 0 
                                     ? `${totalUrinalScreens} Urinal Screen${totalUrinalScreens > 1 ? 's' : ''}` 
                                     : 'No Urinal Screens'}
                                 </span>
                                </div>
+                               <h6 style="font-size: 8px; font-weight: 400; margin-top:3px; margin-bottom: 0;">Warranty: ${material.warranty} </h6>
                              
                                
                                
@@ -1598,11 +1678,11 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                              
                                   
                                        <div style="width:100%;">
-                                       <p style="margin-top:0; line-height:1.4; margin-bottom: 7px; font-size: 10px; color:#fff; text-align:center;">Our team will confirm your order details at: <span style="cursor: default;    pointer-events: none;">${formattedPhone}</span></p>
+                                       <p style="margin-top:0; line-height:1.4; margin-bottom: 7px; font-size: 8px; color:#fff; text-align:center;">A partition expert will confirm your order details: <span style="cursor: default;    pointer-events: none;">${formattedPhone}</span></p>
                                           <div style="text-align: right; width: 100%;">
-                                              <a href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1&material_id=${material.id}" style="text-decoration: none; color:#000; padding: 4px 10px; border:1px solid #feda15; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #feda15;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:20px; margin-right: 5px;"/> Buy Now</a>
+                                              <a href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1&material_id=${material.id}" style="font-size:13px;text-decoration: none; color:#000; padding: 2px 10px; border:1px solid #feda15; border-radius: 10px; width: 96%; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 0px; print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-color: #feda15;"><img src="${process.env.URI}/uploads/images/cart.png" alt="pc" style="width:16px; margin-right: 5px;"/>Purchase Now</a>
                                           </div>
-                                         <p style="margin-top:7px; line-height: 1; margin-bottom: 0px; font-size:9px; color:#fff; text-align:center;">Ships in appx. 4-6 business days</p>
+                                         <p style="margin-top:7px; line-height: 1; margin-bottom: 0px; font-size:9px; color:#fff; text-align:center;">Ships in approx. 4–6 business days</p>
 
                                        </div>
                                   
@@ -1613,14 +1693,23 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                    </div>
                    `).join('')}
                    <div style="padding: 10px 40px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px;  print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;width:48%; box-sizing: border-box; min-height: 200px;" >
-                      <p style="color:#fff; font-size:16px; line-height: 1.3; text-align: left; padding:0; margin-top: 5px;font-weight: 700;    margin-bottom: 10px;">What's included in my order?</p>
-                      <ul style="color:#fff; font-size: 13px; line-height: 1.3; text-align: left; padding:0 0 0 15px;    margin: 0;">
-                        <li style="margin:0 0 4px 0;">Prices include all order components: doors, panels, pilasters, brackets, anchors, and screws.</li>
-                        <li style="margin:0 0 4px 0;">Sales tax and shipping costs added at checkout.</li>
-                        <li style="margin:0 0 4px 0;">Availability may change. </li>
-                        <li style="margin:0 0 0 0;">Orders are subject to review by RSA.</li>
+                      <p style="color:#fff;font-size:12px;line-height:1.3;text-align:left;padding:0;margin-top:5px;font-weight:700;margin-bottom:5px;">What’s Included With Your Partition Package?</p>
+                      <ul style="color:#fff; font-size: 11px; line-height: 1.3; text-align: left; padding:0 0 0 15px;margin: 0;">
+                        <li style="margin:0 0 4px 0;">Complete partition package: doors, panels, pilasters, brackets, anchors, and crews.</li>
+                        <li style="margin:0 0 4px 0;">Sales tax and shipping are calculated at checkout.</li>
+                        <li style="margin:0 0 4px 0;">Lead times and availability may change.</li>
+                        <li style="margin:0 0 0 0;">All orders are reviewed by RSA prior to production.</li>
                       </ul>
                    </div> 
+              </div>
+              <div style="margin-top:10px;padding: 10px 40px; text-align:center; border: 1px solid #e4e8ef; border-radius: 15px;  print-color-adjust: exact;  -webkit-print-color-adjust: exact; background-image: url('${process.env.URI}/uploads/images/blue-pattern.png');background-repeat: no-repeat;background-size: cover;width:100%; box-sizing: border-box;">
+              <p style="color:#fff;font-size:12px;line-height:1.3;text-align:left;padding:0;margin-top:5px;font-weight:700;margin-bottom:5px;">Trusted Support From Quote to Install</p>
+                <ul style="color:#fff; font-size: 11px; line-height: 1.3; text-align: left; padding:0 0 0 15px;margin: 0;">
+                  <li style="margin:0 0 4px 0;">Learn More about the Install Team</li>
+                  <li style="margin:0 0 4px 0;">Order Reviewed by Experts</li>
+                  <li style="margin:0 0 4px 0;">Commercial-Grade Materials</li>
+                  <li style="margin:0 0 0 0;">Dedicated Phone + Email Support</li>
+                </ul>
               </div>
           </div>
  
@@ -1822,7 +1911,7 @@ ${room.hasUrinalScreens ? `
                           <tr>
                               <td colspan="6" style="width: 100%;">
                                   <h3 style="font-size: 21px; font-weight: 900; font-family:Verdana, Geneva, Tahoma, sans-serif; color:#285fa1; margin-bottom: 10px; margin-top: 0px;">Meet the Partition Experts</h3>
-                                  <h6 style="color:#285fa1; font-size: 18px; margin-top: 5px; font-weight: 400; margin-bottom: 10px;">The team behind making your dream ideas come true.</h6>
+                                  <h6 style="color:#285fa1; font-size: 18px; margin-top: 5px; font-weight: 400; margin-bottom: 10px;">Real people. Fast answers. Expert guidance from quote through installation.</h6>
                               </td>
                            </tr>
                           <tr>
@@ -2213,7 +2302,7 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                           <tr>
                               <td colspan="6" style="width: 100%;">
                                   <h3 style="font-size: 21px; font-weight: 900; font-family:Verdana, Geneva, Tahoma, sans-serif; color:#285fa1; margin-bottom: 10px; margin-top: 0px;">Meet the Partition Experts</h3>
-                                  <h6 style="color:#285fa1; font-size: 18px; margin-top: 5px; font-weight: 400; margin-bottom: 10px;">The team behind making your dream ideas come true.</h6>
+                                  <h6 style="color:#285fa1; font-size: 18px; margin-top: 5px; font-weight: 400; margin-bottom: 10px;">Real people. Fast answers. Expert guidance from quote through installation.</h6>
                               </td>
                            </tr>
                           <tr>
