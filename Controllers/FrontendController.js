@@ -340,7 +340,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-     // executablePath: '/usr/bin/chromium-browser',
+      executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox', // Disable sandboxing
         '--disable-setuid-sandbox',
@@ -614,11 +614,11 @@ class FrontendController {
     if (typeof data.is_within_max_distance !== 'undefined' && data.is_within_max_distance === true) {
         additional_product.variantId= `gid://shopify/ProductVariant/${process.env.SHOPIFY_CUSTOM_PRODUCT_ID}`,
         additional_product.quantity= 1,
-        priceOverride= {
+        additional_product.priceOverride= {
           amount: data.installation_price,
           currencyCode: process.env.SHOPIFY_CURRENCY_CODE
         },
-        customAttributes= [
+        additional_product.customAttributes= [
             { key: "Zip", value: data?.zip_code },
         ]
     }
@@ -628,7 +628,7 @@ class FrontendController {
         return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
     }, 0);
     
-     const shopifyCart = await this.createShopifyCart(data.materials[0],additional_product,data.quotation_no,totalStalls,totalUrinalScreens);
+     const shopifyCart = await this.createShopifyCart(data.materials[0],additional_product,data.quotation_no,totalStalls,totalUrinalScreens,savedOrder._id);
 
      if(shopifyCart.status){
         // Update the saved order with cart_id and amount
@@ -671,7 +671,8 @@ class FrontendController {
     additional_product,
     quotation_no,
     totalStalls,
-    totalUrinalScreens
+    totalUrinalScreens,
+    order_id
   ) {
     try {
       const mappingDoc = await Setting.findOne({
@@ -747,7 +748,7 @@ class FrontendController {
               currencyCode: process.env.SHOPIFY_CURRENCY_CODE
             }
           },
-          note: `Quote #${quotation_no.slice(-5)}`,
+          note: `${order_id}`,
           taxExempt: true
         }
       };
@@ -912,50 +913,36 @@ class FrontendController {
 
 async order(req, res){
   try {
-    console.log(req.body);
-    const { type, id, status } = req.body.data;
-
-    // Validate if type is 'order' and id exists
-    if (type === 'order' && id) {
-      // Fetch order details using BigCommerce API
-      const orderResponse = await axios.get(
-        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v2/orders/${id}`,
-        {
-          headers: {
-            'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN, // Use token from environment variables
-            'Accept': 'application/json',
-          },
-        }
-      );
-
-      const orderData = orderResponse.data;
-
+    const { id, note, email, admin_graphql_api_id,financial_status,billing_address,created_at } = req.body;
       let bigcommerceData = new BigcommerceOrderResponse;
           bigcommerceData.order_id=id
-          bigcommerceData.cart_id=orderData?.cart_id
-          bigcommerceData.response=req.body.data
+          bigcommerceData.cart_id=admin_graphql_api_id
+          bigcommerceData.response=req.body
           await bigcommerceData.save();
 
-      if (orderData && orderData.cart_id && status.new_status_id === 11) {
+   
         // Check if order exists in your database
-        const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
+        const existingOrder = await Order.findOne({ _id:note });
 
+        
         if (existingOrder) {
 
           // Check if payment is successful
-          const isSuccessfulPayment = [11].includes(status.new_status_id);
-
+          const isSuccessfulPayment = financial_status == "paid" ? true : false;
+          billing_address.first_name=existingOrder.first_name;
+          billing_address.last_name=existingOrder.last_name;
+          billing_address.email=email;
 
           // Fields to update in Order
           const updateFields = {
-            payment_status: await this.capitalizeWords(orderData.payment_status) || 'Pending',
-            order_status: await this.capitalizeWords(orderData.status) || 'Pending',
-            billing_address: orderData.billing_address || {},
-            order_id: orderData.id || null,
-            shipping_amount: orderData.base_shipping_cost || existingOrder.shipping_amount,
-            total_tax: orderData.total_tax || existingOrder.total_tax,
-            total_amount: orderData.total_inc_tax || existingOrder.amount,
-            paymentDate: new Date(orderData.date_modified) || null,
+            payment_status: await this.capitalizeWords(financial_status) || 'Pending',
+            order_status: financial_status == "paid" ? "Awaiting Fulfillment" : "Pending",
+            billing_address: billing_address || {},
+            order_id: id || null,
+            // shipping_amount: orderData.base_shipping_cost || existingOrder.shipping_amount,
+            // total_tax: orderData.total_tax || existingOrder.total_tax,
+            // total_amount: orderData.total_inc_tax || existingOrder.amount,
+            paymentDate: new Date(created_at) || null,
             updatedAt: Date.now(),
           };
 
@@ -987,32 +974,32 @@ async order(req, res){
 
           if (!alreadyScheduled) {
       
-            const formattedTotalAmount = Number(orderData.total_inc_tax).toLocaleString("en-US", {
+            const formattedTotalAmount = Number(existingOrder.total_amount).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
             const formatted_quote_amount = Number(existingOrder.amount).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
-            const formatted_shipping_amount = Number(orderData.base_shipping_cost).toLocaleString("en-US", {
+            const formatted_shipping_amount = Number(existingOrder.shipping_amount).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
            
-            const formatted_tax_amount = Number(orderData.total_tax).toLocaleString("en-US", {
+            const formatted_tax_amount = Number(existingOrder.total_tax).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
          // Schedule an email after 5 seconds
           await agenda.schedule("in 5 seconds", "send_order_email", {
             quotationId: existingOrder.quotation_id,
-            bigcommerceOrderId: orderData.id,
+            bigcommerceOrderId: id,
             orderId: existingOrder._id,
             color: selectedColor,
             quote_amount:existingOrder.amount,
             formatted_quote_amount:formatted_quote_amount,
-            shipping_amount:orderData.base_shipping_cost,
+            shipping_amount:existingOrder.shipping_amount,
             formatted_shipping_amount:formatted_shipping_amount,
-            tax_amount:orderData.total_tax,
+            tax_amount:existingOrder.total_tax,
             formatted_tax_amount:formatted_tax_amount,
-            amount: orderData.subtotal_inc_tax,
+            amount: existingOrder.total_amount,
             total_amount: formattedTotalAmount,
           });
         }
@@ -1023,8 +1010,6 @@ async order(req, res){
             success: true,
             message: 'Order status updated successfully',
             data: {
-              cart_id:orderData.cart_id,
-              order_id: existingOrder.id,
               payment_status: existingOrder.payment_status,
               order_status: existingOrder.order_status,
               //dealData:dealData
@@ -1034,12 +1019,8 @@ async order(req, res){
         } else {
           throw new Error('Order not found in the database');
         }
-      } else {
-        throw new Error('Cart ID not found in order data');
-      }
-    } else {
-      throw new Error('Invalid webhook payload');
-    }
+     
+   
   } catch (error) {
     console.error('Error processing order:', error.message);
     return res.status(400).json({
@@ -1652,7 +1633,7 @@ async QuotationPDFhtml(quotation_id,quotation_no,createdAt,phone_number,material
                                 }
                               })()}
                              
-                               <h5 style="font-size:12px;  margin-top:3px;margin-bottom:0;">Dynamic Cost: $${Number(material.price).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h5>
+                               <h5 style="font-size:12px;  margin-top:3px;margin-bottom:0;">Cost: $${Number(material.price).toLocaleString("en-US", { maximumFractionDigits: 0 })}</h5>
                        
                                <div>
                                   <span style="color:#fff;font-weight: 400; font-size: 8px;display: inline-block;vertical-align:middle;">
@@ -2056,9 +2037,9 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                  
                  <div style="padding: 40px 25px 40px 0;min-height: 280px; text-align:center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; width:50%;box-sizing: border-box;" >
                     <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
-                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Address:</span> ${billing_address.street_1}</h4>
+                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Address:</span> ${billing_address.address1}</h4>
                         <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">City:</span> ${billing_address.city}</h4>
-                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">State:</span> ${billing_address.state}</h4>
+                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">State:</span> ${billing_address.province}</h4>
                         <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Zip:</span> ${billing_address.zip}</h4>
                     </div>
                  </div> 
