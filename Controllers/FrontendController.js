@@ -524,6 +524,147 @@ class FrontendController {
  *   - Responds with a 500 status if an error occurs during the process or BigCommerce cart creation fails.
  */
 
+  // async generatePaymentLink(req, res) {
+  //   // Validate the input data
+  //   const v = new Validator(req.body, {
+  //     id: "required",
+  //     material_id: "required|integer",
+  //    // colors: "required|array",
+  //   });
+
+  //   // Check if validation passes
+  //   const matched = await v.check();
+  //   if (!matched) {
+  //     // If validation fails, respond with a 422 status and the validation errors
+  //     res.status(422).json({
+  //       status: false,
+  //       errors: v.errors,
+  //     });
+  //   } else {
+  //     const { id, material_id, colors } = req.body;
+  //     if (!mongoose.Types.ObjectId.isValid(id)) {
+  //       res.status(422).json({
+  //        status: false,
+  //        errors:{
+  //          'id':{
+  //              message: "Invalid MongoDB ObjectId",
+  //          }
+  //      }
+  //      });
+  //      return
+  //    }
+
+  //     try {
+
+  //       // 🔹 Check if an order with status "Completed" (status_id: 11) exists
+  //       const completedOrder = await Order.findOne({
+  //         quotation_id: id,
+  //         payment_status: "Captured", // Ensure this matches your DB status field
+  //       });
+
+  //       if (completedOrder) {
+  //         return res.status(404).json({
+  //           status: false,
+  //           message: "An order for this quotation has already been completed.",
+  //         });
+  //       }
+
+
+  //       const oneMinuteAgo = new Date(Date.now() - 30 * 1000); // 30 seconds ago
+
+  //       const existingOrder = await Order.findOne({
+  //         quotation_id: id,
+  //         createdAt: { $gt: oneMinuteAgo },
+  //       });
+    
+  //       if (existingOrder) {
+  //         return res.status(404).json({
+  //           status: false,
+  //           message: "Another request is already being processed. Please try again in a minute.",
+  //         });
+  //       }
+  //       const data = await Quotation.findOne(
+  //           { _id: id, materials: { $elemMatch: { id: Number(material_id) } } },
+  //           { "materials.$": 1, _id: 1,quotation_no:1,first_name:1,last_name:1,email:1,phone_number:1,submittedData:1,is_within_max_distance:1,distance:1,zip_code:1,installation_price:1 } // Return only the matched material
+  //         );
+      
+  //         if (!data) {
+  //            res.status(404).json({
+  //             status: false,
+  //             message: 'Quotation or material not found with provided ID',
+  //           });
+  //           return;
+  //         }
+  //         // Save order before calling the cart API
+  //   let order = new Order({
+  //     quotation_id: id,
+  //     material_id,
+  //     cart_id: null, // Cart ID will be updated later
+  //     order_id: null,
+  //     first_name: data.first_name,
+  //     last_name: data.last_name,
+  //     email: data.email,
+  //     phone_number: data.phone_number,
+  //     colors,
+  //     amount: 0.00, // Amount will be updated after the API call
+  //   });
+
+  //   const savedOrder = await order.save();
+  //   let additional_product = {}
+  //   if (typeof data.is_within_max_distance !== 'undefined' && data.is_within_max_distance === true) {
+  //       additional_product.variantId= `gid://shopify/ProductVariant/${process.env.SHOPIFY_CUSTOM_PRODUCT_ID}`,
+  //       additional_product.quantity= 1,
+  //       additional_product.priceOverride= {
+  //         amount: data.installation_price,
+  //         currencyCode: process.env.SHOPIFY_CURRENCY_CODE
+  //       },
+  //       additional_product.customAttributes= [
+  //           { key: "Zip", value: data?.zip_code },
+  //       ]
+  //   }
+  //   const totalStalls = data?.submittedData?.rooms?.reduce((sum, room) => sum + (room.stall?.noOfStalls || 0), 0);
+
+  //   const totalUrinalScreens = data?.submittedData?.rooms?.reduce((sum, room) => {
+  //       return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
+  //   }, 0);
+    
+  //    const shopifyCart = await this.createShopifyCart(data.materials[0],additional_product,data.quotation_no,totalStalls,totalUrinalScreens,savedOrder._id);
+
+  //    if(shopifyCart.status){
+  //       // Update the saved order with cart_id and amount
+  //       await Order.findByIdAndUpdate(savedOrder._id, {
+  //         cart_id: shopifyCart.data.id,
+  //         amount: Number(shopifyCart?.data?.totalPriceSet?.shopMoney?.amount)-250,
+  //         shipping_amount:250,
+  //         tax_amount:0,
+  //         total_amount:Number(shopifyCart?.data?.totalPriceSet?.shopMoney?.amount)
+  //       });
+  //       res.status(200).json({
+  //           status: true,
+  //           id:order._id,
+  //           checkoutUrl:shopifyCart.data?.invoiceUrl
+  //         });
+  //         return;
+  //   }else{
+  //       res.status(500).json({
+  //           status: false,
+  //           message: shopifyCart.message,
+  //         });
+  //         return; 
+  //   }
+       
+        
+  //     } catch (error) {
+  //       res.status(500).json({
+  //         status: false,
+  //         message: error.message,
+  //       });
+  //       return;
+  //     }
+  //   }
+  // }
+
+
   async generatePaymentLink(req, res) {
     // Validate the input data
     const v = new Validator(req.body, {
@@ -612,43 +753,48 @@ class FrontendController {
     const savedOrder = await order.save();
     let additional_product = {}
     if (typeof data.is_within_max_distance !== 'undefined' && data.is_within_max_distance === true) {
-        additional_product.variantId= `gid://shopify/ProductVariant/${process.env.SHOPIFY_CUSTOM_PRODUCT_ID}`,
-        additional_product.quantity= 1,
-        additional_product.priceOverride= {
-          amount: data.installation_price,
-          currencyCode: process.env.SHOPIFY_CURRENCY_CODE
-        },
-        additional_product.customAttributes= [
-            { key: "Zip", value: data?.zip_code },
-        ]
+        additional_product.quantity = 1;
+        additional_product.product_id = process.env.CUSTOM_PRODUCT_ID;
+        additional_product.list_price = data.installation_price;
+        additional_product.name = `Installation Services (Zip: ${data?.zip_code})`
     }
     const totalStalls = data?.submittedData?.rooms?.reduce((sum, room) => sum + (room.stall?.noOfStalls || 0), 0);
 
     const totalUrinalScreens = data?.submittedData?.rooms?.reduce((sum, room) => {
         return sum + (room.hasUrinalScreens ? (room.urinalScreen?.noOfUrinalScreens || 0) : 0);
     }, 0);
-    
-     const shopifyCart = await this.createShopifyCart(data.materials[0],additional_product,data.quotation_no,totalStalls,totalUrinalScreens,savedOrder._id);
-
-     if(shopifyCart.status){
+      const bigCommerceCart = await this.createBigCommerceCart(data.materials[0],additional_product,data.quotation_no,totalStalls,totalUrinalScreens);
+    if(bigCommerceCart.status){
+      // let order = new Order;
+      // order.quotation_id=id
+      // order.material_id=material_id
+      // order.cart_id=bigCommerceCart.data.data.id
+      // order.order_id=null
+      // order.first_name = data.first_name;
+      // order.last_name =data.last_name;
+      // order.email = data.email;
+      // order.phone_number = data.phone_number;
+      // order.colors=colors;
+      // order.amount = bigCommerceCart.data.data.base_amount;
+      // await order.save();
         // Update the saved order with cart_id and amount
         await Order.findByIdAndUpdate(savedOrder._id, {
-          cart_id: shopifyCart.data.id,
-          amount: Number(shopifyCart?.data?.totalPriceSet?.shopMoney?.amount)-250,
+          cart_id: bigCommerceCart.data.data.id,
+          amount: bigCommerceCart.data.data.base_amount,
           shipping_amount:250,
           tax_amount:0,
-          total_amount:Number(shopifyCart?.data?.totalPriceSet?.shopMoney?.amount)
+          total_amount: bigCommerceCart.data.data.base_amount + 250,
         });
         res.status(200).json({
             status: true,
             id:order._id,
-            checkoutUrl:shopifyCart.data?.invoiceUrl
+            checkoutUrl:bigCommerceCart.data.data.redirect_urls.checkout_url
           });
           return;
     }else{
         res.status(500).json({
             status: false,
-            message: shopifyCart.message,
+            message: bigCommerceCart.message,
           });
           return; 
     }
@@ -664,7 +810,61 @@ class FrontendController {
     }
   }
 
-
+  async createBigCommerceCart(materials,additional_product,quotation_no,totalStalls,totalUrinalScreens) {
+    try {
+      // Prepare the data for BigCommerce cart (example: passing materials and prices)
+        const mappingDoc = await Setting.findOne({ step: 'product_material_mapping', deleted: false });
+        if (!mappingDoc || !mappingDoc.config || !mappingDoc.config.mapping) {
+          throw new Error('Mapping document or config is missing.');
+        }
+        const material_id = materials.id;
+       // Retrieve the product_id based on the material_id
+    const product_id = mappingDoc.config.mapping[material_id.toString()];
+    if (!product_id) {
+      throw new Error(`No product ID found for material ID: ${material_id}`);
+    }
+    const line_items = [
+      {
+        quantity: 1,
+        product_id: product_id, // from mapping 
+        list_price: materials.price,
+        name: `${materials.name} Partition Package \n (Quote #${quotation_no.slice(-5)}) (Total Stalls: ${totalStalls})` 
+              + (totalUrinalScreens > 0 ? ` (Total Screens: ${totalUrinalScreens})` : "")
+      },
+    ];
+    
+    
+    // Only add additional_product if it has properties
+    if (additional_product && Object.keys(additional_product).length > 0) {
+      line_items.push(additional_product);
+    }
+      const cartData = {
+        "customer_id": 0,
+        line_items
+      }
+      const bigCommerceApiUrl = `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v3/carts?include=redirect_urls`;
+      const bigCommerceHeaders = {
+        'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN,  // Replace with your BigCommerce API token
+        'Content-Type': 'application/json',
+      };
+  
+      // Make POST request to BigCommerce API
+      const bigCommerceResponse = await axios.post(bigCommerceApiUrl, cartData, { headers: bigCommerceHeaders });
+ 
+      // Extract checkout URL from the response
+     // const checkoutUrl = bigCommerceResponse.data.data.redirect_urls.checkout_url;
+      return {
+        status:true,
+        data:bigCommerceResponse.data
+      }
+    } catch (error) {
+      console.error('BigCommerce Error:', error);
+      return {
+        status:false,
+        message:'Failed to create cart in BigCommerce'
+      }
+    }
+  }
 
   async createShopifyCart(
     materials,
@@ -911,38 +1111,170 @@ class FrontendController {
  * }
  */
 
-async order(req, res){
-  try {
-    const { id, note, email, admin_graphql_api_id,financial_status,billing_address,created_at } = req.body;
-      let bigcommerceData = new BigcommerceOrderResponse;
-          bigcommerceData.order_id=id
-          bigcommerceData.cart_id=admin_graphql_api_id
-          bigcommerceData.response=req.body
-          await bigcommerceData.save();
+// async order(req, res){
+//   try {
+//     const { id, note, email, admin_graphql_api_id,financial_status,billing_address,created_at } = req.body;
+//       let bigcommerceData = new BigcommerceOrderResponse;
+//           bigcommerceData.order_id=id
+//           bigcommerceData.cart_id=admin_graphql_api_id
+//           bigcommerceData.response=req.body
+//           await bigcommerceData.save();
 
    
-        // Check if order exists in your database
-        const existingOrder = await Order.findOne({ _id:note });
+//         // Check if order exists in your database
+//         const existingOrder = await Order.findOne({ _id:note });
 
         
+//         if (existingOrder) {
+
+//           // Check if payment is successful
+//           const isSuccessfulPayment = financial_status == "paid" ? true : false;
+//           billing_address.first_name=existingOrder.first_name;
+//           billing_address.last_name=existingOrder.last_name;
+//           billing_address.email=email;
+
+//           // Fields to update in Order
+//           const updateFields = {
+//             payment_status: await this.capitalizeWords(financial_status) || 'Pending',
+//             order_status: financial_status == "paid" ? "Awaiting Fulfillment" : "Pending",
+//             billing_address: billing_address || {},
+//             order_id: id || null,
+//             // shipping_amount: orderData.base_shipping_cost || existingOrder.shipping_amount,
+//             // total_tax: orderData.total_tax || existingOrder.total_tax,
+//             // total_amount: orderData.total_inc_tax || existingOrder.amount,
+//             paymentDate: new Date(created_at) || null,
+//             updatedAt: Date.now(),
+//           };
+
+//           if (isSuccessfulPayment && !existingOrder.is_mail_send) {
+//             updateFields.is_mail_send = true;
+//           }
+
+//           // Update Order
+//           await Order.findByIdAndUpdate(existingOrder._id, { $set: updateFields }, { new: true });
+      
+//             // Find and update Quotation
+//     const existingQuotation = await Quotation.findById(existingOrder.quotation_id);
+    
+//     if (!existingQuotation) {
+//       throw new Error('Quotation not found in the database');
+//     }
+// // Determine the color value first
+//       const selectedColor =
+//         existingOrder.material_id !== '4' && existingOrder?.colors?.data?.length
+//           ? existingOrder.colors.data[0].name
+//           : 'No color selected';
+//     if (isSuccessfulPayment && !existingOrder.is_mail_send) {
+//           await Quotation.findByIdAndUpdate(existingQuotation._id, { $set: { is_converted_to_deal: true } }, { new: true });
+//           const alreadyScheduled = await agenda._collection.findOne({
+//             name: "send_order_email",
+//             "data.quotationId": existingOrder.quotation_id,
+//             "data.orderId": existingOrder._id
+//           });
+
+//           if (!alreadyScheduled) {
+      
+//             const formattedTotalAmount = Number(existingOrder.total_amount).toLocaleString("en-US", {
+//               maximumFractionDigits: 0,
+//             });
+//             const formatted_quote_amount = Number(existingOrder.amount).toLocaleString("en-US", {
+//               maximumFractionDigits: 0,
+//             });
+//             const formatted_shipping_amount = Number(existingOrder.shipping_amount).toLocaleString("en-US", {
+//               maximumFractionDigits: 0,
+//             });
+           
+//             const formatted_tax_amount = Number(existingOrder.total_tax).toLocaleString("en-US", {
+//               maximumFractionDigits: 0,
+//             });
+//          // Schedule an email after 5 seconds
+//           await agenda.schedule("in 5 seconds", "send_order_email", {
+//             quotationId: existingOrder.quotation_id,
+//             bigcommerceOrderId: id,
+//             orderId: existingOrder._id,
+//             color: selectedColor,
+//             quote_amount:existingOrder.amount,
+//             formatted_quote_amount:formatted_quote_amount,
+//             shipping_amount:existingOrder.shipping_amount,
+//             formatted_shipping_amount:formatted_shipping_amount,
+//             tax_amount:existingOrder.total_tax,
+//             formatted_tax_amount:formatted_tax_amount,
+//             amount: existingOrder.total_amount,
+//             total_amount: formattedTotalAmount,
+//           });
+//         }
+//         }
+
+  
+//            res.status(200).json({
+//             success: true,
+//             message: 'Order status updated successfully',
+//             data: {
+//               payment_status: existingOrder.payment_status,
+//               order_status: existingOrder.order_status,
+//               //dealData:dealData
+//             },
+//           });
+//           return;
+//         } else {
+//           throw new Error('Order not found in the database');
+//         }
+     
+   
+//   } catch (error) {
+//     console.error('Error processing order:', error.message);
+//     return res.status(400).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// }
+
+async order(req, res){
+  try {
+    const { type, id, status } = req.body.data;
+
+    // Validate if type is 'order' and id exists
+    if (type === 'order' && id) {
+      // Fetch order details using BigCommerce API
+      const orderResponse = await axios.get(
+        `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH}/v2/orders/${id}`,
+        {
+          headers: {
+            'X-Auth-Token': process.env.BIGCOMMERCE_API_TOKEN, // Use token from environment variables
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      const orderData = orderResponse.data;
+
+      let bigcommerceData = new BigcommerceOrderResponse;
+          bigcommerceData.order_id=id
+          bigcommerceData.cart_id=orderData?.cart_id
+          bigcommerceData.response=req.body.data
+          await bigcommerceData.save();
+
+      if (orderData && orderData.cart_id && status.new_status_id === 11) {
+        // Check if order exists in your database
+        const existingOrder = await Order.findOne({ cart_id: orderData.cart_id });
+
         if (existingOrder) {
 
           // Check if payment is successful
-          const isSuccessfulPayment = financial_status == "paid" ? true : false;
-          billing_address.first_name=existingOrder.first_name;
-          billing_address.last_name=existingOrder.last_name;
-          billing_address.email=email;
+          const isSuccessfulPayment = [11].includes(status.new_status_id);
+
 
           // Fields to update in Order
           const updateFields = {
-            payment_status: await this.capitalizeWords(financial_status) || 'Pending',
-            order_status: financial_status == "paid" ? "Awaiting Fulfillment" : "Pending",
-            billing_address: billing_address || {},
-            order_id: id || null,
-            // shipping_amount: orderData.base_shipping_cost || existingOrder.shipping_amount,
-            // total_tax: orderData.total_tax || existingOrder.total_tax,
-            // total_amount: orderData.total_inc_tax || existingOrder.amount,
-            paymentDate: new Date(created_at) || null,
+            payment_status: await this.capitalizeWords(orderData.payment_status) || 'Pending',
+            order_status: await this.capitalizeWords(orderData.status) || 'Pending',
+            billing_address: orderData.billing_address || {},
+            order_id: orderData.id || null,
+            shipping_amount: orderData.base_shipping_cost || existingOrder.shipping_amount,
+            total_tax: orderData.total_tax || existingOrder.total_tax,
+            total_amount: orderData.total_inc_tax || existingOrder.amount,
+            paymentDate: new Date(orderData.date_modified) || null,
             updatedAt: Date.now(),
           };
 
@@ -974,32 +1306,32 @@ async order(req, res){
 
           if (!alreadyScheduled) {
       
-            const formattedTotalAmount = Number(existingOrder.total_amount).toLocaleString("en-US", {
+            const formattedTotalAmount = Number(orderData.total_inc_tax).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
             const formatted_quote_amount = Number(existingOrder.amount).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
-            const formatted_shipping_amount = Number(existingOrder.shipping_amount).toLocaleString("en-US", {
+            const formatted_shipping_amount = Number(orderData.base_shipping_cost).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
            
-            const formatted_tax_amount = Number(existingOrder.total_tax).toLocaleString("en-US", {
+            const formatted_tax_amount = Number(orderData.total_tax).toLocaleString("en-US", {
               maximumFractionDigits: 0,
             });
          // Schedule an email after 5 seconds
           await agenda.schedule("in 5 seconds", "send_order_email", {
             quotationId: existingOrder.quotation_id,
-            bigcommerceOrderId: id,
+            bigcommerceOrderId: orderData.id,
             orderId: existingOrder._id,
             color: selectedColor,
             quote_amount:existingOrder.amount,
             formatted_quote_amount:formatted_quote_amount,
-            shipping_amount:existingOrder.shipping_amount,
+            shipping_amount:orderData.base_shipping_cost,
             formatted_shipping_amount:formatted_shipping_amount,
-            tax_amount:existingOrder.total_tax,
+            tax_amount:orderData.total_tax,
             formatted_tax_amount:formatted_tax_amount,
-            amount: existingOrder.total_amount,
+            amount: orderData.subtotal_inc_tax,
             total_amount: formattedTotalAmount,
           });
         }
@@ -1010,6 +1342,8 @@ async order(req, res){
             success: true,
             message: 'Order status updated successfully',
             data: {
+              cart_id:orderData.cart_id,
+              order_id: existingOrder.id,
               payment_status: existingOrder.payment_status,
               order_status: existingOrder.order_status,
               //dealData:dealData
@@ -1019,8 +1353,12 @@ async order(req, res){
         } else {
           throw new Error('Order not found in the database');
         }
-     
-   
+      } else {
+        throw new Error('Cart ID not found in order data');
+      }
+    } else {
+      throw new Error('Invalid webhook payload');
+    }
   } catch (error) {
     console.error('Error processing order:', error.message);
     return res.status(400).json({
@@ -1029,7 +1367,6 @@ async order(req, res){
     });
   }
 }
-
 /**
  * Capitalizes the first letter of each word in a string.
  *
@@ -1386,18 +1723,102 @@ async updateHubspotDeal(id,color,amount,total_amount) {
   }
 }
 
-async createMondayItem(quotation) {
+async createMondayItem(quotation,order) {
   try {
     // -----------------------------
     // 1) CREATE ITEM
     // -----------------------------
+    const columnValues = {
+      // Status
+      // status: {
+      //   label: quotation?.status || "Working on it",
+      // },
+    
+      // Person
+      person: {
+        personsAndTeams: [
+          {
+            id: Number(process.env.MONDAY_OWNER_ID), // 90289175
+            kind: "person",
+          },
+        ],
+      },
+    
+      // Install Date
+      // date4: {
+      //   date: quotation?.install_date || "2025-11-18",
+      // },
+    
+      // Sales Order #
+      text_mkz5kwbx: `${quotation.quotation_no}`,
+    
+      // Client
+      text_mkz5b0g0: quotation?.first_name +' '+quotation?.last_name,
+    
+      // Type
+      text_mkz5kc6z: "QUOTE",
+    
+      // Sent To RSA PM
+      // date_mkz52gsp: {
+      //   date: quotation?.sent_to_rsa_pm || "2025-01-07",
+      // },
+    
+      // Sent To GC PM
+      // date_mkz53p8w: {
+      //   date: quotation?.sent_to_gc_pm || "2025-01-08",
+      // },
+    
+      // Approved Submittals Received
+      // date_mkz5g7sj: {
+      //   date: quotation?.approved_submittals || "2025-01-09",
+      // },
+    
+      // Measure Date
+      // date_mkz5e546: {
+      //   date: quotation?.measure_date || "2025-01-10",
+      // },
+    
+      // Measurement Complete
+      // date_mkz5c1aw: {
+      //   date: quotation?.measurement_complete || "2025-01-11",
+      // },
+    
+      // Site Address
+      text_mkz5y50q: order?.billing_address?.street_1,
+    
+      // Site Contact Name
+      text_mkz586r: quotation?.first_name +' '+quotation?.last_name,
+    
+      // Site Contact #
+      text_mkz5atqk: quotation?.phone_number,
+    
+      // RSA PM Name
+      //text_mkz5k1hp: quotation?.rsa_pm_name || "Jane Smith",
+    
+      // Prep Date
+      // date_mkz5xxfq: {
+      //   date: quotation?.prep_date || "2025-01-12",
+      // },
+    
+      // Days in Project Queue
+      //text_mkz55j9j: String(quotation?.days_in_queue || 5),
+    
+      // Added to Project Queue
+      // date_mkz52mkn: {
+      //   date:
+      //     quotation?.added_to_queue ||
+      //     new Date().toISOString().split("T")[0],
+      // },
+    };
+    
+    
     const createItemQuery = `
       mutation {
         create_item (
           board_id: ${process.env.MONDAY_BOARD_ID},
           group_id: "${process.env.MONDAY_GROUP_ID}",
           item_name: "${quotation?.project_name} - (Quote Tool)",
-          column_values: "{\\"project_status\\\": {\\\"label\\\": \\\"Working on it\\\"}, \\\"project_owner\\\": {\\\"personsAndTeams\\\":[{\\\"id\\\": 96271035, \\\"kind\\\": \\\"person\\\"}]}, \\\"date\\\": {\\\"date\\\": \\\"2025-11-18\\\"}}"
+          column_values: ${JSON.stringify(JSON.stringify(columnValues))}
         ) {
           id
           name
@@ -1429,11 +1850,38 @@ async createMondayItem(quotation) {
     // -----------------------------
     // 2) CREATE UPDATE FOR THAT ITEM
     // -----------------------------
+    const room_details = await this.formatAllRoomsData(quotation.submittedData.rooms);
+    const materialDetailsString = quotation.materials
+    .map(
+      (material) =>
+        `${material.name}: $${Number(material.price).toLocaleString("en-US", {
+          maximumFractionDigits: 0,
+        })}`
+    )
+    .join("\n");
+    const roomDetailsHtml = String(room_details).replace(/\n/g, "<br>");
+    const materialDetailsHtml = materialDetailsString.replace(/\n/g, "<br>");
+    
+
+    const updateBody = `
+        <b>Project Name:</b> ${quotation?.project_name} - (Quote Tool)<br>
+
+        <b>Client Details</b><br>
+        Name: ${quotation?.first_name} ${quotation?.last_name}<br>
+        Email: ${quotation?.email}<br>
+        Phone: ${quotation?.phone_number}<br>
+
+        <b>Room Details</b><br>
+        ${roomDetailsHtml}<br>
+
+        <b>Material Details</b>
+        ${materialDetailsHtml}
+        `;
     const updateQuery = `
     mutation {
       create_update(
         item_id: ${itemId},
-        body: "Project Name: ${quotation?.project_name} - (Quote Tool)<br>Client Name: ${quotation?.first_name} ${quotation?.last_name}<br>Client Email: ${quotation?.email}<br>Phone: ${quotation?.phone_number}"
+        body: ${JSON.stringify(updateBody)}
       ) {
         id
       }
@@ -2037,9 +2485,9 @@ async OrderPDFhtml(quotation_no,order_id,amount,phone_number,createdAt,materials
                  
                  <div style="padding: 40px 25px 40px 0;min-height: 280px; text-align:center; print-color-adjust: exact;  -webkit-print-color-adjust: exact; width:50%;box-sizing: border-box;" >
                     <div  style="color:#fff;display: flex; align-items: flex-start;    flex-direction: column;    justify-content: flex-start;gap:15px;">
-                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Address:</span> ${billing_address.address1}</h4>
+                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Address:</span> ${billing_address.street_1}</h4>
                         <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">City:</span> ${billing_address.city}</h4>
-                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">State:</span> ${billing_address.province}</h4>
+                        <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">State:</span> ${billing_address.state}</h4>
                         <h4 style="color:#fff; font-size: 16px; font-weight: 700; margin-bottom:0; margin-top: 0;"><span style="    font-weight: 400;">Zip:</span> ${billing_address.zip}</h4>
                     </div>
                  </div> 
@@ -2617,6 +3065,92 @@ async createMondayItemForDeal(hubspotDealId) {
       return;
     }
 
+    const columnValues = {
+      // Status
+      // status: {
+      //   label: quotation?.status || "Working on it",
+      // },
+    
+      // Person
+      person: {
+        personsAndTeams: [
+          {
+            id: Number(process.env.MONDAY_OWNER_ID), // 90289175
+            kind: "person",
+          },
+        ],
+      },
+    
+      // Install Date
+      date4: {
+        date: bid?.deadline
+        ? new Date(bid.deadline).toISOString().split("T")[0]
+        : null
+      },
+    
+      // Sales Order #
+      text_mkz5kwbx: bid?.opportunities_id,
+    
+      // Client
+      text_mkz5b0g0: bid?.client?.lead?.firstName + " "+ bid?.client?.lead?.lastName,
+    
+      // Type
+      text_mkz5kc6z: "BUILDINGCONNECTED",
+    
+      // Sent To RSA PM
+      // date_mkz52gsp: {
+      //   date: bid?.sent_to_rsa_pm || "2025-01-07",
+      // },
+    
+      // Sent To GC PM
+      // date_mkz53p8w: {
+      //   date: bid?.sent_to_gc_pm || "2025-01-08",
+      // },
+    
+      // Approved Submittals Received
+      // date_mkz5g7sj: {
+      //   date: bid?.approved_submittals || "2025-01-09",
+      // },
+    
+      // Measure Date
+      // date_mkz5e546: {
+      //   date: bid?.measure_date || "2025-01-10",
+      // },
+    
+      // Measurement Complete
+      // date_mkz5c1aw: {
+      //   date: quotation?.measurement_complete || "2025-01-11",
+      // },
+    
+      // Site Address
+      text_mkz5y50q: bid?.location?.complete,
+    
+      // Site Contact Name
+      text_mkz586r: bid?.client?.lead?.firstName + " "+ bid?.client?.lead?.lastName,
+    
+      // Site Contact #
+      text_mkz5atqk: bid?.client?.lead?.phoneNumber,
+    
+      // RSA PM Name
+      //text_mkz5k1hp: bid?.rsa_pm_name || "Jane Smith",
+    
+      // Prep Date
+      // date_mkz5xxfq: {
+      //   date: bid?.prep_date || "2025-01-12",
+      // },
+    
+      // Days in Project Queue
+      //text_mkz55j9j: String(bid?.days_in_queue || 5),
+    
+      // Added to Project Queue
+      // date_mkz52mkn: {
+      //   date:
+      //   bid?.added_to_queue ||
+      //     new Date().toISOString().split("T")[0],
+      // },
+    };
+    console.log(columnValues);
+
     // Create Monday item
     const createItemQuery = `
       mutation {
@@ -2624,7 +3158,7 @@ async createMondayItemForDeal(hubspotDealId) {
           board_id: ${process.env.MONDAY_BOARD_ID},
           group_id: "${process.env.MONDAY_GROUP_ID}",
           item_name: "${bid.name} - (Building Connected)",
-          column_values: "{\\"project_status\\\": {\\\"label\\\": \\\"Working on it\\\"}}"
+          column_values: ${JSON.stringify(JSON.stringify(columnValues))}
         ) {
           id
         }
