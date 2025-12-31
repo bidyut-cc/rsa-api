@@ -71,7 +71,7 @@ module.exports = (agenda) => {
           if (quotation?.is_hubspot_deal_create && quotation.hubspot_deal_id) {
             const hubSpotdealData = await quotationController.updateHubspotDeal(quotation.hubspot_deal_id,color,amount,total_amount);
             if (hubSpotdealData) {
-             // await quotationController.createMondayItem(quotation);
+              await quotationController.createMondayItem(quotation,order);
             }
 
           }
