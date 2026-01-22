@@ -3028,23 +3028,418 @@ async  calculateInstallationPrice(data) {
 }
 }
 
-async syncToMonday(req,res){
+// async syncToMonday(req,res){
+//   try {
+//     const events = req.body; // HubSpot always sends an array
+
+//     for (const event of events) {
+//       const { propertyName, propertyValue, objectId } = event;
+
+//       // 1️⃣ Only process dealstage change
+//       if (propertyName !== "dealstage") continue;
+
+//       // 2️⃣ Match specific stage
+//       if (propertyValue === process.env.SMARTBID_SCORE_FINAL_STAGE_ID) { 
+//         console.log("✔ Target stage reached for deal:", objectId);
+
+//         // 👉 Call your Monday creation function here
+//         await this.createMondayItemForDeal(objectId);
+        
+//       }
+//     }
+
+//     res.sendStatus(200);
+//   } catch (error) {
+//     console.error("Webhook Error:", error);
+//     res.sendStatus(500);
+//   }
+// }
+
+// async createMondayItemForDeal(hubspotDealId) {
+//   try {
+
+//     const bid = await Bid.findOne({ hubspotLeadId: hubspotDealId });
+
+//     if (!bid) {
+//       console.log("❌ No bid found for this deal");
+//       return;
+//     }
+
+//     const columnValues = {
+//       // Status
+//       // status: {
+//       //   label: quotation?.status || "Working on it",
+//       // },
+    
+//       // Person
+//       person: {
+//         personsAndTeams: [
+//           {
+//             id: Number(process.env.MONDAY_OWNER_ID), // 90289175
+//             kind: "person",
+//           },
+//         ],
+//       },
+    
+//       // Install Date
+//       date4: {
+//         date: bid?.deadline
+//         ? new Date(bid.deadline).toISOString().split("T")[0]
+//         : null
+//       },
+    
+//       // Sales Order #
+//       text_mkz5kwbx: bid?.opportunities_id,
+    
+//       // Client
+//       text_mkz5b0g0: bid?.client?.lead?.firstName + " "+ bid?.client?.lead?.lastName,
+    
+//       // Type
+//       text_mkz5kc6z: "BUILDINGCONNECTED",
+    
+//       // Sent To RSA PM
+//       // date_mkz52gsp: {
+//       //   date: bid?.sent_to_rsa_pm || "2025-01-07",
+//       // },
+    
+//       // Sent To GC PM
+//       // date_mkz53p8w: {
+//       //   date: bid?.sent_to_gc_pm || "2025-01-08",
+//       // },
+    
+//       // Approved Submittals Received
+//       // date_mkz5g7sj: {
+//       //   date: bid?.approved_submittals || "2025-01-09",
+//       // },
+    
+//       // Measure Date
+//       // date_mkz5e546: {
+//       //   date: bid?.measure_date || "2025-01-10",
+//       // },
+    
+//       // Measurement Complete
+//       // date_mkz5c1aw: {
+//       //   date: quotation?.measurement_complete || "2025-01-11",
+//       // },
+    
+//       // Site Address
+//       text_mkz5y50q: bid?.location?.complete,
+    
+//       // Site Contact Name
+//       text_mkz586r: bid?.client?.lead?.firstName + " "+ bid?.client?.lead?.lastName,
+    
+//       // Site Contact #
+//       text_mkz5atqk: bid?.client?.lead?.phoneNumber,
+    
+//       // RSA PM Name
+//       //text_mkz5k1hp: bid?.rsa_pm_name || "Jane Smith",
+    
+//       // Prep Date
+//       // date_mkz5xxfq: {
+//       //   date: bid?.prep_date || "2025-01-12",
+//       // },
+    
+//       // Days in Project Queue
+//       //text_mkz55j9j: String(bid?.days_in_queue || 5),
+    
+//       // Added to Project Queue
+//       // date_mkz52mkn: {
+//       //   date:
+//       //   bid?.added_to_queue ||
+//       //     new Date().toISOString().split("T")[0],
+//       // },
+//     };
+//     console.log(columnValues);
+
+//     // Create Monday item
+//     const createItemQuery = `
+//       mutation {
+//         create_item (
+//           board_id: ${process.env.MONDAY_BOARD_ID},
+//           group_id: "${process.env.MONDAY_GROUP_ID}",
+//           item_name: "${bid.name} - (Building Connected)",
+//           column_values: ${JSON.stringify(JSON.stringify(columnValues))}
+//         ) {
+//           id
+//         }
+//       }
+//     `;
+
+//     const createItemRes = await axios.post(
+//       "https://api.monday.com/v2",
+//       { query: createItemQuery },
+//       { headers: { Authorization: process.env.MONDAY_API_KEY } }
+//     );
+
+//     const itemId = createItemRes.data.data.create_item.id;
+
+//     console.log("✔ Monday item created:", itemId);
+
+//             // Create update
+//             const updateBody = `
+//             Project Name: ${bid.name}
+//             Project Size: ${bid.projectSize || "N/A"}
+//             Project Information: ${bid.projectInformation || "N/A"}
+//             Location: ${bid?.location?.complete || "N/A"}
+//             Client Name: ${bid.client?.lead?.firstName} ${bid.client?.lead?.lastName}
+//             Client Email: ${bid.client?.lead?.email}
+//             Trade Name: ${bid.tradeName || "N/A"}
+//             Smart Bid Score: ${bid.smartBidScore || "N/A"}%
+//             Link: ${bid.LinkURL}
+//             Created At: ${bid.createdAt}
+//             `
+//               .trim()
+//               .replace(/"/g, '\\"')          // escape quotes
+//               .replace(/\n/g, "\\n");         // escape newlines
+            
+
+//             const updateQuery = `
+//               mutation {
+//                 create_update(
+//                   item_id: ${itemId},
+//                   body: "${updateBody}"
+//                 ) {
+//                   id
+//                 }
+//               }
+//             `;
+
+//     await axios.post("https://api.monday.com/v2", { query: updateQuery }, {
+//       headers: { Authorization: process.env.MONDAY_API_KEY }
+//     });
+
+//     console.log("✔ Monday update added");
+
+//   } catch (err) {
+//     console.error("Monday API Error:", err.response?.data || err);
+//   }
+// }
+
+// async hubspotToDB(req,res){
+//   try {
+//     const dealId = "53639031390"; // or req.params.dealId
+
+//     const hubspotURL = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}`;
+
+//     const response = await axios.get(hubspotURL, {
+//       headers: {
+//         Authorization: `Bearer CInO59-7MxIZQlNQMl8kQEwrAgwACAkWEgkiAQEEAUIpARifvIAYILrtzCcoltujCTIUI_1OcZ2owQwsySUCR0EGyhItJzA6MkJTUDJfJEBMKwIlAAgZBnFOHAEBEgEBAToBAQEBAQEBAQcBAQEYAQEBAQGAhwEBAQEBQhT0RMfGEXgMlW1UICEFewHllEyTFEoDbmExUgBaAGAAaLrtzCdwAHgA`,
+//         "Content-Type": "application/json"
+//       },
+//       params: {
+//         properties: [
+//           "link_url",
+//           "dealstage",
+//           "pipeline",
+//           "client",
+//           "company_name",
+//           "document_url",
+//           "dealname",
+//           "deadline",
+//           "created_at",
+//           "updated_at",
+//           "due_at",
+//           "project_information",
+//           "project_size",
+//           "smart_bid_score",
+//           "trade_name"
+//         ].join(","),
+
+//         associations: "contacts,companies"
+//       }
+//     });
+
+//     const deal = response.data;
+
+//     // ✅ Extract association IDs
+//     const contactId =
+//       deal.associations?.contacts?.results?.[0]?.id || null;
+
+//     const companyId =
+//       deal.associations?.companies?.results?.[0]?.id || null;
+
+//       const data = {
+//         opportunities_id: deal.properties?.opportunities_id ?? null,
+      
+//         LinkURL: deal.properties?.link_url ?? null,
+      
+//         client: {
+//           company: {
+//             id: deal.associations?.companies?.results?.[0]?.id ?? null,
+//             name: deal.properties?.company_name ?? null
+//           },
+//           lead: {
+//             id: deal.associations?.contacts?.results?.[0]?.id ?? null,
+//             email: null,
+//             firstName: null,
+//             lastName: null,
+//             phoneNumber: ""
+//           },
+//           office: null
+//         },
+      
+//         hubspotLeadId: deal.id ?? null,
+//         hubspotContactId:
+//           deal.associations?.contacts?.results?.[0]?.id ?? null,
+      
+//         name: deal.properties?.dealname ?? null,
+//         tradeName: deal.properties?.trade_name ?? null,
+//         projectInformation: deal.properties?.project_information ?? null,
+//         projectSize: deal.properties?.project_size ?? null,
+//         smartBidScore: deal.properties?.smart_bid_score ?? null,
+      
+//         deadline:
+//           deal.properties?.deadline
+//             ? new Date(deal.properties.deadline)
+//             : null,
+      
+//         dueAt:
+//           deal.properties?.due_at
+//             ? new Date(deal.properties.due_at)
+//             : null,
+      
+//         createdAt: deal.createdAt ? new Date(deal.createdAt) : new Date(),
+//         updatedAt: deal.updatedAt ? new Date(deal.updatedAt) : new Date(),
+      
+//         deleted: false,
+//         submissionState: "UNDECIDED"
+//       };
+      
+//       await Bid.create(data);
+      
+
+      
+
+//     return res.status(200).json({
+//       success: true,
+//       dealId: deal.id,
+//       contactId,
+//       companyId,
+//       deal
+//     });
+
+//   } catch (error) {
+//     console.error("HubSpot Deal Fetch Error:", error.response?.data || error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch deal from HubSpot",
+//       error: error.response?.data || error.message
+//     });
+//   }
+// }
+async syncToMonday(req, res) {
   try {
-    const events = req.body; // HubSpot always sends an array
+    const events = Array.isArray(req.body) ? req.body : [];
 
     for (const event of events) {
-      const { propertyName, propertyValue, objectId } = event;
+      const {
+        subscriptionType,
+        objectId,
+        propertyName,
+        propertyValue
+      } = event;
 
-      // 1️⃣ Only process dealstage change
-      if (propertyName !== "dealstage") continue;
+      const finalStages = [
+        process.env.SMARTBID_SCORE_FINAL_STAGE_ID,
+        process.env.QUOTE_TOOL_FINAL_STAGE_ID
+      ];
+      console.log(finalStages,propertyValue);
 
-      // 2️⃣ Match specific stage
-      if (propertyValue === process.env.SMARTBID_SCORE_FINAL_STAGE_ID) { 
-        console.log("✔ Target stage reached for deal:", objectId);
-
-        // 👉 Call your Monday creation function here
+      /**
+       * 1️⃣ Deal Stage Change → Create Monday Item
+       */
+      if (
+        subscriptionType === "deal.propertyChange" &&
+        propertyName === "dealstage" &&
+        finalStages.includes(propertyValue)
+      ) {
+        console.log("✔ Deal moved to target stage:", objectId);
         await this.createMondayItemForDeal(objectId);
+        continue;
+      }
+
+      /**
+       * 2️⃣ Deal Created → Sync to DB (Only specific pipeline)
+       */
+      if (subscriptionType === "deal.creation") {
+        console.log("✔ New deal created:", objectId);
+
+        const deal = await this.getHubspotDealDetails(objectId);
+        if (!deal || !deal.properties) continue;
+
+        // ✅ Only sync deals from required pipeline
+        // if (deal.properties.pipeline !== process.env.SMARTBID_HIGH_SCORE_PIPELINE_ID) {
+        //   continue;
+        // }
+
+          // ✅ Allow only specific pipelines
+        const allowedPipelines = [
+          process.env.SMARTBID_HIGH_SCORE_PIPELINE_ID,
+          process.env.QUOTE_TOOL_PIPELINE_ID
+        ];
+
+        if (!allowedPipelines.includes(deal.properties.pipeline)) {
+          continue;
+        }
+
+        // ❗ Prevent duplicate inserts
+        const alreadyExists = await Bid.findOne({
+          hubspotLeadId: deal.id
+        });
+
+        if (alreadyExists) {
+          console.log("⚠ Deal already synced:", deal.id);
+          continue;
+        }
+        const data = {
+          opportunities_id: deal.properties?.opportunities_id ?? null,
         
+          LinkURL: deal.properties?.link_url ?? null,
+        
+          client: {
+            company: {
+              id: deal.associations?.companies?.results?.[0]?.id ?? null,
+              name: deal.properties?.company_name ?? null
+            },
+            lead: {
+              id: deal.associations?.contacts?.results?.[0]?.id ?? null,
+              email: null,
+              firstName: null,
+              lastName: null,
+              phoneNumber: ""
+            },
+            office: null
+          },
+        
+          hubspotLeadId: deal.id ?? null,
+          hubspotContactId:
+            deal.associations?.contacts?.results?.[0]?.id ?? null,
+        
+          name: deal.properties?.dealname ?? null,
+          tradeName: deal.properties?.trade_name ?? null,
+          projectInformation: deal.properties?.project_information ?? null,
+          projectSize: deal.properties?.project_size ?? null,
+          smartBidScore: deal.properties?.smart_bid_score ?? null,
+        
+          deadline:
+            deal.properties?.deadline
+              ? new Date(deal.properties.deadline)
+              : null,
+        
+          dueAt:
+            deal.properties?.due_at
+              ? new Date(deal.properties.due_at)
+              : null,
+        
+          createdAt: deal.createdAt ? new Date(deal.createdAt) : new Date(),
+          updatedAt: deal.updatedAt ? new Date(deal.updatedAt) : new Date(),
+        
+          deleted: false,
+          submissionState: "UNDECIDED"
+        };
+        
+        await Bid.create(data);
       }
     }
 
@@ -3055,109 +3450,74 @@ async syncToMonday(req,res){
   }
 }
 
+
+
 async createMondayItemForDeal(hubspotDealId) {
   try {
 
     const bid = await Bid.findOne({ hubspotLeadId: hubspotDealId });
+    // 1️⃣ Fetch deal directly from HubSpot
+    const deal = await this.getHubspotDealDetails(hubspotDealId);
 
-    if (!bid) {
-      console.log("❌ No bid found for this deal");
+    if (!deal || !deal.properties) {
+      console.log("❌ No deal data received from HubSpot");
       return;
     }
 
+    const props = deal.properties;
+
+    // 2️⃣ Prepare column values for Monday
     const columnValues = {
-      // Status
-      // status: {
-      //   label: quotation?.status || "Working on it",
-      // },
-    
-      // Person
+      // Owner / Person column
       person: {
         personsAndTeams: [
           {
-            id: Number(process.env.MONDAY_OWNER_ID), // 90289175
+            id: Number(process.env.MONDAY_OWNER_ID),
             kind: "person",
           },
         ],
       },
-    
-      // Install Date
-      date4: {
-        date: bid?.deadline
-        ? new Date(bid.deadline).toISOString().split("T")[0]
-        : null
-      },
-    
-      // Sales Order #
-      text_mkz5kwbx: bid?.opportunities_id,
-    
-      // Client
-      text_mkz5b0g0: bid?.client?.lead?.firstName + " "+ bid?.client?.lead?.lastName,
-    
-      // Type
-      text_mkz5kc6z: "BUILDINGCONNECTED",
-    
-      // Sent To RSA PM
-      // date_mkz52gsp: {
-      //   date: bid?.sent_to_rsa_pm || "2025-01-07",
-      // },
-    
-      // Sent To GC PM
-      // date_mkz53p8w: {
-      //   date: bid?.sent_to_gc_pm || "2025-01-08",
-      // },
-    
-      // Approved Submittals Received
-      // date_mkz5g7sj: {
-      //   date: bid?.approved_submittals || "2025-01-09",
-      // },
-    
-      // Measure Date
-      // date_mkz5e546: {
-      //   date: bid?.measure_date || "2025-01-10",
-      // },
-    
-      // Measurement Complete
-      // date_mkz5c1aw: {
-      //   date: quotation?.measurement_complete || "2025-01-11",
-      // },
-    
-      // Site Address
-      text_mkz5y50q: bid?.location?.complete,
-    
-      // Site Contact Name
-      text_mkz586r: bid?.client?.lead?.firstName + " "+ bid?.client?.lead?.lastName,
-    
-      // Site Contact #
-      text_mkz5atqk: bid?.client?.lead?.phoneNumber,
-    
-      // RSA PM Name
-      //text_mkz5k1hp: bid?.rsa_pm_name || "Jane Smith",
-    
-      // Prep Date
-      // date_mkz5xxfq: {
-      //   date: bid?.prep_date || "2025-01-12",
-      // },
-    
-      // Days in Project Queue
-      //text_mkz55j9j: String(bid?.days_in_queue || 5),
-    
-      // Added to Project Queue
-      // date_mkz52mkn: {
-      //   date:
-      //   bid?.added_to_queue ||
-      //     new Date().toISOString().split("T")[0],
-      // },
-    };
-    console.log(columnValues);
 
-    // Create Monday item
+      // Install Date (deadline)
+      date4: props.deadline
+        ? { date: props.deadline.split("T")[0] }
+        : null,
+
+      // Sales Order #
+      text_mkz5kwbx: props.opportunities_id ?? "",
+
+      // Client Name
+      text_mkz5b0g0: props.client ?? "",
+
+      // Type
+      text_mkz5kc6z: bid?.opportunities_id
+      ? "BUILDINGCONNECTED"
+      : "MANUAL",
+
+      // Site Address
+      text_mkz5y50q: props.location ?? "",
+
+      // Site Contact Name
+      text_mkz586r: props.client ?? "",
+
+      // Site Contact #
+      text_mkz5atqk: "", // Not available from HubSpot deal
+    };
+
+    // Remove null values (Monday hates nulls)
+    Object.keys(columnValues).forEach(
+      key => columnValues[key] === null && delete columnValues[key]
+    );
+
+    // 3️⃣ Create Monday Item
+    const itemName = `${props.dealname || "New Deal"}`;
+
     const createItemQuery = `
       mutation {
-        create_item (
+        create_item(
           board_id: ${process.env.MONDAY_BOARD_ID},
           group_id: "${process.env.MONDAY_GROUP_ID}",
-          item_name: "${bid.name} - (Building Connected)",
+          item_name: "${itemName.replace(/"/g, '\\"')}",
           column_values: ${JSON.stringify(JSON.stringify(columnValues))}
         ) {
           id
@@ -3168,51 +3528,116 @@ async createMondayItemForDeal(hubspotDealId) {
     const createItemRes = await axios.post(
       "https://api.monday.com/v2",
       { query: createItemQuery },
-      { headers: { Authorization: process.env.MONDAY_API_KEY } }
+      {
+        headers: {
+          Authorization: process.env.MONDAY_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
     );
 
     const itemId = createItemRes.data.data.create_item.id;
-
     console.log("✔ Monday item created:", itemId);
 
-            // Create update
-            const updateBody = `
-            Project Name: ${bid.name}
-            Project Size: ${bid.projectSize || "N/A"}
-            Project Information: ${bid.projectInformation || "N/A"}
-            Location: ${bid?.location?.complete || "N/A"}
-            Client Name: ${bid.client?.lead?.firstName} ${bid.client?.lead?.lastName}
-            Client Email: ${bid.client?.lead?.email}
-            Trade Name: ${bid.tradeName || "N/A"}
-            Smart Bid Score: ${bid.smartBidScore || "N/A"}%
-            Link: ${bid.LinkURL}
-            Created At: ${bid.createdAt}
-            `
-              .trim()
-              .replace(/"/g, '\\"')          // escape quotes
-              .replace(/\n/g, "\\n");         // escape newlines
-            
+    // 4️⃣ Add Update / Description
+    const updateBody = `
+Project Name: ${props.dealname || "N/A"}
+Project Size: ${props.project_size || "N/A"}
+Project Information: ${props.project_information || "N/A"}
+Client Name: ${props.client || "N/A"}
+Trade Name: ${props.trade_name || "N/A"}
+Smart Bid Score: ${props.smart_bid_score || "N/A"}
+Link: ${props.link_url || "N/A"}
+Created At: ${deal.createdAt}
+    `
+      .trim()
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, "\\n");
 
-            const updateQuery = `
-              mutation {
-                create_update(
-                  item_id: ${itemId},
-                  body: "${updateBody}"
-                ) {
-                  id
-                }
-              }
-            `;
+    const updateQuery = `
+      mutation {
+        create_update(
+          item_id: ${itemId},
+          body: "${updateBody}"
+        ) {
+          id
+        }
+      }
+    `;
 
-    await axios.post("https://api.monday.com/v2", { query: updateQuery }, {
-      headers: { Authorization: process.env.MONDAY_API_KEY }
-    });
+    await axios.post(
+      "https://api.monday.com/v2",
+      { query: updateQuery },
+      {
+        headers: {
+          Authorization: process.env.MONDAY_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     console.log("✔ Monday update added");
 
+    if (bid) {
+      await Bid.updateOne(
+        { hubspotLeadId: hubspotDealId },
+        { $set: { mondayItemCreated: true } }
+      );
+    }
+
   } catch (err) {
-    console.error("Monday API Error:", err.response?.data || err);
+    console.error("❌ Monday API Error:", err.response?.data || err);
   }
+}
+
+
+async getHubspotDealDetails(dealId){
+  const tokenResponse = await axios.post(
+    "https://api.hubapi.com/oauth/v1/token",
+    new URLSearchParams({
+      grant_type: "refresh_token",
+      client_id: process.env.HUBSPOT_CLIENT_ID,
+      client_secret: process.env.HUBSPOT_CLIENT_SECRET,
+      refresh_token: process.env.HUBSPOT_REFRESH_TOKEN,
+    }),
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    }
+  );
+
+  const accessToken = tokenResponse.data.access_token;
+  const hubspotURL = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}`;
+
+  const response = await axios.get(hubspotURL, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    params: {
+      properties: [
+        "link_url",
+        "dealstage",
+        "pipeline",
+        "client",
+        "company_name",
+        "document_url",
+        "dealname",
+        "deadline",
+        "created_at",
+        "updated_at",
+        "due_at",
+        "project_information",
+        "project_size",
+        "smart_bid_score",
+        "trade_name"
+      ].join(","),
+
+      associations: "contacts,companies"
+    }
+  });
+  return response.data;
 }
 
 

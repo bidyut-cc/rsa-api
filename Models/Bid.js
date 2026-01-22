@@ -72,6 +72,10 @@ var BidSchema = mongoose.Schema({
         required: false,
         default:null
     },
+    mondayItemCreated: {
+        type: Boolean,
+        default:false
+    },
     createdAt: {
         type: Date,
         default: () => Date.now(), 
