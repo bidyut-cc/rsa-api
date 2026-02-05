@@ -3337,7 +3337,8 @@ async syncToMonday(req, res) {
         subscriptionType,
         objectId,
         propertyName,
-        propertyValue
+        propertyValue,
+        changeSource
       } = event;
 
       const finalStages = [
@@ -3352,7 +3353,8 @@ async syncToMonday(req, res) {
       if (
         subscriptionType === "deal.propertyChange" &&
         propertyName === "dealstage" &&
-        finalStages.includes(propertyValue)
+        finalStages.includes(propertyValue) &&
+        changeSource !== "INTEGRATION"
       ) {
         console.log("✔ Deal moved to target stage:", objectId);
         await this.createMondayItemForDeal(objectId);
@@ -3363,6 +3365,10 @@ async syncToMonday(req, res) {
        * 2️⃣ Deal Created → Sync to DB (Only specific pipeline)
        */
       if (subscriptionType === "deal.creation") {
+        if (changeSource === "INTEGRATION") {
+          console.log("⏭ Skipping API-created deal:", objectId);
+          continue;
+        }
         console.log("✔ New deal created:", objectId);
 
         const deal = await this.getHubspotDealDetails(objectId);

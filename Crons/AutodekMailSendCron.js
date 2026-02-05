@@ -47,7 +47,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
         // const opportunities  =[     
         //   {
         //       "id": "68c2f83f8b8f920032eee2a2",
-        //       "name": "Buena Vista - GMP Set 9.5.25 school",
+        //       "name": "Test Buena Vista - GMP Set 9.5.25 school",
         //       "number": null,
         //     //   "client": {
         //     //     "company": {
@@ -192,7 +192,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
         //   },
         //   {
         //     "id": "6259b220436c4400c7f67f06",
-        //     "name": "Popeye's  - Carolina Place - Pineville, NC (NEGOTIATED)",
+        //     "name": "Test Popeye's  - Carolina Place - Pineville, NC (NEGOTIATED)",
         //     "number": null,
         //     "client": {
         //         "company": {
@@ -201,10 +201,10 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
         //         },
         //         "lead": {
         //             "id": "5866aae6855e2f1000426bdc",
-        //             "email": "leeanne.branscome@westwoodcontractors.com",
-        //             "firstName": "Lee Anne",
-        //             "lastName": "Branscome",
-        //             "phoneNumber": "+1 817-302-2069"
+        //             "email": "testleeanne.branscome@westwoodcontractors.com",
+        //             "firstName": "Test Lee Anne",
+        //             "lastName": "Test Branscome",
+        //             "phoneNumber": "+1 817-302-2068"
         //         },
         //         "office": {
         //             "id": "55e8c5581499480a00146d9c",
@@ -420,7 +420,6 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
                   bid.hubspotLeadId = hubspotIds.hubspotLeadId;
                 }
               });
-      
               return {
                 updateOne: {
                   filter: { opportunities_id: bid.opportunities_id }, // check if exists
@@ -781,6 +780,9 @@ async function upsertHubspotLead(bid,contactData){
 
 async function upsertHubspotDeal(bid,contactData){
   try {
+    /* ---------------------------------------------------
+     1️⃣ Get HubSpot Access Token
+    --------------------------------------------------- */
     const tokenResponse = await axios.post(
       "https://api.hubapi.com/oauth/v1/token",
       new URLSearchParams({
@@ -798,14 +800,19 @@ async function upsertHubspotDeal(bid,contactData){
   
     const accessToken = tokenResponse.data.access_token;
 
-    // 2️⃣ Upsert Contact
-    let hubspotContactId = null;
+ 
+    /* ---------------------------------------------------
+     2️⃣ Check existing bid in DB
+    --------------------------------------------------- */
     const existingBid = await Bid.findOne({ opportunities_id: bid.opportunities_id });
 
-    if (existingBid?.hubspotContactId) {
-      hubspotContactId = existingBid.hubspotContactId;
-    } else {
-      // 1️⃣ Try to find contact by email
+     /* ---------------------------------------------------
+     3️⃣ Resolve / Create Contact
+    --------------------------------------------------- */
+    let hubspotContactId = existingBid?.hubspotContactId || null;
+
+    if (!hubspotContactId) {
+      // 🔍 Search contact by email
       const searchPayload = {
         filterGroups: [
           {
@@ -813,7 +820,7 @@ async function upsertHubspotDeal(bid,contactData){
               {
                 propertyName: "email",
                 operator: "EQ",
-                value:  contactData.email,
+                value: contactData.email,
               },
             ],
           },
@@ -821,7 +828,7 @@ async function upsertHubspotDeal(bid,contactData){
         properties: ["email", "firstname", "lastname", "phone"],
         limit: 1,
       };
-    
+
       const searchResponse = await axios.post(
         "https://api.hubapi.com/crm/v3/objects/contacts/search",
         searchPayload,
@@ -832,18 +839,14 @@ async function upsertHubspotDeal(bid,contactData){
           },
         }
       );
-    
-      if (searchResponse.data.results && searchResponse.data.results.length > 0) {
-        hubspotContactId = searchResponse.data.results[0].id; // Found existing contact
+
+      if (searchResponse.data.results?.length > 0) {
+        hubspotContactId = searchResponse.data.results[0].id;
       } else {
-        // 2️⃣ Create new contact if not found
-        const contactPayload = {
-          properties: contactData,
-        };
-    
+        // ➕ Create contact
         const contactResponse = await axios.post(
           "https://api.hubapi.com/crm/v3/objects/contacts",
-          contactPayload,
+          { properties: contactData },
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -851,10 +854,27 @@ async function upsertHubspotDeal(bid,contactData){
             },
           }
         );
-    
+
         hubspotContactId = contactResponse.data.id;
       }
     }
+    /* ---------------------------------------------------
+     4️⃣ If Deal Already Exists → SKIP
+    --------------------------------------------------- */
+    if (existingBid?.hubspotLeadId) {
+      console.log(
+        `⏭️ Deal already exists for opportunity ${bid.opportunities_id}, skipping`
+      );
+
+      return {
+        hubspotContactId,
+        hubspotLeadId: existingBid.hubspotLeadId,
+      };
+    }
+
+    /* ---------------------------------------------------
+     5️⃣ Decide Pipeline & Stage
+    --------------------------------------------------- */
           // 1️⃣ SmartBid score number
       const smartBidScore = Number(bid.smartBidScore || 0);
 
@@ -869,7 +889,9 @@ async function upsertHubspotDeal(bid,contactData){
         ? process.env.SMARTBID_HIGH_SCORE_STAGE_ID
         : process.env.SMARTBID_LOW_SCORE_STAGE_ID;
 
-    
+      /* ---------------------------------------------------
+     6️⃣ Create Deal (POST ONLY)
+    --------------------------------------------------- */
         // 2️⃣ Prepare the payload
         const dealPayload = {
           properties: {
@@ -905,23 +927,33 @@ async function upsertHubspotDeal(bid,contactData){
          
         };
          // 4️⃣ Upsert Lead
-    let leadId = existingBid?.hubspotLeadId;
-    const url = leadId
-      ? `https://api.hubapi.com/crm/v3/objects/deals/${leadId}`
-      : `https://api.hubapi.com/crm/v3/objects/deals`;
-    const method = leadId ? "patch" : "post";
+   // let leadId = existingBid?.hubspotLeadId;
+    // const url = leadId
+    //   ? `https://api.hubapi.com/crm/v3/objects/deals/${leadId}`
+    //   : `https://api.hubapi.com/crm/v3/objects/deals`;
+    // const method = leadId ? "patch" : "post";
+    // const dealResponse = await axios({
+    //   method,
+    //   url,
+    //   headers: {
+    //     Authorization: `Bearer ${accessToken}`,
+    //     "Content-Type": "application/json",
+    //   },
+    //   data: dealPayload,
+    // });
 
     //console.log(url,method,dealPayload);
-
-    const dealResponse = await axios({
-      method,
-      url,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      data: dealPayload,
-    });
+    const dealResponse = await axios.post(
+      "https://api.hubapi.com/crm/v3/objects/deals",
+      dealPayload,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  
 
     const hubspotLeadId = dealResponse.data.id;
     return { hubspotContactId, hubspotLeadId };
