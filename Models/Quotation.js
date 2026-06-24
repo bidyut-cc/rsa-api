@@ -6,6 +6,10 @@ var QuotationSchema = mongoose.Schema({
         type: String,
         required: false,
     },
+    project_type: {
+        type: String,
+        required: false,
+    },
     quotation_no: {
         type: String,
         required: true,

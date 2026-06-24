@@ -58,6 +58,7 @@ router.get("/app-setting/view",[VerifyEncryptedTokenMiddleware],FrontendControll
 router.post("/app-setting/config",[VerifyEncryptedTokenMiddleware],FrontendController.config);
 router.get("/app-setting/colors",[VerifyEncryptedTokenMiddleware],FrontendController.colorAndtextures);
 router.get("/app-setting/materials",[VerifyEncryptedTokenMiddleware],FrontendController.materials);
+router.get("/app-setting/project-material-mapping",[VerifyEncryptedTokenMiddleware],FrontendController.projectTypes);
 router.post("/quotation/create",[VerifyEncryptedTokenMiddleware],FrontendController.quotationCreate);
 router.get("/quotation/view",[VerifyEncryptedTokenMiddleware],FrontendController.quotationView);
 router.post("/quotation/generatePaymentLink",[VerifyEncryptedTokenMiddleware],FrontendController.generatePaymentLink);

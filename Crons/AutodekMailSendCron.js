@@ -394,6 +394,33 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
       
               // Calculate smartBidScore
               bid.smartBidScore = await calculateSmartBidScore(bid);
+
+            // =====================================================================
+          // NEW LOGIC: Auto Accept/Decline in Building Connected based on Score
+          // =====================================================================
+          // try {
+          //   // Score 35% or below -> Decline
+          //   if (bid.smartBidScore <= 35) {
+          //     await updateBuildingConnectedStatus(bid.opportunities_id, token, "DECLINED");
+          //     bid.submissionState = "DECLINED";
+          //     console.log(`Bid ${bid.opportunities_id} automatically DECLINED (Score: ${bid.smartBidScore}%)`);
+          //   } 
+          //   // Score 60% or above -> Accept (Must use "WILL_SUBMIT" per Autodesk API)
+          //   else if (bid.smartBidScore >= 60) {
+          //     await updateBuildingConnectedStatus(bid.opportunities_id, token, "WILL_SUBMIT");
+          //     bid.submissionState = "WILL_SUBMIT"; 
+          //     console.log(`Bid ${bid.opportunities_id} automatically ACCEPTED (Score: ${bid.smartBidScore}%)`);
+          //   } 
+          //   // Score 36% - 59% -> Sales team handles manually
+          //   else {
+          //     console.log(`Bid ${bid.opportunities_id} needs manual review (Score: ${bid.smartBidScore}%)`);
+          //   }
+          // } catch (error) {
+          //   console.error(`Failed to update BC status for ${bid.opportunities_id}:`, error.message);
+          // }
+          // =====================================================================
+
+
                // Upsert lead in HubSpot and get contactId
                const contactData = {
                 "email": clientData?.lead?.email,
@@ -977,3 +1004,36 @@ async function getNextClientNumber() {
 async function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+
+
+// -------------------------------------------------------------
+// Helper to Update BuildingConnected Opportunity Status
+// -------------------------------------------------------------
+// async function updateBuildingConnectedStatus(opportunityId, token, state) {
+//   try {
+//     // If token wasn't passed or expired, fetch it again dynamically
+//     if (!token) {
+//       token = await getAutodeskToken(); 
+//     }
+
+//     const baseUrl = 'https://developer.api.autodesk.com';
+//     const url = `${baseUrl}/construction/buildingconnected/v2/opportunities/${opportunityId}`;
+    
+//     await axios.patch(url, {
+//       submissionState: state
+//     }, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         'Content-Type': 'application/json'
+//       }
+//     });
+//   } catch (error) {
+//     // This will print the exact error Autodesk gives us (e.g. invalid token, 403 Forbidden, 400 Bad Request)
+//     const apiError = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+//     console.error(`Autodesk API Error updating opportunity ${opportunityId} to ${state}:`, apiError);
+//     throw new Error(apiError); // Throw it back to the loop so it can catch it
+//   }
+// }
+
+

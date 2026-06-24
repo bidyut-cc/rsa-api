@@ -14,7 +14,7 @@ module.exports = (agenda) => {
       try {
         const quotation = await Quotation.findOne(
           { _id: quotationId },
-          { submittedData: 1, project_name:1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1 }
+          { submittedData: 1, project_name:1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1 , zip_code:1}
         );
 
         if (!quotation) {
@@ -63,7 +63,9 @@ module.exports = (agenda) => {
             project_name: quotation.project_name && quotation.project_name.trim() !== "" ? quotation.project_name : "NA",
             installation_services: isAnyMaterialQuoteTrue ? "Yes" : "No",
             color: "No color selected",
-            hubspot_owner_id:process.env.HUBSPOT_OWNER_ID
+            hubspot_owner_id:process.env.HUBSPOT_OWNER_ID,
+            zipcode:quotation.zip_code,
+            send_followup_emails:true
           }
         };
 

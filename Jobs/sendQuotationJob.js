@@ -6,6 +6,7 @@ const Emailtemplate = require('../Models/Emailtemplate.js');
 const Setting = require("../Models/Setting.js");
 const fs = require('fs');
 const path = require('path');
+const MasterSetting = require('../Models/MasterSetting.js');
 
 module.exports = (agenda) => {
   agenda.define(
@@ -19,7 +20,7 @@ module.exports = (agenda) => {
       try {
         const quotation = await Quotation.findOne(
           { _id: quotationId },
-          { submittedData: 1, email:1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1,is_mail_send:1,installation_price:1  }
+          { submittedData: 1, email:1, roomData: 1, materials: 1, _id: 1, quotation_no: 1, phone_number: 1, createdAt: 1,is_mail_send:1,installation_price:1 ,project_type: 1 }
         );
 
         const totalStalls = quotation.submittedData.rooms.reduce(
@@ -32,7 +33,22 @@ module.exports = (agenda) => {
           0
         );
 
-        
+                  const projectTypesMap = await MasterSetting.findOne({ key: "project_material_mapping" });
+                let recommendedMaterialIds = [];
+                if (projectTypesMap && quotation.project_type) {
+                  const mapping = projectTypesMap.value.find(
+                    (item) => item.project_name === quotation.project_type
+                  );
+                  if (mapping && mapping.material_id) {
+                    let parsedIds = mapping.material_id;
+                    if (typeof mapping.material_id === 'string' && mapping.material_id.startsWith('[')) {
+                      try { parsedIds = JSON.parse(mapping.material_id); } catch(e) {}
+                    }
+                    const rawIds = Array.isArray(parsedIds) ? parsedIds.flat(Infinity) : [parsedIds];
+                    recommendedMaterialIds = rawIds.map(Number);
+                  }
+                }
+
         const htmlContent = await quotationController.QuotationPDFhtml(
           quotation._id,
           quotation.quotation_no,
@@ -42,7 +58,8 @@ module.exports = (agenda) => {
           quotation.submittedData.rooms,
           totalStalls,
           totalUrinalScreens,
-          quotation.installation_price
+          quotation.installation_price,
+          recommendedMaterialIds
         );
 
         const pdfBuffer = await quotationController.generatePDF(htmlContent);
