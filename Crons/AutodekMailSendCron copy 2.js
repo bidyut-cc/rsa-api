@@ -43,11 +43,14 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
             }
           });
       
-          const opportunities = response.data.results;
+         // const opportunities = response.data.results;
+          const opportunities = response.data.results.filter(
+            oppt => moment.utc(oppt.createdAt).isSameOrAfter("2026-07-01T00:00:00.000Z")
+          );
         // const opportunities  =[     
         //   {
         //       "id": "68c2f83f8b8f920032eee2a2",
-        //       "name": "Buena Vista - GMP Set 9.5.25 school",
+        //       "name": "Test Buena Vista - GMP Set 9.5.25 school",
         //       "number": null,
         //     //   "client": {
         //     //     "company": {
@@ -192,7 +195,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
         //   },
         //   {
         //     "id": "6259b220436c4400c7f67f06",
-        //     "name": "Popeye's  - Carolina Place - Pineville, NC (NEGOTIATED)",
+        //     "name": "Test Popeye's  - Carolina Place - Pineville, NC (NEGOTIATED)",
         //     "number": null,
         //     "client": {
         //         "company": {
@@ -201,10 +204,10 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
         //         },
         //         "lead": {
         //             "id": "5866aae6855e2f1000426bdc",
-        //             "email": "leeanne.branscome@westwoodcontractors.com",
-        //             "firstName": "Lee Anne",
-        //             "lastName": "Branscome",
-        //             "phoneNumber": "+1 817-302-2069"
+        //             "email": "testleeanne.branscome@westwoodcontractors.com",
+        //             "firstName": "Test Lee Anne",
+        //             "lastName": "Test Branscome",
+        //             "phoneNumber": "+1 817-302-2068"
         //         },
         //         "office": {
         //             "id": "55e8c5581499480a00146d9c",
@@ -394,33 +397,72 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
       
               // Calculate smartBidScore
               bid.smartBidScore = await calculateSmartBidScore(bid);
+              const canUpdateBC = opp.submissionState === "UNDECIDED";
+            // =====================================================================
+          // NEW LOGIC: Auto Accept/Decline in Building Connected based on Score
+          // =====================================================================
+
+
+            if (canUpdateBC) {
+              if (bid.smartBidScore <= 15) {
+                await updateBuildingConnectedStatus(
+                  bid.opportunities_id,
+                  token,
+                  "DECLINED"
+                );
+                bid.submissionState = "DECLINED";
+              } else if (bid.smartBidScore >= 60) {
+                await updateBuildingConnectedStatus(
+                  bid.opportunities_id,
+                  token,
+                  "WILL_SUBMIT"
+                );
+                bid.submissionState = "WILL_SUBMIT";
+              }
+            }
+          // =====================================================================
+
+
                // Upsert lead in HubSpot and get contactId
                const contactData = {
                 "email": clientData?.lead?.email,
                 "firstname": clientData?.lead?.firstName,
                 "lastname": clientData?.lead?.lastName,
+                "tags":"BUILDINGCONNECTED"
                // "phone": clientData?.lead?.phoneNumber
                }
-              // const hubspotIds = await upsertHubspotLead(bid,contactData);
-              // if (hubspotIds) {
-              //   bid.hubspotContactId = hubspotIds.hubspotContactId;
-              //   bid.hubspotLeadId = hubspotIds.hubspotLeadId; // save HubSpot ID
-              // }
+
+              // const contactData = {
+              //   "email": "test123@gmail.com",
+              //   "firstname": "Test 12",
+              //   "lastname": "Test 34",
+              //   "tags":"BUILDINGCONNECTED"
+              //  // "phone": clientData?.lead?.phoneNumber
+              //  }
+            
 
               queue = queue.then(async () => {
-                const hubspotIds = await upsertHubspotLead(bid, contactData);
+                const hubspotIds = await upsertHubspotDeal(bid, contactData);
                 await delay(interval); // wait before next HubSpot call
                 if (hubspotIds) {
                   bid.hubspotContactId = hubspotIds.hubspotContactId;
                   bid.hubspotLeadId = hubspotIds.hubspotLeadId;
                 }
               });
-      
+              // return {
+              //   updateOne: {
+              //     filter: { opportunities_id: bid.opportunities_id }, // check if exists
+              //     update: { $set: bid },  // update with new data
+              //     upsert: true,           // insert if not exists
+              //   }
+              // };
               return {
                 updateOne: {
-                  filter: { opportunities_id: bid.opportunities_id }, // check if exists
-                  update: { $set: bid },  // update with new data
-                  upsert: true,           // insert if not exists
+                  filter: { opportunities_id: bid.opportunities_id },
+                  update: {
+                    $setOnInsert: bid
+                  },
+                  upsert: true
                 }
               };
             }));
@@ -716,7 +758,7 @@ async function upsertHubspotLead(bid,contactData){
         // 2️⃣ Prepare the payload
         const leadPayload = {
           properties: {
-            hubspot_owner_id:process.env.HUBSPOT_OWNER_ID,
+          //  hubspot_owner_id:process.env.HUBSPOT_OWNER_ID,
             hs_lead_type:"NEW_BUSINESS",
             hs_lead_name: bid.name,
             company_name:`${bid.client?.company?.name}`,
@@ -774,6 +816,201 @@ async function upsertHubspotLead(bid,contactData){
 
 }
 
+async function upsertHubspotDeal(bid,contactData){
+  try {
+    /* ---------------------------------------------------
+     1️⃣ Get HubSpot Access Token
+    --------------------------------------------------- */
+    const tokenResponse = await axios.post(
+      "https://api.hubapi.com/oauth/v1/token",
+      new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: process.env.HUBSPOT_CLIENT_ID,
+        client_secret: process.env.HUBSPOT_CLIENT_SECRET,
+        refresh_token: process.env.HUBSPOT_REFRESH_TOKEN,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+  
+    const accessToken = tokenResponse.data.access_token;
+
+ 
+    /* ---------------------------------------------------
+     2️⃣ Check existing bid in DB
+    --------------------------------------------------- */
+    //const existingBid = await Bid.findOne({ opportunities_id: bid.opportunities_id });
+
+      const query = {
+        opportunities_id: bid?.opportunities_id,
+      };
+
+      if (bid?.client?.company?.id) {
+        query["client.company.id"] = bid.client.company.id;
+      }
+
+      if (bid?.client?.lead?.id) {
+        query["client.lead.id"] = bid.client.lead.id;
+      }
+
+      if (bid?.projectSize != null) {
+        query.projectSize = String(bid.projectSize);
+      }
+
+      const existingBid = await Bid.findOne(query);
+
+     /* ---------------------------------------------------
+     3️⃣ Resolve / Create Contact
+    --------------------------------------------------- */
+    let hubspotContactId = existingBid?.hubspotContactId || null;
+
+    if (!hubspotContactId) {
+      // 🔍 Search contact by email
+      const searchPayload = {
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: "email",
+                operator: "EQ",
+                value: contactData.email,
+              },
+            ],
+          },
+        ],
+        properties: ["email", "firstname", "lastname", "phone"],
+        limit: 1,
+      };
+
+      const searchResponse = await axios.post(
+        "https://api.hubapi.com/crm/v3/objects/contacts/search",
+        searchPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (searchResponse.data.results?.length > 0) {
+        hubspotContactId = searchResponse.data.results[0].id;
+      } else {
+        // ➕ Create contact
+        const contactResponse = await axios.post(
+          "https://api.hubapi.com/crm/v3/objects/contacts",
+          { properties: contactData },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        hubspotContactId = contactResponse.data.id;
+      }
+    }
+    /* ---------------------------------------------------
+     4️⃣ If Deal Already Exists → SKIP
+    --------------------------------------------------- */
+    if (existingBid?.hubspotLeadId) {
+      console.log(
+        `⏭️ Deal already exists for opportunity ${bid.opportunities_id}, skipping`
+      );
+
+      return {
+        hubspotContactId,
+        hubspotLeadId: existingBid.hubspotLeadId,
+      };
+    }
+
+    /* ---------------------------------------------------
+     5️⃣ Decide Pipeline & Stage
+    --------------------------------------------------- */
+
+      const smartBidScore = Number(bid.smartBidScore || 0);
+      const threshold = Number(process.env.SMARTBID_THRESHOLD); // 15
+
+      let selectedPipelineId;
+      let selectedStageId;
+
+
+      if (smartBidScore <= threshold) {
+        // Unqualified (0 - 15)
+        selectedPipelineId = process.env.SMARTBID_LOW_SCORE_PIPELINE_ID;
+        selectedStageId = process.env.SMARTBID_LOW_SCORE_STAGE_ID;
+      } else {
+        // SmartBid (16+)
+        selectedPipelineId = process.env.SMARTBID_HIGH_SCORE_PIPELINE_ID;
+        selectedStageId = process.env.SMARTBID_HIGH_SCORE_STAGE_ID;
+      }
+
+      /* ---------------------------------------------------
+     6️⃣ Create Deal (POST ONLY)
+    --------------------------------------------------- */
+        // 2️⃣ Prepare the payload
+        const dealPayload = {
+          properties: {
+          //  hubspot_owner_id:process.env.HUBSPOT_OWNER_ID,
+            pipeline: selectedPipelineId,
+            dealstage: selectedStageId,
+            dealname: bid.name,
+            company_name:`${bid.client?.company?.name}`,
+            due_at: bid.dueAt,
+            project_size: bid.projectSize,
+            location: bid.location?.complete,
+            client: `${bid.client?.lead?.firstName} ${bid.client?.lead?.lastName}`,
+            trade_name: bid.tradeName,
+            dead_line: bid.deadline,
+            project_information: bid.projectInformation,
+            smart_bid_score: `${bid.smartBidScore}%`,
+            link_url: bid.LinkURL,
+            created_at:new Date(bid.createdAt),
+            updated_at:new Date(bid.updatedAt),
+            zipcode:bid.location?.zip,
+            send_followup_emails:false
+          },
+          associations: [
+            {
+              "to": { "id": hubspotContactId},
+              "types": [
+                {
+                  "associationCategory": "HUBSPOT_DEFINED",
+                  "associationTypeId": 3
+                }
+              ]
+            }
+          ]
+          
+         
+        };
+
+
+
+    const dealResponse = await axios.post(
+      "https://api.hubapi.com/crm/v3/objects/deals",
+      dealPayload,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  
+
+    const hubspotLeadId = dealResponse.data.id;
+    return { hubspotContactId, hubspotLeadId };
+  } catch (err) {
+    console.error("HubSpot upsert error:", err.response?.data || err.message);
+    return null;
+  }
+}
+
 
 async function getNextClientNumber() {
   const counter = await MasterSetting.findOneAndUpdate(
@@ -788,3 +1025,36 @@ async function getNextClientNumber() {
 async function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+
+
+// -------------------------------------------------------------
+// Helper to Update BuildingConnected Opportunity Status
+// -------------------------------------------------------------
+async function updateBuildingConnectedStatus(opportunityId, token, state) {
+  try {
+    // If token wasn't passed or expired, fetch it again dynamically
+    if (!token) {
+      token = await getAutodeskToken(); 
+    }
+
+    const baseUrl = 'https://developer.api.autodesk.com';
+    const url = `${baseUrl}/construction/buildingconnected/v2/opportunities/${opportunityId}`;
+    
+    await axios.patch(url, {
+      submissionState: state
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    // This will print the exact error Autodesk gives us (e.g. invalid token, 403 Forbidden, 400 Bad Request)
+    const apiError = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+    console.error(`Autodesk API Error updating opportunity ${opportunityId} to ${state}:`, apiError);
+    throw new Error(apiError); // Throw it back to the loop so it can catch it
+  }
+}
+
+

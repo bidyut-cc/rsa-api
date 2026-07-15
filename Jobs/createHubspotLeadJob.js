@@ -72,7 +72,7 @@ module.exports = (agenda) => {
         
  
 
-        // Create deal in Hubspot
+        // Create deal in Hubspot portal
         const deal = await quotationController.createHubspotDeal(contactData,dealData);
      
   

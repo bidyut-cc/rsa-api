@@ -375,7 +375,7 @@ class FrontendController {
   async generatePDF(htmlContent) {
     const browser = await puppeteer.launch({
       headless: true,
-     // executablePath: "/usr/bin/chromium-browser",
+      executablePath: "/usr/bin/chromium-browser",
       args: [
         "--no-sandbox", // Disable sandboxing
         "--disable-setuid-sandbox",
@@ -2190,10 +2190,15 @@ Layout- ${layout?.layoutName}${urinalDetails}
                <tr>
                   <td colspan="2">
                        <h4 style="color:#fff; font-size:16px; line-height: 1; font-weight: 600; margin-bottom: 6px; margin-top: 6px;">Quote Number #${quotation_no.slice(-6)}</h4>
-                       <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Date: ${moment(createdAt).format("MM/DD/YY")} </p>
-                      <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Expires: ${moment(createdAt).add(30, 'days').format("MM/DD/YY")} </p>
-
                   </td>
+               </tr>
+               <tr>
+               <td>
+                  <p style="margin-top: 5px; margin-bottom: 0px;color:#fff">Date: ${moment(createdAt).format("MM/DD/YY")} </p>
+                </td>
+                <td>
+                  <p style="margin-top: 5px; margin-bottom: 0px;color:#fff;text-align:right">Expires: ${moment(createdAt).add(30, 'days').format("MM/DD/YY")} </p>
+                </td>
                </tr>
           </table>
       </td>
@@ -2201,10 +2206,10 @@ Layout- ${layout?.layoutName}${urinalDetails}
   </tr>
   <tr>
   <td colspan="2" style="text-align: center; margin-top: 0px;">
-      <h4 style="font-size: 28px; color:#3d58a4; font-weight: 900; margin-bottom: 10px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 10px;">
+      <h4 style="font-size: 20px; color:#3d58a4; font-weight: 900; margin-bottom:0px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 5px;">
          Select Your Material & Purchase Now
       </h4>
-      <h5 style="font-size: 14px; color:#3d58a4; font-weight: 500; margin-bottom: 10px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 10px;">
+      <h5 style="font-size: 14px; color:#3d58a4; font-weight: 500; margin-bottom:5px; font-family:Verdana, Geneva, Tahoma, sans-serif; margin-top: 5px;">
       Choose the partition material that best fits your project. Click <a style="font-weight:700;" href="${process.env.FRONTEND_UI_URL}/choose-materials?id=${quotation_id}&abandoned=1">Customize and Buy</a> to check
       out securely—our team will confirm details before production.
       </h5>
@@ -2673,14 +2678,7 @@ ${
      </td>
   </tr>
   <tr>
-  <tr style="page-break-inside: avoid; page-break-before: auto;">
-    <td colspan="2" style="text-align: center; padding: 15px 30px;">
-        <a href="${process.env.FRONTEND_UI_URL}/pages/privacy-policy-terms-and-conditions" target="_blank" style="display: block; width: 100%; text-align: center; text-decoration: none;">
-            <!-- Added width, max-width, and max-height limits to force scaling -->
-            <img src="${process.env.URI}/uploads/images/trust-badge.png" alt="RSA Trusted Partner - Why Choose Us" style="width: 50%; max-width: 100; max-height:200px; height: auto; object-fit: contain; border-radius: 12px; margin: 0 auto; display: inline-block;" />
-        </a>
-    </td>
-</tr>
+
 
       <td colspan="2" style="padding: 10px 30px;">
           <h2 style="color:#3d58a4; font-size: 24px; font-weight: 900; margin-top: 10px; margin-bottom: 15px; font-family:Verdana, Geneva, Tahoma, sans-serif;">Why Choose RSA?</h2>
@@ -3696,7 +3694,6 @@ ${
   async syncToMonday(req, res) {
     try {
       const events = Array.isArray(req.body) ? req.body : [];
-
       for (const event of events) {
         const {
           subscriptionType,
@@ -3708,9 +3705,9 @@ ${
 
         const finalStages = [
           process.env.SMARTBID_SCORE_FINAL_STAGE_ID,
-          process.env.QUOTE_TOOL_FINAL_STAGE_ID,
+          process.env.QUOTE_TOOL_FINAL_STAGE_ID
         ];
-        console.log(finalStages, propertyValue);
+       // console.log(finalStages, propertyValue);
 
         /**
          * 1️⃣ Deal Stage Change → Create Monday Item
