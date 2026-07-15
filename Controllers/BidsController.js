@@ -704,7 +704,7 @@ async  upsertHubspotLead(bid,contactData){
         // 2️⃣ Prepare the payload
         const leadPayload = {
           properties: {
-            hubspot_owner_id:process.env.HUBSPOT_OWNER_ID,
+           // hubspot_owner_id:process.env.HUBSPOT_OWNER_ID,
             hs_lead_type:"NEW_BUSINESS",
             hs_lead_name: bid.name,
             due_at: bid.dueAt,
